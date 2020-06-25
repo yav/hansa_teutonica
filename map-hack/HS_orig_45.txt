@@ -1,0 +1,142 @@
+"Coellen" #8b30ce
+- T 1, T 3
+
+"Warburg" #4e9392
+- T 2, T 3
+
+"Göttingen" #13a6c0
+- T 1, M 1, T 3
+
+"Halle" #31220e
+- T 1, T 2
+
+"Quedlinburg" #76b07e
+- M 2, M 3
+
+"Magdeburg" #03ed93
+- M 1, T 2
+
+"Goslar" #698cc2
+- T 1, T 4
+
+"Hildesheim" #aa777d
+- T 1, T 4
+
+"Paderborn" #5e0490
+- T 1, M 4
+
+"Dortmund" #b1a72f
+- M 1, T 2, T 3
+
+"Duisburg" #a6df26
+- T 1
+
+"Arnheim" #15e60c
+- T 1, M 1, T 2, T 3
+
+"Münster" #6db1ca
+- M 1, T 2
+
+"Minden" #3eacea
+- T 1, T 2, T 3, T 4
+
+"Brunswick" #c5c5a2
+- T 2
+
+"Stendal" #950cdc
+- T 1, M 1, T 2, T 3
+
+"Perleberg" #d72760
+- T 1, T 3, M 4
+
+"Lüneburg" #52721d
+- M 2, T 4
+
+"Hannover" #a9086a
+- T 1, T 3
+
+"Bremen" #28d289
+- M 1, T 3
+
+"Osnabrück" #ce6298
+- T 1, T 2, T 4
+
+"Kampen" #586094
+- M 2, T 4
+
+"Emden" #cd6bf9
+- M 1, T 3
+
+"Gröningen" #030f5a
+- T 1, M 2
+
+"Stade" #2338ab
+- M 1
+
+"Hamburg" #cadedc
+- T 1, T 2, T 4
+
+"Lübeck" #9fcea7
+- T 1, T 3
+
+--
+
+
+"Hamburg"
+- "Lübeck" #88762e 0 #4159a4 #c7d192 #d07a2a
+- "Lüneburg" #6e67ef 90 #afe026 #63f137 #da1cee #fa3ff3
+- "Bremen" #95e8aa 350 #792d81 #505248 #eefda6 #5774e3 
+- "Stade" #225238 190 #12555b #07a976 #81d36b
+
+"Emden"
+- "Gröningen" #2ae9d7 0 #8a08b0 #327ede #5d4e75
+- "Osnabrück" #a53a38 270 #ccec4c #35bae5 #e0a796 #297fa0
+
+"Kampen"
+- "Osnabrück" #e46035 180 #a0decc #84dbe6
+
+"Bremen"
+- "Osnabrück" #0ece79 135 #3e0a2e #f2d803 #6d1322
+- "Minden" #33e871 300 #dd6a9d #8c7c02 #35b34c
+- "Hannover" #c5cccb 245 #73071c #1e0fa5 #302887
+
+"Minden"
+- "Hannover" #41c9af 180 #1bdf4c #e9b18f #d8794e
+- "Brunswick" #25520c 15 #c0bb45 #e612e4 #1ab7a8 #c3adf8
+- "Paderborn" #7a029d 90 #3f00ff #9de97c #8b9bd5
+- "Münster" #e80ab6 170 #c2033c #833ca8 #ebbf34
+
+"Arnheim"
+- "Kampen" #844c2d 45 #389a15 #022f25 #cf0155
+- "Münster" #59a74d 20 #122a49 #287dfe #2064d5
+- "Duisburg" #5ff638 90 #9ee089 #8a8b0b #0af451
+
+"Duisburg"
+- "Dortmund" #d6ce48 180 #3dd6d6 #644bc7
+
+"Paderborn"
+- "Dortmund" #bf95c8 180 #d7bd92 #3e4f14 #2a1f7a
+- "Warburg" #b444cf 130 #9fcb90 #d7af18 #33b513
+- "Hildesheim" #06206f 345 #ae8d46 #eeff78 #fd182e
+
+"Lüneburg"
+- "Hannover" #def3a3 145 #fa2987 #cd3182 #657812
+- "Perleberg" #52bd05 45 #547f4e #27d708 #68fec8
+
+"Stendal"
+- "Perleberg" #6aa46e 90 #ce3478 #e4046e #53bd98
+- "Magdeburg" #01787a 270 #a83069 #11a85b #4f94c1
+- "Brunswick" #424402 30 #33d35b #e30aa4 #452bb1 #0030d8
+
+"Warburg"
+- "Coellen" #d27a4e 180 #0b38ec #d49851 #519f45 #69aad4
+- "Göttingen" #971008 180 #604d7a #0a61ca #d1f217
+
+"Quedlinburg"
+- "Göttingen" #a4a3c5 330 #f3dda3 #35fedd #91d08e
+- "Halle" #9ace6e 80 #6b0536 #bdd6ad #540d5a #d65378
+- "Goslar" #df0119 270 #30b48e #0cd063 #27cbb9 #4941b0
+
+"Goslar"
+- "Magdeburg" #36f0ef 200 #9414ae #ff1cb3
+- "Hildesheim" #c2e8ad 180 #b0c408 #97bbf1 #1b7876

@@ -1,0 +1,6 @@
+1. Use ParseMap.hs to turn the map spec into a Lua function
+2. Concatenate the resulting Lua function with `static.lua`
+3. Load the resulting script into a TTS instance containing the objects
+4. Start an external service to listen to TTS's consolve
+5. Type `lua talk()` at the console to generate some Lua statement
+   that will be captures by the external service

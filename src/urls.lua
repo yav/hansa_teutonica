@@ -1,0 +1,28 @@
+--------------------------------------------------------------------------------
+-- URLS
+
+board_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863115149/424C6AB8EA53ADC4EBD3C957BC02DFA9C3C72B91/"
+
+round_token_model_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863621334/0068A92DFB2B3E093D7C72189D71DFB0AB44D520/"
+
+pass_url = "http://cloud-3.steamusercontent.com/ugc/1257016010465217486/94C90003E6AA508121FC081FA76189072E952DB0/"
+
+player_board_url =
+  { Yellow = "http://cloud-3.steamusercontent.com/ugc/1181580167863328041/C6BB8C6C587D3A0F1DE3467A6F09E50A52C1904A/"
+  , Red = "http://cloud-3.steamusercontent.com/ugc/1181580167863327522/AC0CBEFC07C94769ECCEF5FF3D4EC669579C53F0/"
+  , Purple = "http://cloud-3.steamusercontent.com/ugc/1181580167863327077/7D593C2873BBD9943F007049A1ACCBABFA67E8E0/"
+  , Green = "http://cloud-3.steamusercontent.com/ugc/1181580167863326556/8FEB889B2DBD6B6238F07D39AE770124843B3951/"
+  , Blue = "http://cloud-3.steamusercontent.com/ugc/1181580167863326556/8FEB889B2DBD6B6238F07D39AE770124843B3951/"
+  }
+
+bonus_token_model_url = "http://cloud-3.steamusercontent.com/ugc/1181580227101446076/DEF0BF91642CF5636724CA3A37083385C810BA06/"
+
+bonus_token_url =
+  { "http://cloud-3.steamusercontent.com/ugc/1181580227101445646/285890C31940354C594E228E0E39DA28B3BC2418/" -- upgrade
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101445117/93E3950ECDF8A95D514F62B5F6A08C5684752FA4/" -- swap
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101444557/563FB2591B078BB6C51E7ADAB708D745F3A1FEA7/" -- move
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101444047/752B29395DC37FC096FBBB63AECB551C3C40A262/" -- extra
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101443500/D464B24A3DB5210A62309185ACC7F15D103E45F3/" -- act 4
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101443500/D464B24A3DB5210A62309185ACC7F15D103E45F3/" -- act 3
+  }
+
