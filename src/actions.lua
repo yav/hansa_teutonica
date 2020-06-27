@@ -73,6 +73,16 @@ function checkCanComplete(g,p,opts)
 end
 
 
+function checkCanHire(g,p,opts)
+  local s = g.playerState[p]
+  if s.passive[trader] + s.active[trader] > 0 then
+    push(opts, { text = "Hire workers"
+               , val  = || actHireWorkers(g,p,||takeActions(g))
+               })
+  end
+end
+
+
 
 function takeActions(g)
   local p      = g.players[g.curPlayer]
@@ -86,6 +96,7 @@ function takeActions(g)
     checkCanReplace(g,p,opts)
     checkCanMove(g,p,opts)
     checkCanComplete(g,p,opts)
+    checkCanHire(g,p,opts)
   end
 
 
@@ -134,6 +145,10 @@ function actPlaceActiveWorker(g,p,k)
   q.enQ(function() noteBuiltOn(g,p,buildOn.edge); endAction(s,k) end)
 end
 
+
+
+--------------------------------------------------------------------------------
+-- Replacing Workers
 
 
 -- Put additional workers out when we were displaced
@@ -232,6 +247,11 @@ end
 
 
 
+
+
+--------------------------------------------------------------------------------
+-- Move workers
+
 function actMoveWorkers(g,p,ourSpots,k)
   print(playerColorBB(p) .. " chose to move workers.")
   local s = g.playerState[p]
@@ -320,6 +340,11 @@ function actMoveWorkers(g,p,ourSpots,k)
   sem.wait(||endAction(s,k))
 end
 
+
+
+--------------------------------------------------------------------------------
+-- Complete a route
+
 function actCompleteRoute(g,p,edges,k)
   local s = g.playerState[p]
   local q = actQ()
@@ -382,4 +407,38 @@ function actCompleteRoute(g,p,edges,k)
   end)
 
   q.enQ(||endAction(s,k))
+end
+
+
+--------------------------------------------------------------------------------
+-- Hire workers
+
+function actHireWorkers(g,p,k)
+  local s     = g.playerState[p]
+  local limit = bagLevelMap[s.bagLevel]
+  local ts    = s.passive[trader]
+  local ms    = s.passive[merchant]
+  if ts + ms <= limit then
+    doChangePassive(g,p,trader,-ts)
+    doChangeActive(g,p,trader,ts)
+    doChangePassive(g,p,trader,-ms)
+    doChangeActive(g,p,trader,ms)
+    k()
+    return
+  end
+
+  local q = actQ()
+
+  local function hireOne()
+    askWorkerType(p,"Hire worker",s.passive,function(t)
+      doChangePassive(g,p,t,-1)
+      doChangeActive(g,p,t,1)
+      q.next()
+    end)
+  end
+
+  for i = 1,limit do
+    q.enQ(hireOne)
+  end
+  q.enQ(k)
 end
