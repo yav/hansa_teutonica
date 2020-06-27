@@ -178,9 +178,67 @@ function newPlayer(color,turnOrder)  -- Player
   p.turnUsedActions = 0
   p.turnReplaceBonus = 0
 
+  p.foreignBuilds = 0
+  p.foreignBuildsIn = {}
+
   p.score = 0
   return p
 end
 
 
+function gainForeignBuilds(g,p,node)
+  if #node.gateway == 0 then return end
+  local s = g.playerState[p]
+  local b = s.foreignBuilds
+  s.foreignBuilds = b + 1
+  for _,r in ipairs(node.gateway) do
+    local b = s.foreignBuildsIn[r]
+    s.foreignBuildsIn[r] = b + 1
+  end
+end
+
+function startTurn(g,p)
+  local s = g.playerState[p]
+  s.turnActions = actionLevelMap[s.actionLevel]
+  s.turnUsedActions = 0
+  s.turnReplaceBonus = 0
+
+  local foreignBuildsIn = {}
+  for _,r in ipairs(g.map.regions) do
+    if r ~= g.map.defaultRegion then foreignBuildsIn[r] = 0 end
+  end
+  s.foreignBuilds = 0
+  s.foreignBuildsIn = foreignBuildsIn
+
+  for n,node in pairs(g.map.nodes) do
+    local w = getRightMost(g,n)
+    if w and p == w.owner then gainForeignBuilds(g,p,node) end
+  end
+  log(s.foreignBuilds)
+end
+
+-- returns the set of foreign regions in which we can build
+function accessibleRegions(g,p)
+  local regs = {}
+  regs[g.map.defaultRegion] = true
+  local s = g.playerState[p]
+  if s.foreignBuilds == 0 then return regs end
+
+  for r,n in pairs(s.foreignBuildsIn) do
+    if n > 0 then regs[r] = true end
+  end
+
+  return regs
+end
+
+-- update foreignBuilds given that we just built on e
+function noteBuiltOn(g,p,e)
+  local edge = g.map.edges[e]
+  local r = edge.region
+  if r == g.map.defaultRegion then return end
+  local s = g.playerState[p]
+  s.foreignBuilds = s.foreignBuilds - 1
+  local b = s.foreignBuildsIn[r]
+  s.foreignBuildsIn[r] = b - 1
+  end
 

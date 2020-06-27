@@ -7,10 +7,7 @@ function nextTurn(g)
   local p = g.players[pn]
 
   print("\n Turn #" .. g.turn)
-  local s = g.playerState[p]
-  s.turnActions = actionLevelMap[s.actionLevel]
-  s.turnUsedActions = 0
-
+  startTurn(g,p)
   takeActions(g)
 end
 
@@ -19,6 +16,11 @@ function endAction(s,k)
   s.turnUsedActions = s.turnUsedActions + 1
   -- XXX: check for end game
   k()
+end
+
+function endTurn(g)
+  -- XXX: replace bonus marker
+  nextTurn(g)
 end
 
 
@@ -34,6 +36,7 @@ function takeActions(g)
     local totalActive = s.active[trader] + s.active[merchant]
 
      if totalActive > 0 then
+        -- XXX: check that there is a spot where at least one worker can go?
         push(opts, { text = "Place worker"
                    , val = || actPlaceActiveWorker(g,p,||takeActions(g))
                    })
@@ -42,7 +45,7 @@ function takeActions(g)
         if totalActive > 1 then
           local onlyTrader = totalActive == 2
           local onlyRoad = s.active[merchant] == 0
-          local regions = nil -- XXX
+          local regions = accessibleRegions(g,p)
           local opSpots = opponentSpots(g,p,onlyTrader,onlyRoad,regions)
           if #opSpots > 0 then
             push(opts,
@@ -71,13 +74,10 @@ function takeActions(g)
 
 
   if remain == 0 or #opts == 0 then
-    push(opts, { text = "End turn", val = || nextTurn(g) })
-      -- XXX: REPLACE PLATES
-      -- XXX: check end of game
+    push(opts, { text = "End turn", val = || endTurn(g) })
   end
   -- Use plate
   -- Normal action, if actional point remaining
-  -- End turn
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
   askText(p,msg,opts,|f|f())
@@ -92,7 +92,7 @@ function actPlaceActiveWorker(g,p,k)
   local merchantNum = s.active[merchant]
 
   local workerType = nil
-  local reg = nil -- XXX:
+  local reg = accessibleRegions(g,p)
 
   local q = actQ()
   q.enQ(|| askWorkerType(p,"Choose worker type",s.active, q.next))
@@ -102,8 +102,12 @@ function actPlaceActiveWorker(g,p,k)
                          , workerType , reg, q.next)
   end)
 
-  q.enQ(||doPlaceActive(g, q.ans(), { owner = p, shape = workerType },q.next))
-  q.enQ(||endAction(s,k))
+  local buildOn
+  q.enQ(function ()
+          buildOn = q.ans()
+          doPlaceActive(g, buildOn, { owner = p, shape = workerType },q.next)
+        end)
+  q.enQ(function() noteBuiltOn(g,p,buildOn.edge); endAction(s,k) end)
 end
 
 
@@ -181,6 +185,7 @@ function actReplaceOpponent(g,p,spots,k)
 
   -- place worker
   q.enQ(|| doPlaceActive(g,loc,{owner=p,shape=q.ans()},q.next))
+  q.enQ(function() noteBuiltOn(g,p,loc.edge);q.next() end)
 
   -- pay extra cost
   q.enQ(function()

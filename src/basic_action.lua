@@ -92,6 +92,11 @@ function doFillOffice(g,n,w,k)
         GUI.node[n].offices[i] = o
         print(playerColorBB(w.owner) .. " establised an office in "
                                                           .. node.name)
+        if off.vp > 0 then doScorePoints(g,p,off.vp) end
+        if i == 1 or node.offices[i - 1].owner.owner ~= p then
+          -- we are the new right-most
+          gainForeignBuilds(g,w.owner,node)
+        end
         k()
       end)
       return
@@ -99,7 +104,6 @@ function doFillOffice(g,n,w,k)
       x = x + GUI.officeWidth[off.shape]
     end
   end
-  log("NO SPACE")
 end
 
 function doBuildOffice(g,n,e,k)
@@ -131,6 +135,10 @@ function doAddExtra(g,n,w,k)
     k()
   end)
 end
+
+
+
+
 
 function doPlaceBouns(g,p,b,e,k)
   local edge = g.map.edges[e]
@@ -178,5 +186,71 @@ function doUseUpBonus(g,p,i)
   print(playerColorBB(p) .. " used a bonus token")
 end
 
+
 function doUpgradeAction(g,p)
+  local s = g.playerState[p]
+  if s.actionLevel == #actionLevelMap then return end
+
+  print(playerColorBB(p) .. " upgraded their actions.")
+  local curActNum = actionLevelMap[s.actionLevel]
+  s.actionLevel = s.actionLevel + 1
+  local newActNum = actionLevelMap[s.actionLevel]
+  s.turnUsedActions = s.turnUsedActions + (newActNum - curActNum)
+
+  GUI.player[p].actionLevel[s.actionLevel].destroy()
+  doChangeActive(g,p,trader,1)
 end
+
+
+function doUpgradeBag(g,p)
+  local s = g.playerState[p]
+  if s.bagLevel == #bagLevelMap then return end
+
+  print(playerColorBB(p) .. " upgraded their bag.")
+  s.bagLevel = s.bagLevel + 1
+
+  GUI.player[p].bagLevel[s.bagLevel].destroy()
+  doChangeActive(g,p,trader,1)
+end
+
+
+function doUpgradeBuilding(g,p)
+  local s = g.playerState[p]
+  if s.buildingLevel == #buildingLevelMap then return end
+
+  print(playerColorBB(p) .. " upgraded their building.")
+  s.buildingLevel = s.buildingLevel + 1
+
+  GUI.player[p].buildingLevel[s.buildingLevel].destroy()
+  doChangeActive(g,p,trader,1)
+end
+
+function doUpgradeKey(g,p)
+  local s = g.playerState[p]
+  if s.keyLevel == #keyLevelMap then return end
+
+  print(playerColorBB(p) .. " upgraded their keys.")
+  s.keyLevel = s.keyLevel + 1
+
+  GUI.player[p].keyLevel[s.keyLevel].destroy()
+  doChangeActive(g,p,trader,1)
+end
+
+function doUpgradeBook(g,p)
+  local s = g.playerState[p]
+  if s.bookLevel == #bookLevelMap then return end
+
+  print(playerColorBB(p) .. " upgraded their books.")
+  s.bookLevel = s.bookLevel + 1
+
+  GUI.player[p].bookLevel[s.bookLevel].destroy()
+  doChangeActive(g,p,merchant,1)
+end
+
+
+
+
+
+
+
+
