@@ -24,52 +24,68 @@ function endTurn(g)
 end
 
 
-function takeActions(g)
-  local p = g.players[g.curPlayer]
+function checkCanPlace(g,p,opts)
   local s = g.playerState[p]
+  if s.active[trader] + s.active[merchant] == 0 then return end
+  local shape = (s.active[merchant] > 0) and merchant or trader
+  if #freeSpots(g,shape,accessibleRegions(g,p)) > 0 then
+    push(opts, { text = "Place worker"
+               , val  = || actPlaceActiveWorker(g,p,||takeActions(g))
+               })
+  end
+end
+
+
+function checkCanReplace(g,p,opts)
+  local s = g.playerState[p]
+  local totalActive = s.active[trader] + s.active[merchant]
+  if totalActive < 2 then return end
+
+  local onlyTrader  = totalActive == 2
+  local onlyRoad    = s.active[merchant] == 0
+  local regions     = accessibleRegions(g,p)
+  local opSpots     = opponentSpots(g,p,onlyTrader,onlyRoad,regions)
+  if #opSpots > 0 then
+    push(opts, { text = "Replace opponent"
+               , val  = || actReplaceOpponent(g,p,opSpots,||takeActions(g))
+               })
+  end
+end
+
+
+function checkCanMove(g,p,opts)
+  local anyRegion = nil
+  local ourSpots = occupiedSpots(g,p,anyRegion)
+  if #ourSpots > 0 then
+    push(opts, { text = "Move workers"
+               , val  = || actMoveWorkers(g,p,ourSpots,||takeActions(g))
+               })
+  end
+end
+
+function checkCanComplete(g,p,opts)
+  local completed = completedEdges(g,p)
+  if #completed > 0 then
+    push(opts, { text = "Complete route"
+               , val = || actCompleteRoute(g,p,completed,||takeActions(g))
+               })
+  end
+end
+
+
+
+function takeActions(g)
+  local p      = g.players[g.curPlayer]
+  local s      = g.playerState[p]
   local remain = s.turnActions - s.turnUsedActions
 
-  print("\n" .. playerColorBB(p) .. " has " .. remain .. " actions.")
 
   local opts = {}
   if remain > 0 then
-    local totalActive = s.active[trader] + s.active[merchant]
-
-     if totalActive > 0 then
-        -- XXX: check that there is a spot where at least one worker can go?
-        push(opts, { text = "Place worker"
-                   , val = || actPlaceActiveWorker(g,p,||takeActions(g))
-                   })
-
-        -- XXX: region restrictions
-        if totalActive > 1 then
-          local onlyTrader = totalActive == 2
-          local onlyRoad = s.active[merchant] == 0
-          local regions = accessibleRegions(g,p)
-          local opSpots = opponentSpots(g,p,onlyTrader,onlyRoad,regions)
-          if #opSpots > 0 then
-            push(opts,
-              { text = "Replace opponent"
-              , val = || actReplaceOpponent(g,p,opSpots,||takeActions(g))
-              })
-          end
-        end
-    end
-
-    local ourSpots = occupiedSpots(g,p,nil)
-    if #ourSpots > 0 then
-      push(opts, { text = "Move workers"
-                 , val = || actMoveWorkers(g,p,ourSpots,||takeActions(g))
-                 })
-    end
-
-    local completed = completedEdges(g,p)
-    if #completed > 0 then
-      push(opts, { text = "Complete route"
-                 , val = || actCompleteRoute(g,p,completed,||takeActions(g))
-                 })
-    end
-
+    checkCanPlace(g,p,opts)
+    checkCanReplace(g,p,opts)
+    checkCanMove(g,p,opts)
+    checkCanComplete(g,p,opts)
   end
 
 
@@ -80,8 +96,16 @@ function takeActions(g)
   -- Normal action, if actional point remaining
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
+  print("\n" .. msg)
   askText(p,msg,opts,|f|f())
 end
+
+
+
+
+
+
+
 
 -- Assumes at least one active worker and one action
 function actPlaceActiveWorker(g,p,k)
