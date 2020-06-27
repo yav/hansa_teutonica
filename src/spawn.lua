@@ -432,14 +432,6 @@ function spawnPass(loc, k)
 end
 
 function effect(o)
-  local x0 = o.getRotation()[2]
-  o.rotate({0,25,0})
-  Wait.frames(|| o.rotate({0,-35,0}), 20)
-  Wait.frames(|| o.rotate({0,10,0}), 40)
-  Wait.frames(function ()
-    local x = o.getRotation()[2]
-    o.rotate({0,x0-x,0})
-  end, 60)
 end
 
 
