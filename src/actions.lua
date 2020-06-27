@@ -116,7 +116,8 @@ end
 
 
 
-
+--------------------------------------------------------------------------------
+-- Placing workers
 
 -- Assumes at least one active worker and one action
 function actPlaceActiveWorker(g,p,k)
@@ -350,6 +351,8 @@ function actCompleteRoute(g,p,edges,k)
   local q = actQ()
   local edge
   q.enQ(||askEdge(g, p, "Choose route", edges, q.next))
+
+  -- Controlling players of neighbouring cities score a point.
   q.enQ(function()
     edge = q.ans()
     print(playerColorBB(p) .. " completed a route between " ..
@@ -361,32 +364,8 @@ function actCompleteRoute(g,p,edges,k)
     q.next()
   end)
 
-  q.enQ(function()
-    local opts = {}
-
-    local function addOffice(n)
-      local off = nextFreeOffice(g,n)
-      if not off or off.level > s.buildingLevel then return end
-      local have = false
-      for _,stop in ipairs(edge.stops) do
-        if stop.worker.shape == off.shape then have = true; break; end
-      end
-      if not have then return end
-      push(opts, { text = "Build office in " .. n
-                 , val  = ||doBuildOffice(g,n,edge.id,q.next)
-                 })
-    end
-
-    addOffice(edge.from)
-    addOffice(edge.to)
-    -- XXX: add office using bonus
-    -- do yellow action
-
-    push(opts, { text = "Do nothing", val  = q.next })
-
-    askText(p,"Choose action",opts,|f|f())
-
-  end)
+  -- Build office or do city action
+  q.enQ(||performCompleteRouteAction(g,p,edge,q.next))
 
   -- Pick up bonus token.  We do this after resolving choices because
   -- it cannot be used during this action.
@@ -410,10 +389,118 @@ function actCompleteRoute(g,p,edges,k)
 end
 
 
+function checkBuildOffice(g,p,edge,n,opts,k)
+  local s = g.playerState[p]
+
+  local off = nextFreeOffice(g,n)
+  if not off or off.level > s.buildingLevel then return end
+
+  -- do we have the right shape worker on the rout?
+  local have = false
+  for _,stop in ipairs(edge.stops) do
+    if stop.worker.shape == off.shape then have = true; break; end
+  end
+  if not have then return end
+
+  push(opts, { text = "Build office in " .. n
+             , val  = ||doBuildOffice(g,n,edge.id,k)
+             })
+end
+
+function checkCityAction(g,p,edge,n,opts,k)
+  local node = g.map.nodes[n]
+  local act = node.action
+  if not act then return end
+
+  local s = g.playerState[p]
+
+  local lab = cityActionName[act]
+  local function addOpt(f)
+    push(opts, { text = lab
+               , val = function() f(); k() end
+               })
+  end
+
+  if     act == upgradeAction then
+    if s.actionLevel == #actionLevelMap then return end
+    addOpt(||doUpgradeAction(g,p))
+
+  elseif act == upgradeBook then
+    if s.bookLevel == #bookLevelMap then return end
+    addOpt(||doUpgradeBook(g,p))
+
+  elseif act == upgradeKey then
+    if s.keyLevel == #keyLevelMap then return end
+    addOpt(||doUpgradeKey(g,p))
+
+  elseif act == upgradeBag then
+    if s.bagLevel == #bagLevelMap then return end
+    addOpt(||doUpgradeBag(g,p))
+
+  elseif act == upgradeBuilding then
+    if s.buildingLevel == #buildingLevelMap then return end
+    addOpt(||doUpgradeBuilding(g,p))
+
+  elseif act == invest then
+    local yes = checkCanInvest(g,p,edge)
+    if not yes then return end
+    push(opts, { text = lab
+               , val  = ||makeInvestment(g,p,edge,yes,k)
+               })
+  else log("UNKNOWN ACTION: " .. n); return end
+end
+
+function makeInvestment(g,p,edge,yes,k)
+  askInvestmentSpot(g.map,p,yes.opts,function(i)
+    doRemoveWorker(g, {edge=edge.id,stop=yes.stop})
+    doAddInvest(g,p,i,k)
+  end)
+end
+
+
+function checkCanInvest(g,p,edge)
+  local loc   = nil
+  local opts  = {}
+
+  -- Do we have a merchant on the route?
+  for i,stop in ipairs(edge.stops) do
+    if stop.worker and stop.worker.shape == merchant then loc = i; break end
+  end
+  if not loc then return nil end
+
+  -- Spots that we qualify for
+  local s = g.playerState[p]
+  for i,_ in ipairs(buildingLevelMap) do
+    if i > s.buildingLevel then break end
+    local w = g.map.endGameInvest[i]
+    if not w then
+      push(opts,i)
+    end
+  end
+  if #opts == 0 then return nil end
+
+  return { opts = opts, stop = loc }
+end
+
+
+function performCompleteRouteAction(g,p,edge,k)
+  local opts = {}
+  checkBuildOffice(g,p,edge,edge.from,opts,k)
+  checkBuildOffice(g,p,edge,edge.to,opts,k)
+  -- XXX: add office using bonus
+  checkCityAction(g,p,edge,edge.from,opts,k)
+  checkCityAction(g,p,edge,edge.to,opts,k)
+
+  push(opts, { text = "Do nothing", val = k })
+  askText(p,"Choose action",opts,|f|f())
+end
+
+
 --------------------------------------------------------------------------------
 -- Hire workers
 
 function actHireWorkers(g,p,k)
+  print (playerColorBB(p) .. " chose to hire workers.")
   local s     = g.playerState[p]
   local limit = bagLevelMap[s.bagLevel]
   local ts    = s.passive[trader]

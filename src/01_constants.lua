@@ -27,7 +27,11 @@ local upgradeBook     = 2
 local upgradeKey      = 3
 local upgradeBag      = 4
 local upgradeBuilding = 5
-local gainPoints      = 6
+local invest          = 6
+
+local endGameInvestPoints = { 7,8,9,11 }
+local endGameBonusPoints = { 1, 3, 3, 6, 6, 10, 10, 15, 15, 21 }
+                          -- use last one for more
 
 local cityActionName =
   { "Upgrade actions"

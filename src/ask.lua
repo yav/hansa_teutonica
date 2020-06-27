@@ -1,4 +1,14 @@
 
+function askInvestmentSpot(m,p,spots,k)
+  if #spots == 1 then k(spots[1]); return end
+  local opts = {}
+  for i,x in ipairs(spots) do
+    opts[i] = { x = investLocX(m,x), y = m.investY, r = 0, val = x }
+  end
+  ask(p, ptrWorker(merchant,'?'), "Choose spot", opts, k)
+end
+
+
 function askWorkerType(p,q,workers,k)
   if workers[trader] == 0 then k(merchant); return end
   if workers[merchant] == 0 then k(trader); return end

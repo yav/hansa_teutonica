@@ -247,7 +247,11 @@ function doUpgradeBook(g,p)
   doChangeActive(g,p,merchant,1)
 end
 
-
+function doAddInvest(g,p,i,k)
+  local w = { owner = p, shape = merchant }
+  g.map.endGameInvest[i] = w
+  spawnInvest(g.map, w, i, k)
+end
 
 
 

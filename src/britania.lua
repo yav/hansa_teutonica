@@ -14,13 +14,18 @@ function britaniaMap(map)
   map.regions = { england, scotland, wells }
   map.defaultRegion = england
 
+  -- Location of invest token
+  map.investX = -25
+  map.investY = -14.8
 
+
+  -- Nodes
   region = { england }
 
   node("London",3,-9.5)
   addGateway(curNode, wells)
   addGateway(curNode, scotland)
-  curNode.action = upgradeBuilding
+  addAction(curNode, upgradeBuilding)
   office(trader,1)
   office(trader,2)
   office(trader,2)
@@ -39,7 +44,7 @@ function britaniaMap(map)
   office(trader,1); curOffice.vp = 2
 
   node("Norwich",9.5,-2.25)
-  curNode.action = upgradeBook
+  addAction(curNode, upgradeBook)
   office(trader,1)
   office(trader,3)
 
@@ -48,7 +53,7 @@ function britaniaMap(map)
   office(trader,3)
 
   node("York",5.8,2.75)
-  curNode.action = upgradeKey
+  addAction(curNode, upgradeKey)
   office(trader,1)
   office(merchant,2)
 
@@ -83,6 +88,7 @@ function britaniaMap(map)
   office(trader,3)
 
   node("Plymouth", -9, -13.3)
+  addAction(curNode,invest)
   office(trader,1)
   office(merchant,1)
   curOffice.vp = 2
@@ -127,14 +133,14 @@ function britaniaMap(map)
   office(trader,2)
 
   node("Chester", -5.1, -1.25)
-  curNode.action = upgradeAction
+  addAction(curNode, upgradeAction)
   office(trader,1)
   office(merchant,2)
   office(trader,4)
 
   region = { scotland }
   node("Newcastle", 0.91, 10.15)
-  curNode.action = upgradeBag
+  addAction(curNode,upgradeBag)
   office(trader,1)
   office(trader,2)
   office(merchant,3)

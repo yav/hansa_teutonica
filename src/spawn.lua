@@ -15,6 +15,8 @@ function newGUI(g,k)
   GUI.officeWidth[trader] = 0.85
   GUI.officeWidth[merchant] = 0.95
 
+  GUI.endGameInvest = {}
+
   local sem = newSem()
   sem.up(); spawnBoard(sem.down)
   sem.up(); spawnMap(g.map, sem.down)
@@ -52,7 +54,18 @@ function spawnMap(m,k)
     sem.up()
     spawnEdge(e,sem.down)
   end
+  for i,w in pairs(m.endGameInvest) do
+    sem.up()
+    spawnInvest(m,w,i,sem.down)
+  end
   sem.wait(k)
+end
+
+function investLocX(m,i) return m.investX + i * 1.2 end
+
+function spawnInvest(m,w,i,k)
+  GUI.endGameInvest[i] =
+    spawnWorker(w,{investLocX(m,i),boardPieceZ,m.investY},k)
 end
 
 

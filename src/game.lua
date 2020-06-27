@@ -22,6 +22,10 @@ function newMap()        -- Map
   map.edges     = {}
   map.regions   = {}
   map.defaultRegion = nil   -- can always place things here
+
+  map.investX       = 0
+  map.investY       = 0
+  map.endGameInvest = {}
   return map
 end
 
@@ -42,6 +46,7 @@ function newNode(map,name,regions,x,y)    -- Node
   map.nodes[name] = node
   return node
 end
+
 
 function getNode(map,name) -- Node
   return map.nodes[name]
@@ -114,6 +119,10 @@ end
 
 function addGateway(node,region)    -- void
   push(node.gateway, region)
+end
+
+function addAction(node,act)
+  node.action = act
 end
 
 

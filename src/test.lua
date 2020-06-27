@@ -20,21 +20,14 @@ end
 function test(g)
 
   local q = actQ()
-  q.enQ(||doPlaceWorker(g,{edge=1,stop=1},{owner="Green",shape=trader},q.next))
-  q.enQ(||doPlaceWorker(g,{edge=1,stop=2},{owner="Green",shape=trader},q.next))
-  q.enQ(||doPlaceWorker(g,{edge=1,stop=3},{owner="Green",shape=trader},q.next))
-  q.enQ(||doPlaceBouns(g,"Green",bonusAct4,1,q.next))
-  q.enQ(function () startTurn(g,"Green"); q.next() end)
-  q.enQ(||doFillOffice(g,"Cardiff",{owner="Green",shape=trader},q.next))
+  local e = 7
+  q.enQ(function() doUpgradeBuilding(g,"Green"); q.next() end)
+  q.enQ(||doPlaceWorker(g,{edge=e,stop=1},{owner="Green",shape=trader},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=e,stop=2},{owner="Green",shape=trader},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=e,stop=3},{owner="Green",shape=merchant},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=e,stop=4},{owner="Green",shape=merchant},q.next))
 
-  q.enQ(function ()doUpgradeAction(g,"Green"); q.next() end)
-  q.enQ(function ()doUpgradeBag(g,"Green"); q.next() end)
-  q.enQ(function ()doUpgradeBuilding(g,"Green"); q.next() end)
-  q.enQ(function ()doUpgradeBook(g,"Green"); q.next() end)
-  q.enQ(function ()doUpgradeKey(g,"Green"); q.next() end)
   q.enQ(||nextTurn(g))
 
-  -- q.enQ(||doTakeBonus(g,"Green",1,q.next))
-  -- q.enQ(||doUseUpBonus(g,"Green",1,q.next))
 
 end
