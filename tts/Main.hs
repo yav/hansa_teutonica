@@ -22,9 +22,10 @@ main =
               Left err -> fail err
               Right (Msg t) -> Text.putStrLn t
 
-       [file] ->
+       [file, xmlfile] ->
           do txt <- Text.readFile file
-             let msg = upload txt
+             xmltxt <- Text.readFile xmlfile
+             let msg = upload txt xmltxt
              BS.putStrLn (JS.encode msg)
 
 
@@ -47,15 +48,16 @@ instance JS.FromJSON Msg where
 
 
 
-upload :: Text -> JS.Value
-upload script = JS.object
+upload :: Text -> Text -> JS.Value
+upload script xml = JS.object
+
   [ ("messageID", int 1)
   , ("scriptStates",
       arr
       [ object [ ("name", "Global")
                , ("guid", "-1")
                , ("script", text script)
-               , ("ui", "")
+               , ("ui", text xml)
                ]
       ]
     )
@@ -71,5 +73,3 @@ int = toJSON
 
 arr :: [JS.Value] -> Value
 arr = toJSON
-
-

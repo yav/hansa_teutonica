@@ -4,9 +4,9 @@ HOST=127.0.0.1
 PORT_IN=39998
 PORT_OUT=39999
 
-netcat -l -p $PORT_IN  $HOST | cabal exec tts &
+nc -l -p $PORT_IN  $HOST | cabal exec tts &
 
-echo '{ "messageID": 0 }' | netcat $HOST $PORT_OUT
+echo '{ "messageID": 0 }' | nc $HOST $PORT_OUT
 
 
 
