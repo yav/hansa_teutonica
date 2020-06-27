@@ -12,7 +12,6 @@ function nextTurn(g)
 end
 
 function endAction(s,k)
-  log("END OF ACTION")
   s.turnUsedActions = s.turnUsedActions + 1
   -- XXX: check for end game
   k()
@@ -62,6 +61,7 @@ function checkCanMove(g,p,opts)
                })
   end
 end
+
 
 function checkCanComplete(g,p,opts)
   local completed = completedEdges(g,p)

@@ -214,7 +214,6 @@ function startTurn(g,p)
     local w = getRightMost(g,n)
     if w and p == w.owner then gainForeignBuilds(g,p,node) end
   end
-  log(s.foreignBuilds)
 end
 
 -- returns the set of foreign regions in which we can build
