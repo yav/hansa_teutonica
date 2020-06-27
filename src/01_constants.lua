@@ -7,6 +7,7 @@ local boardPieceZ = 1.5
 local trader = 1
 local merchant = 2
 
+-- Skills
 local actionLevelMap    = { 2, 3, 3, 4, 4, 5 }
 local bagLevelMap       = { 3, 5, 7, 50 }
 local keyLevelMap       = { 1, 2, 2, 3, 4, }
@@ -50,8 +51,11 @@ local bonusMove = 3
 local bonusExtra = 4
 local bonusAct4 = 5
 local bonusAct3 = 6
+
+local printedBonus = 7      --printed should be >= this
 local bonusPrintedPlace2 = 7
 local bonusPrintedMove2 = 8
+
 
 local bonusName =
   { "Bonus: Upgrade a skill"

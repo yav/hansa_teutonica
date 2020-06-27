@@ -183,7 +183,6 @@ function doUseUpBonus(g,p,i)
   ui.plates[#ui.plates] = nil
   s.finishedPlates = s.finishedPlates + 1
   ui.finishedPlates.setValue(s.finishedPlates .. "")
-  print(playerColorBB(p) .. " used a bonus token")
 end
 
 

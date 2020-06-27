@@ -99,6 +99,7 @@ function takeActions(g)
     checkCanHire(g,p,opts)
   end
 
+  checkBonusUpgradeSkill(g,p,false,opts,|| takeActions(g))
 
   if remain == 0 or #opts == 0 then
     push(opts, { text = "End turn", val = || endTurn(g) })
@@ -364,14 +365,19 @@ function actCompleteRoute(g,p,edges,k)
     q.next()
   end)
 
+  local printedBonusUsed = false
+  q.enQ(function()
+    if edge.bonus and edge.bonus >= printedBonus then
+      usePrintedBonus(g,p,edge.bonus,function(used)
+        printedBonusUsed = used
+        q.next()
+      end)
+    else q.next()
+    end
+  end)
+
   -- Build office or do city action
   q.enQ(||performCompleteRouteAction(g,p,edge,q.next))
-
-  -- Pick up bonus token.  We do this after resolving choices because
-  -- it cannot be used during this action.
-  q.enQ(function()
-    if edge.bonus then doTakeBonus(g,p,edge.id,q.next) else q.next() end
-  end)
 
   -- Return workers from the route back to the supply
   q.enQ(function()
@@ -385,9 +391,21 @@ function actCompleteRoute(g,p,edges,k)
     q.next()
   end)
 
+  -- Pick up bonus token.  We do this after resolving choices because
+  -- it cannot be used during this action.
+  -- The East Expansion rules say that you can also use a printed bonus
+  -- marker at the end of the action, which is not in the Britania rules
+  -- explicitly, but I am assuming these should work the same.
+  q.enQ(function()
+    if     not edge.bonus            then q.next()
+    elseif edge.bonus < printedBonus then doTakeBonus(g,p,edge.id,q.next)
+    elseif not printedBonusUsed      then usePrintedBonus(g,p,edge.bonus,q.next)
+                                     else q.next()
+    end
+  end)
+
   q.enQ(||endAction(s,k))
 end
-
 
 function checkBuildOffice(g,p,edge,n,opts,k)
   local s = g.playerState[p]
@@ -529,3 +547,70 @@ function actHireWorkers(g,p,k)
   end
   q.enQ(k)
 end
+
+
+--------------------------------------------------------------------------------
+-- Using Bonus Tokens
+
+function usePrintedBonus(g,p,b,k)
+  -- XXX:
+  k(false)
+end
+
+
+function checkBonusUpgradeSkill(g,p,printed,opts,k)
+  local s = g.playerState[p]
+  local skills = {}
+
+  local ix = nil
+
+  if not printed then
+    for i,p in ipairs(s.plates) do
+      if p == bonusUpgrade then ix = i; break end
+    end
+    if not ix then return end
+  end
+
+
+  local function addOpt(txt,fun)
+    push(skills, { text = txt
+                , val = function()
+                          fun()
+                          if ix then doUseUpBonus(g,p,ix) end
+                          k()
+                        end
+                })
+  end
+
+  if s.actionLevel < #actionLevelMap then
+    addOpt("Actions", ||doUpgradeAction(g,p))
+  end
+
+  if s.bookLevel < #bookLevelMap then
+    addOpt("Book", ||doUpgradeBook(g,p))
+  end
+
+  if s.keyLevel < #keyLevelMap then
+    addOpt("Key", ||doUpgradeKey(g,p))
+  end
+
+  if s.bagLevel < #bagLevelMap then
+    addOpt("Bag", ||doUpgradeBag(g,p))
+  end
+
+  if s.buildingLevel < #buildingLevelMap then
+    addOpt("Building", ||doUpgradeBuilding(g,p))
+  end
+
+  local lab = bonusName[bonusUpgrade]
+  local useBonus = function()
+    print(playerColorBB(p) .. " used " .. lab)
+    askText(p,"Upgrade",skills,|f|f())
+  end
+
+  if #skills > 0 then
+    push(opts, { text = lab, val = useBonus })
+  end
+end
+
+

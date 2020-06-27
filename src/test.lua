@@ -22,6 +22,12 @@ function test(g)
   local q = actQ()
   local e = 7
   q.enQ(function() doUpgradeBuilding(g,"Green"); q.next() end)
+
+  q.enQ(||doPlaceBouns(g,"Green",bonusUpgrade,e,q.next))
+  q.enQ(||doTakeBonus(g,"Green",e,q.next))
+
+
+
   q.enQ(||doPlaceWorker(g,{edge=e,stop=1},{owner="Green",shape=trader},q.next))
   q.enQ(||doPlaceWorker(g,{edge=e,stop=2},{owner="Green",shape=trader},q.next))
   q.enQ(||doPlaceWorker(g,{edge=e,stop=3},{owner="Green",shape=merchant},q.next))
