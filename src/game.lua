@@ -79,6 +79,15 @@ function newNode(map,name,regions,x,y)    -- Node
 end
 
 
+function nodeHasFree(g,n)
+  local node = g.map.nodes[n]
+  for _,o in ipairs(node.offices) do
+    if not o.worker then return true end
+  end
+  return false
+end
+
+
 function getNode(map,name) -- Node
   return map.nodes[name]
 end
@@ -174,6 +183,20 @@ function newEdge(map,node1,node2,region,x,y,r)    -- Edge
   push(node2.edges,edge.id)
   return edge
 end
+
+function edgeAcceptsBonus(g,edge)
+  if edge.bonus then return false end
+
+  if not nodeHasFree(g,edge.from) and
+     not nodeHasFree(g,edge.to) then return false end
+
+  for _,stop in ipairs(edge.stops) do
+    if stop.worker then return false end
+  end
+
+  return true
+end
+
 
 
 function addStop(edge, type, x, y)  -- Stop

@@ -18,10 +18,33 @@ function endAction(g,s)
 end
 
 function endTurn(g)
-  -- XXX: replace bonus marker
-  nextTurn(g)
+  local p = g.players[g.curPlayer]
+  local q = actQ()
+
+  local function placeBonus(b)
+    local opts = {}
+    for _,edge in ipairs(g.map.edges) do
+      if edgeAcceptsBonus(g,edge) then push(opts,edge.id) end
+    end
+
+    local q1 = actQ()
+    local here = { 3, boardPieceZ, 13 }
+    local img
+    q1.enQ(function () img = spawnBonus(b,here,180,q1.next) end)
+    q1.enQ(||askEdge(g, p, "Place token", opts, q1.next))
+    q1.enQ(||doPlaceBouns(g,p,b,q1.ans().id,q1.next))
+    q1.enQ(function() img.destroy(); q.next() end)
+  end
+
+  local s = g.playerState[p]
+  for _,b in ipairs(s.turnReplaceBonus) do
+    q.enQ(||placeBonus(b))
+  end
+  q.enQ(||nextTurn(g))
 end
 
+
+--------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 
