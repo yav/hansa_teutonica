@@ -107,6 +107,8 @@ function takeActions(g)
   checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
   checkBonusSwap(g,p,opts,|| takeActions(g))
   checkBonusMove(g,p,opts,|| takeActions(g))
+  checkBonusAct(g,p,bonusAct3,opts,|| takeActions(g))
+  checkBonusAct(g,p,bonusAct4,opts,|| takeActions(g))
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
   print("\n" .. msg)
@@ -303,8 +305,8 @@ function actMoveWorkers(g,p,ourSpots,k)
       o.createButton({
         label = "∨",
         font_size = 800,
-        width = 900,
-        height = 900,
+        width = 650,
+        height = 650,
         rotation = { 0, 180, 0 },
         position = { 0, 1, 0 },
         color = playerColor(p),
@@ -579,6 +581,23 @@ end
 function usePrintedBonus(g,p,b,k)
   -- XXX:
   k(false)
+end
+
+function checkBonusAct(g,p,b,opts,k)
+  local ix = haveBounusToken(g,p,b)
+  if not ix then return end
+  local lab = bonusName[b]
+
+  local function useBonus()
+    local s = g.playerState[p]
+    local n = (b == bonusAct3) and 3 or 4
+    s.turnActions = s.turnActions + n
+    print(playerColorBB(p) .. " gained " .. n .. " actions.")
+    doUseUpBonus(g,p,ix)
+    k()
+  end
+
+  push(opts, { text = lab, val = useBonus })
 end
 
 
