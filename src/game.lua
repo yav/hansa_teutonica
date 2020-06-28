@@ -248,5 +248,14 @@ function noteBuiltOn(g,p,e)
   s.foreignBuilds = s.foreignBuilds - 1
   local b = s.foreignBuildsIn[r]
   s.foreignBuildsIn[r] = b - 1
+end
+
+-- Returns the index of the given bonus if we have it, or nil.
+function haveBounusToken(g,p,b)
+  local s = g.playerState[p]
+  for i,tok in ipairs(s.plates) do
+    if tok == b then return i end
   end
+  return nil
+end
 

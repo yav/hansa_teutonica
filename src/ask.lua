@@ -1,4 +1,5 @@
 
+
 function askInvestmentSpot(m,p,spots,k)
   if #spots == 1 then k(spots[1]); return end
   local opts = {}
@@ -58,7 +59,23 @@ function mayPress(x,y)
 end
 
 function askOccupiedSpot(p,q,spots,k)
+  return askOccupiedSpotL(p,"∧",q,spots,k)
+end
+
+
+function askOccupiedSpotL(p,lab,q,spots,k)
   local ui = {}
+
+  local ql
+  if q then
+    ql = spawnObject({
+      type = "3DText",
+      position = {3,2,15},
+      rotation = {90,0,0}
+    })
+    ql.setValue(q)
+  end
+
 
   local finished = false
 
@@ -67,6 +84,7 @@ function askOccupiedSpot(p,q,spots,k)
       _G[thing.fun] = nil
       thing.obj.removeButton(0)
     end
+    if ql then ql.destroy() end
   end
 
   for _,spot in ipairs(spots) do
@@ -80,9 +98,13 @@ function askOccupiedSpot(p,q,spots,k)
       k(spots[me + 1])
     end)
 
-    local obj = GUI.edge[spot.edge].stops[spot.stop]
+    local obj
+    if spot.edge then obj = GUI.edge[spot.edge].stops[spot.stop]
+                 else obj = GUI.node[spot.node].offices[spot.office]
+    end
+
     obj.createButton({
-      label = "∧",
+      label = lab,
       tooltip = playerColorBB(spot.worker.owner) .. " "
                                 .. workerName(spot.worker.shape),
       font_size = 800,

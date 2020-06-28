@@ -75,7 +75,7 @@ end
 
 function checkCanHire(g,p,opts)
   local s = g.playerState[p]
-  if s.passive[trader] + s.active[trader] > 0 then
+  if s.passive[trader] + s.passive[merchant] > 0 then
     push(opts, { text = "Hire workers"
                , val  = || actHireWorkers(g,p,||takeActions(g))
                })
@@ -99,7 +99,8 @@ function takeActions(g)
     checkCanHire(g,p,opts)
   end
 
-  checkBonusUpgradeSkill(g,p,false,opts,|| takeActions(g))
+  checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
+  checkBonusSwap(g,p,opts,|| takeActions(g))
 
   if remain == 0 or #opts == 0 then
     push(opts, { text = "End turn", val = || endTurn(g) })
@@ -365,17 +366,6 @@ function actCompleteRoute(g,p,edges,k)
     q.next()
   end)
 
-  local printedBonusUsed = false
-  q.enQ(function()
-    if edge.bonus and edge.bonus >= printedBonus then
-      usePrintedBonus(g,p,edge.bonus,function(used)
-        printedBonusUsed = used
-        q.next()
-      end)
-    else q.next()
-    end
-  end)
-
   -- Build office or do city action
   q.enQ(||performCompleteRouteAction(g,p,edge,q.next))
 
@@ -391,16 +381,12 @@ function actCompleteRoute(g,p,edges,k)
     q.next()
   end)
 
-  -- Pick up bonus token.  We do this after resolving choices because
-  -- it cannot be used during this action.
-  -- The East Expansion rules say that you can also use a printed bonus
-  -- marker at the end of the action, which is not in the Britania rules
-  -- explicitly, but I am assuming these should work the same.
+  -- Pick up bonus token. This is done last as the bonus tokens cannot be
+  -- used to help with office construction.
   q.enQ(function()
     if     not edge.bonus            then q.next()
     elseif edge.bonus < printedBonus then doTakeBonus(g,p,edge.id,q.next)
-    elseif not printedBonusUsed      then usePrintedBonus(g,p,edge.bonus,q.next)
-                                     else q.next()
+    else                                  usePrintedBonus(g,p,edge.bonus,q.next)
     end
   end)
 
@@ -526,9 +512,9 @@ function actHireWorkers(g,p,k)
   if ts + ms <= limit then
     doChangePassive(g,p,trader,-ts)
     doChangeActive(g,p,trader,ts)
-    doChangePassive(g,p,trader,-ms)
-    doChangeActive(g,p,trader,ms)
-    k()
+    doChangePassive(g,p,merchant,-ms)
+    doChangeActive(g,p,merchant,ms)
+    endAction(s,k)
     return
   end
 
@@ -545,7 +531,7 @@ function actHireWorkers(g,p,k)
   for i = 1,limit do
     q.enQ(hireOne)
   end
-  q.enQ(k)
+  q.enQ(||endAction(s,k))
 end
 
 
@@ -557,26 +543,47 @@ function usePrintedBonus(g,p,b,k)
   k(false)
 end
 
+function checkBonusSwap(g,p,opts,k)
+  local ix = haveBounusToken(g,p,bonusSwap)
+  if not ix then return end
 
-function checkBonusUpgradeSkill(g,p,printed,opts,k)
+  local cs = {}
+  for n,node in pairs(g.map.nodes) do
+    for i,off in ipairs(node.offices) do
+      if not off.worker then break end
+      if i ~= 1 and off.worker.owner ~= p then
+        push(cs, { node = n, office = i, worker = off.worker })
+      end
+    end
+  end
+
+  if #cs == 0 then return end
+  local function useBonus()
+    askOccupiedSpotL(p,"<","Office to move BACK",cs,function(v)
+      print(playerColorBB(p) .. " swapped office " ..
+                (v.office - 1) .. " and " .. v.office .. " in " .. v.node)
+      doSwap(g,v.node,v.office,function()
+        doUseUpBonus(g,p,ix)
+        k()
+      end)
+    end)
+  end
+
+  push(opts, { text = bonusName[bonusSwap], val = useBonus })
+end
+
+function checkBonusUpgradeSkill(g,p,opts,k)
   local s = g.playerState[p]
   local skills = {}
 
-  local ix = nil
-
-  if not printed then
-    for i,p in ipairs(s.plates) do
-      if p == bonusUpgrade then ix = i; break end
-    end
-    if not ix then return end
-  end
-
+  local ix = haveBounusToken(g,p,bonusUpgrade)
+  if not ix then return end
 
   local function addOpt(txt,fun)
     push(skills, { text = txt
                 , val = function()
                           fun()
-                          if ix then doUseUpBonus(g,p,ix) end
+                          doUseUpBonus(g,p,ix)
                           k()
                         end
                 })

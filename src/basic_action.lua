@@ -93,7 +93,7 @@ function doFillOffice(g,n,w,k)
         print(playerColorBB(w.owner) .. " establised an office in "
                                                           .. node.name)
         if off.vp > 0 then doScorePoints(g,p,off.vp) end
-        if i == 1 or node.offices[i - 1].owner.owner ~= p then
+        if i == 1 or node.offices[i - 1].worker.owner ~= p then
           -- we are the new right-most
           gainForeignBuilds(g,w.owner,node)
         end
@@ -252,7 +252,34 @@ function doAddInvest(g,p,i,k)
   spawnInvest(g.map, w, i, k)
 end
 
+-- swap i and i-1. assumes i > 1
+function doSwap(g,n,i,k)
+  local node = g.map.nodes[n]
+  local off1 = node.offices[i-1]
+  local off2 = node.offices[i]
+  local w = off1.worker
+  off1.worker = off2.worker
+  off2.worker = w
 
+  if i == #node.offices or not node.offices[i + 1].worker then
+    -- only really matters if it's the current player
+    gainForeignBuilds(g,w.owner,node)
+  end
+
+  local o1 = GUI.node[n].offices[i-1]
+  local o2 = GUI.node[n].offices[i]
+  local p1 = o1.getPosition()
+  local p2 = o2.getPosition()
+  o1.destroy()
+  o2.destroy()
+
+  local sem = newSem()
+  sem.up()
+  GUI.node[n].offices[i-1] = spawnWorker(off1.worker,p1,sem.down)
+  sem.up()
+  GUI.node[n].offices[i]   = spawnWorker(off2.worker,p2,sem.down)
+  sem.wait(k)
+end
 
 
 
