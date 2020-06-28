@@ -11,10 +11,10 @@ function nextTurn(g)
   takeActions(g)
 end
 
-function endAction(s,k)
+function endAction(g,s)
   s.turnUsedActions = s.turnUsedActions + 1
   -- XXX: check for end game
-  k()
+  takeActions(g)
 end
 
 function endTurn(g)
@@ -29,7 +29,7 @@ function checkCanPlace(g,p,opts)
   local shape = (s.active[merchant] > 0) and merchant or trader
   if #freeSpots(g,shape,accessibleRegions(g,p)) > 0 then
     push(opts, { text = "Place worker"
-               , val  = || actPlaceActiveWorker(g,p,||takeActions(g))
+               , val  = || actPlaceActiveWorker(g,p)
                })
   end
 end
@@ -46,7 +46,7 @@ function checkCanReplace(g,p,opts)
   local opSpots     = opponentSpots(g,p,onlyTrader,onlyRoad,regions)
   if #opSpots > 0 then
     push(opts, { text = "Replace opponent"
-               , val  = || actReplaceOpponent(g,p,opSpots,||takeActions(g))
+               , val  = || actReplaceOpponent(g,p,opSpots)
                })
   end
 end
@@ -57,7 +57,7 @@ function checkCanMove(g,p,opts)
   local ourSpots = occupiedSpots(g,p,anyRegion)
   if #ourSpots > 0 then
     push(opts, { text = "Move workers"
-               , val  = || actMoveWorkers(g,p,ourSpots,||takeActions(g))
+               , val  = || actMoveWorkers(g,p,ourSpots)
                })
   end
 end
@@ -67,7 +67,7 @@ function checkCanComplete(g,p,opts)
   local completed = completedEdges(g,p)
   if #completed > 0 then
     push(opts, { text = "Complete route"
-               , val = || actCompleteRoute(g,p,completed,||takeActions(g))
+               , val = || actCompleteRoute(g,p,completed)
                })
   end
 end
@@ -77,7 +77,7 @@ function checkCanHire(g,p,opts)
   local s = g.playerState[p]
   if s.passive[trader] + s.passive[merchant] > 0 then
     push(opts, { text = "Hire workers"
-               , val  = || actHireWorkers(g,p,||takeActions(g))
+               , val  = || actHireWorkers(g,p)
                })
   end
 end
@@ -124,7 +124,7 @@ end
 -- Placing workers
 
 -- Assumes at least one active worker and one action
-function actPlaceActiveWorker(g,p,k)
+function actPlaceActiveWorker(g,p)
   print(playerColorBB(p) .. " chose to place a worker.")
 
   local s = g.playerState[p]
@@ -145,9 +145,9 @@ function actPlaceActiveWorker(g,p,k)
   local buildOn
   q.enQ(function ()
           buildOn = q.ans()
-          doPlaceActive(g, buildOn, { owner = p, shape = workerType },q.next)
+          doPlaceActive(g, buildOn, {owner=p,shape=workerType},q.next)
         end)
-  q.enQ(function() noteBuiltOn(g,p,buildOn.edge); endAction(s,k) end)
+  q.enQ(function() noteBuiltOn(g,p,buildOn.edge); endAction(g,s) end)
 end
 
 
@@ -188,7 +188,7 @@ end
 
 
 
-function actReplaceOpponent(g,p,spots,k)
+function actReplaceOpponent(g,p,spots)
   print(playerColorBB(p) .. " chose to replace an opponent's worker.")
 
   local s = g.playerState[p]
@@ -248,7 +248,7 @@ function actReplaceOpponent(g,p,spots,k)
     q1.enQ(q.next)
   end)
 
-  q.enQ(||endAction(s,k))
+  q.enQ(||endAction(g,s))
 end
 
 
@@ -258,15 +258,15 @@ end
 --------------------------------------------------------------------------------
 -- Move workers
 
-function actMoveWorkers(g,p,ourSpots,k)
-  print(playerColorBB(p) .. " chose to move workers.")
-  local s = g.playerState[p]
-  local maxMove = bookLevelMap[s.bookLevel]
-  if #ourSpots < maxMove then maxMove = #ourSpots end
-
+-- Move up to `n` workers from the given spots.
+-- Moves must be in the same region, unless `defaultOk` is true,
+-- in which case they may also move to the defualt region
+function moveWorkers(g,p,n,defaultOk,spots,k)
   local x = 2
   local y = 10
   local sem = newSem()
+  local maxMove = n
+  if maxMove > #spots then maxMove = #spots end
 
   local busy = flase
   local nextBtn = 1
@@ -278,8 +278,8 @@ function actMoveWorkers(g,p,ourSpots,k)
     end
     busy = true
     local regs = {}
-    regs[g.map.defaultRegion] = true
     regs[g.map.edges[spot.edge].region] = true
+    if defaultOk then regs[g.map.defaultRegion] = true end
     askFreeSpot (g, p,"New location", spot.worker,regs,function(newLoc)
       doPlaceWorker(g,newLoc,spot.worker,function()
         sem.down()
@@ -309,8 +309,9 @@ function actMoveWorkers(g,p,ourSpots,k)
         height = 650,
         rotation = { 0, 180, 0 },
         position = { 0, 1, 0 },
-        color = playerColor(p),
-        font_color = playerFontColor(p),
+        color = playerColor(spot.worker.owner),
+        font_color = (spot.worker.owner == p) and playerFontColor(p)
+                   or playerColor(p),
         click_function = fun
       })
       k()
@@ -318,7 +319,7 @@ function actMoveWorkers(g,p,ourSpots,k)
   end
 
   local q = actQ()
-  local curSpots = ourSpots
+  local curSpots = spots
   local function rmSpot(sp)
     local new = {}
     for _,x in ipairs(curSpots) do
@@ -343,7 +344,18 @@ function actMoveWorkers(g,p,ourSpots,k)
   end
   q.enQ(sem.down)
 
-  sem.wait(||endAction(s,k))
+  sem.wait(k)
+end
+
+
+
+
+
+function actMoveWorkers(g,p,ourSpots)
+  print(playerColorBB(p) .. " chose to move workers.")
+  local s = g.playerState[p]
+  local maxMove = bookLevelMap[s.bookLevel]
+  moveWorkers(g,p,bookLevelMap[s.bookLevel], true, ourSpots, ||endAction(g,s))
 end
 
 
@@ -351,7 +363,7 @@ end
 --------------------------------------------------------------------------------
 -- Complete a route
 
-function actCompleteRoute(g,p,edges,k)
+function actCompleteRoute(g,p,edges)
   local s = g.playerState[p]
   local q = actQ()
   local edge
@@ -393,7 +405,7 @@ function actCompleteRoute(g,p,edges,k)
     end
   end)
 
-  q.enQ(||endAction(s,k))
+  q.enQ(||endAction(g,s))
 end
 
 function checkBuildOffice(g,p,edge,n,opts,k)
@@ -531,11 +543,12 @@ function performCompleteRouteAction(g,p,edge,k)
   checkBuildOffice(g,p,edge,edge.to,opts,k)
   checkCityAction(g,p,edge,edge.from,opts,k)
   checkCityAction(g,p,edge,edge.to,opts,k)
+  push(opts, { text = "Do nothing", val = k })
+
   push(opts, {text = "Use bonus", val = nil, separator = true })
   checkBuildBonusOffice(g,p,edge,edge.from,opts,k)
   checkBuildBonusOffice(g,p,edge,edge.to,opts,k)
 
-  push(opts, { text = "Do nothing", val = k })
   askText(p,"Choose action",opts,|f|f())
 end
 
@@ -543,7 +556,7 @@ end
 --------------------------------------------------------------------------------
 -- Hire workers
 
-function actHireWorkers(g,p,k)
+function actHireWorkers(g,p)
   print (playerColorBB(p) .. " chose to hire workers.")
   local s     = g.playerState[p]
   local limit = bagLevelMap[s.bagLevel]
@@ -554,7 +567,7 @@ function actHireWorkers(g,p,k)
     doChangeActive(g,p,trader,ts)
     doChangePassive(g,p,merchant,-ms)
     doChangeActive(g,p,merchant,ms)
-    endAction(s,k)
+    endAction(g,s)
     return
   end
 
@@ -571,7 +584,7 @@ function actHireWorkers(g,p,k)
   for i = 1,limit do
     q.enQ(hireOne)
   end
-  q.enQ(||endAction(s,k))
+  q.enQ(||endAction(g,s))
 end
 
 
@@ -579,8 +592,10 @@ end
 -- Using Bonus Tokens
 
 function usePrintedBonus(g,p,b,k)
-  -- XXX:
-  k(false)
+  if     b == bonusPrintedMove2 then doBonusPrintedMove2(g,p,k)
+  elseif b == bonusPrintedPlace2 then doBonusPrintedPlace2(g,p,k)
+  else k()
+  end
 end
 
 function checkBonusAct(g,p,b,opts,k)
@@ -739,4 +754,43 @@ function checkBonusUpgradeSkill(g,p,opts,k)
   end
 end
 
+function doBonusPrintedMove2(g,p,k)
+  print(playerColorBB(p) .. " is using the shipping bonus")
+  moveWorkers(g,p,2,false,occupiedSpots(g,nil,nil),k)
+end
 
+function doBonusPrintedPlace2(g,p,k)
+  local n = 2
+
+  local s = g.playerState[p]
+  local regs = {}
+  for _,r in ipairs(g.map.regions) do
+    if r ~= g.map.defaultRegion then
+      regs[r] = true
+    end
+  end
+
+  local q = actQ()
+  local passed = false
+
+  local function place(i)
+    if passed then q.next(); return end
+    local shape = (s.active[merchant] > 0) and merchant or trader
+    if #freeSpots(g,shape,regs) == 0 then passed = true; q.next(); return end
+
+    local msg = "Place worker " .. i .. "/" .. n
+    askWorkerTypeOrPass(p,msg,s.active,function(t)
+      if not t then passed = true; q.next(); return end
+      local w = { owner = p, shape = t }
+      askFreeSpot(g,p,msg,w,regs,function(spot)
+        doChangeActive(g,p,t,-1)
+        doPlaceWorker(g,spot,w,q.next)
+      end)
+    end)
+  end
+
+  for i = 1,n do
+    q.enQ(||place(i))
+  end
+  q.enQ(k)
+end

@@ -34,8 +34,6 @@ function askWorkerTypeOrPass(p,q,workers,k)
   end
 
   push(opts, { x = 5, y = 6, r = 0, val = nil })
-
-  log(opts)
   return ask(p, ptrWorkerType(), q, opts, k)
 end
 
@@ -43,7 +41,7 @@ end
 
 
 function askFreeSpot(g, p, q, w, r, k)
-  return ask(p, ptrWorker(p,w,'∨'), q, freeSpots(g,shape,r), k)
+  return ask(p, ptrWorker(p,w,'∨'), q, freeSpots(g,w.shape,r), k)
 end
 
 function askFreeAdjacent(g,p,q,e,w,k)
