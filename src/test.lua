@@ -21,18 +21,10 @@ function test(g)
 
   local q = actQ()
   local e = 7
-  q.enQ(function() doUpgradeBuilding(g,"Green"); q.next() end)
 
-  q.enQ(||doPlaceBouns(g,"Green",bonusSwap,e,q.next))
+  q.enQ(||doPlaceBouns(g,"Green",bonusMove,e,q.next))
   q.enQ(||doTakeBonus(g,"Green",e,q.next))
-  q.enQ(function () startTurn(g,"Green"); q.next() end)
-  q.enQ(||doFillOffice(g,"London",{ owner = "Green", shape = trader },q.next))
-
-  q.enQ(function () startTurn(g,"Purple"); q.next() end)
-  q.enQ(||doFillOffice(g,"London",{ owner = "Purple", shape = trader },q.next))
-
-
-
+  q.enQ(||doPlaceWorker(g,{edge=1,stop=1},{owner="Purple",shape=trader},q.next))
 
   q.enQ(||nextTurn(g))
 

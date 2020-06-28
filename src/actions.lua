@@ -101,6 +101,7 @@ function takeActions(g)
 
   checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
   checkBonusSwap(g,p,opts,|| takeActions(g))
+  checkBonusMove(g,p,opts,|| takeActions(g))
 
   if remain == 0 or #opts == 0 then
     push(opts, { text = "End turn", val = || endTurn(g) })
@@ -543,6 +544,65 @@ function usePrintedBonus(g,p,b,k)
   k(false)
 end
 
+
+function checkBonusMove(g,p,opts,k)
+  local ix = haveBounusToken(g,p,bonusMove)
+  if not ix then return end
+
+  local cs = opponentSpots(g,p,false,false,nil)
+  if #cs == 0 then return end
+
+
+  local lab = bonusName[bonusMove]
+
+  local function useBonus()
+    print(playerColorBB(p) .. " used " .. lab)
+
+    local q = actQ()
+    local passed = false
+
+    local function putDown(from)
+      local edge = g.map.edges[from.edge]
+      local w    = from.worker
+
+      local regs = {}
+      regs[edge.region] = true
+
+      askFreeSpot(g,p,"New location",w.shape,regs,function(to)
+        doPlaceWorker(g,to,w,q.next)
+        local toe = g.map.edges[to.edge]
+        print(playerColorBB(p) .. " moved a " .. playerColorBB(w.owner) ..
+              " " .. workerName(w.shape) ..
+              " from " .. edge.from .. "-" .. edge.to ..
+              " to "   .. toe.from   .. "-" .. toe.to)
+      end)
+    end
+
+    local function pickUp(i)
+      if passed then q.next(); return end
+      local cs = opponentSpots(g,p,false,false,nil)
+      if #cs == 0 then q.next(); return end
+
+      local msg = "Move worker " .. i .. "/3"
+      askOccupiedSpotOrPass(p,msg,cs,function(from)
+        if not from then passed = true; q.next() return end
+        doRemoveWorker(g,from)
+        putDown(from)
+      end)
+    end
+
+    for i = 1,3 do q.enQ(||pickUp(i)) end
+    q.enQ(function()
+      doUseUpBonus(g,p,ix)
+      k()
+    end)
+  end
+
+  push(opts, { text = lab, val = useBonus })
+end
+
+
+
 function checkBonusSwap(g,p,opts,k)
   local ix = haveBounusToken(g,p,bonusSwap)
   if not ix then return end
@@ -558,6 +618,7 @@ function checkBonusSwap(g,p,opts,k)
   end
 
   if #cs == 0 then return end
+
   local function useBonus()
     askOccupiedSpotL(p,"<","Office to move BACK",cs,function(v)
       print(playerColorBB(p) .. " swapped office " ..
@@ -571,6 +632,8 @@ function checkBonusSwap(g,p,opts,k)
 
   push(opts, { text = bonusName[bonusSwap], val = useBonus })
 end
+
+
 
 function checkBonusUpgradeSkill(g,p,opts,k)
   local s = g.playerState[p]
