@@ -99,15 +99,14 @@ function takeActions(g)
     checkCanHire(g,p,opts)
   end
 
-  checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
-  checkBonusSwap(g,p,opts,|| takeActions(g))
-  checkBonusMove(g,p,opts,|| takeActions(g))
-
   if remain == 0 or #opts == 0 then
     push(opts, { text = "End turn", val = || endTurn(g) })
   end
-  -- Use plate
-  -- Normal action, if actional point remaining
+
+  push(opts, { text = "Use bonus", val = nil, separator = true })
+  checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
+  checkBonusSwap(g,p,opts,|| takeActions(g))
+  checkBonusMove(g,p,opts,|| takeActions(g))
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
   print("\n" .. msg)
@@ -138,7 +137,7 @@ function actPlaceActiveWorker(g,p,k)
   q.enQ(function()
     workerType = q.ans()
     askFreeSpot(g,p, "Place a " .. workerName(workerType)
-                         , workerType , reg, q.next)
+                         , { owner = p, shape = workerType }, reg, q.next)
   end)
 
   local buildOn
@@ -164,8 +163,9 @@ function placeCompWorkers(g,p,e,todo,k)
   local function placing(doP)
     return function(t)
       if not t then k(); return; end    -- pased
-      askFreeAdjacent(g,p,"Choose location",e,t,function(loc)
-        doP(g,loc,{owner=p,shape=t},||placeCompWorkers(g,p,e,todo-1,k))
+      local w = {owner=p,shape=t}
+      askFreeAdjacent(g,p,"Choose location",e,w,function(loc)
+        doP(g,loc,w,||placeCompWorkers(g,p,e,todo-1,k))
       end)
     end
   end
@@ -207,7 +207,7 @@ function actReplaceOpponent(g,p,spots,k)
   end)
 
   -- They choose new location
-  q.enQ(||askFreeAdjacent(g,w.owner,"New location?",loc.edge,w.shape,q.next))
+  q.enQ(||askFreeAdjacent(g,w.owner,"New location?",loc.edge,w,q.next))
   q.enQ(function()
     local spot = q.ans()
     doMoveWorker(g,loc,spot,q.next)
@@ -278,7 +278,7 @@ function actMoveWorkers(g,p,ourSpots,k)
     local regs = {}
     regs[g.map.defaultRegion] = true
     regs[g.map.edges[spot.edge].region] = true
-    askFreeSpot (g, p,"New location", spot.worker.shape,regs,function(newLoc)
+    askFreeSpot (g, p,"New location", spot.worker,regs,function(newLoc)
       doPlaceWorker(g,newLoc,spot.worker,function()
         sem.down()
         busy = false
@@ -412,6 +412,41 @@ function checkBuildOffice(g,p,edge,n,opts,k)
              })
 end
 
+function checkBuildBonusOffice(g,p,edge,n,opts,k)
+  local ix = haveBounusToken(g,p,bonusExtra)
+  if not ix then return end
+
+  local lab = bonusName[bonusExtra]
+
+  local node = g.map.nodes[n]
+  if #node.offices ~= 0 and node.offices[1].worker == nil then return end
+
+  local function useToken()
+    local ws = {}
+    local spots = {}
+    for i,stop in ipairs(edge.stops) do
+      local w = stop.worker
+      if w and not ws[w.shape] then
+        push(spots, {worker=w, edge=edge.id, stop=stop.id})
+        ws[w.shape] = true
+      end
+    end
+
+    local function doBuilid(spot)
+      doUseUpBonus(g,p,ix)
+      print(playerColorBB(p) .. " used " .. lab)
+      doRemoveWorker(g,spot)
+      doAddExtra(g,n,spot.worker,k)
+    end
+
+    if #spots > 1 then
+      askOccupiedSpotL(p,"?","Use worker",spots,doBuilid)
+    else doBuilid(spots[1]) end
+  end
+
+  push(opts, { text = "Build offfice in " .. n, val = useToken })
+end
+
 function checkCityAction(g,p,edge,n,opts,k)
   local node = g.map.nodes[n]
   local act = node.action
@@ -492,9 +527,11 @@ function performCompleteRouteAction(g,p,edge,k)
   local opts = {}
   checkBuildOffice(g,p,edge,edge.from,opts,k)
   checkBuildOffice(g,p,edge,edge.to,opts,k)
-  -- XXX: add office using bonus
   checkCityAction(g,p,edge,edge.from,opts,k)
   checkCityAction(g,p,edge,edge.to,opts,k)
+  push(opts, {text = "Use bonus", val = nil, separator = true })
+  checkBuildBonusOffice(g,p,edge,edge.from,opts,k)
+  checkBuildBonusOffice(g,p,edge,edge.to,opts,k)
 
   push(opts, { text = "Do nothing", val = k })
   askText(p,"Choose action",opts,|f|f())
@@ -568,7 +605,7 @@ function checkBonusMove(g,p,opts,k)
       local regs = {}
       regs[edge.region] = true
 
-      askFreeSpot(g,p,"New location",w.shape,regs,function(to)
+      askFreeSpot(g,p,"New location",w,regs,function(to)
         doPlaceWorker(g,to,w,q.next)
         local toe = g.map.edges[to.edge]
         print(playerColorBB(p) .. " moved a " .. playerColorBB(w.owner) ..

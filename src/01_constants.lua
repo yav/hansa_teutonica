@@ -58,14 +58,14 @@ local bonusPrintedMove2 = 8
 
 
 local bonusName =
-  { "Bonus: Upgrade a skill"
-  , "Bonus: Swap 2 offices"
-  , "Bonus: Move others 3 times"
-  , "Bonus: Build external office"
-  , "Bonus: Gain 4 actions"
-  , "Bonus: Gain 3 actions"
-  , "Bonus: Place 2 in Scotland/England"
-  , "Bonus: Move any 2 workers, swaps OK"
+  { "Upgrade a skill"
+  , "Swap 2 offices"
+  , "Move others 3 times"
+  , "Build external office"
+  , "Gain 4 actions"
+  , "Gain 3 actions"
+  , "Place 2 in Scotland/England"
+  , "Move any 2 workers, swaps OK"
   }
 
 

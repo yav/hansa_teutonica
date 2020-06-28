@@ -6,7 +6,7 @@ function askInvestmentSpot(m,p,spots,k)
   for i,x in ipairs(spots) do
     opts[i] = { x = investLocX(m,x), y = m.investY, r = 0, val = x }
   end
-  ask(p, ptrWorker(merchant,'?'), "Choose spot", opts, k)
+  ask(p, ptrWorker(p, {owner=p,shape=merchant},'?'), "Choose spot", opts, k)
 end
 
 
@@ -42,12 +42,12 @@ end
 
 
 
-function askFreeSpot(g, p, q, shape, r, k)
-  return ask(p, ptrWorker(shape,'∨'), q, freeSpots(g,shape,r), k)
+function askFreeSpot(g, p, q, w, r, k)
+  return ask(p, ptrWorker(p,w,'∨'), q, freeSpots(g,shape,r), k)
 end
 
-function askFreeAdjacent(g,p,q,e,shape,k)
-  return ask(p, ptrWorker(shape,'∨'), q, freeAdjacent(g,shape,e),k)
+function askFreeAdjacent(g,p,q,e,w,k)
+  return ask(p, ptrWorker(p,w,'∨'), q, freeAdjacent(g,w.shape,e),k)
 end
 
 function mayPress(x,y)
@@ -62,7 +62,8 @@ function askOccupiedSpot(p,q,spots,k)
   return askOccupiedSpotL(p,"∧",q,spots,k)
 end
 
-
+-- This is different from `ask` in that it does not spawn
+-- new objects for the question, but rather labels existing ones
 function askOccupiedSpotL(p,lab,q,spots,k)
   local ui = {}
 
@@ -146,9 +147,16 @@ function askText(p, q, labs, k)
   local ls = {}
   local objs = {}
 
+  local ix = 1
+
   for i,l in ipairs(labs) do
+    if l.separator and i == #labs then break end -- skip end separator
+
     local zz = z - 2 * i
-    ls[i] = { x = x, y = zz-0.3, r = 90, val = l.val }
+    if not l.separator then
+      ls[ix] = { x = x, y = zz-0.3, r = 90, val = l.val }
+      ix = ix + 1
+    end
     local t = spawnObject({
       type = "3DText",
       position = { x+2, y, zz },
@@ -227,8 +235,8 @@ function ask(p, mark, q, locs, k)     -- locs: {x,y,r,val}
       height = mark.font_size,
       rotation = mark.rotation,
       position = mark.position,
-      color = playerColor(p),
-      font_color = playerFontColor(p),
+      color = mark.color or playerColor(p),
+      font_color = mark.font_color or playerFontColor(p),
       click_function = fun
     })
     markers[i].fun = fun
@@ -271,13 +279,15 @@ end
 
 
 
-function ptrWorker(shape,l) return
-  { label = not l and "?" or l
-  , font_size = 600
+function ptrWorker(p,w,l) return
+  { label = l or "?"
+  , font_size = w.shape == merchant and 600 or 400
   , rotation = { 0, 180, 0 }
   , position = { 0, 0.5, 0 }
+  , color = w.owner
+  , font_color = (p == w.owner) and playerFontColor(p) or playerColor(p)
   , spawn = function(p,loc,k)
-              return spawnWorker( { owner = p, shape = shape}
+              return spawnWorker( w
                                 , { loc.x, 2, loc.y }
                                 , k
                                 )

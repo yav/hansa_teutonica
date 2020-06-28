@@ -22,10 +22,17 @@ function test(g)
   local q = actQ()
   local e = 7
 
-  q.enQ(||doPlaceBouns(g,"Green",bonusMove,e,q.next))
+  q.enQ(||doPlaceBouns(g,"Green",bonusExtra,e,q.next))
   q.enQ(||doTakeBonus(g,"Green",e,q.next))
+  q.enQ(||doPlaceBouns(g,"Green",bonusMove,8,q.next))
+  q.enQ(||doTakeBonus(g,"Green",8,q.next))
+  q.enQ(function()
+    startTurn(g,"Purple")
+    doFillOffice(g,"Cambridge",{owner="Purple",shape=merchant},q.next)
+  end)
   q.enQ(||doPlaceWorker(g,{edge=1,stop=1},{owner="Purple",shape=trader},q.next))
-
+  q.enQ(||doPlaceWorker(g,{edge=1,stop=2},{owner="Green",shape=trader},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=1,stop=3},{owner="Green",shape=merchant},q.next))
   q.enQ(||nextTurn(g))
 
 
