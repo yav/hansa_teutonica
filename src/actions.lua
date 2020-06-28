@@ -23,6 +23,8 @@ function endTurn(g)
 end
 
 
+--------------------------------------------------------------------------------
+
 function checkCanPlace(g,p,opts)
   local s = g.playerState[p]
   if s.active[trader] + s.active[merchant] == 0 then return end

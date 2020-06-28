@@ -11,6 +11,8 @@ function newGUI(g,k)
   GUI.edge    = {}
   GUI.player  = {}
 
+  GUI.fullCities = nil
+
   GUI.officeWidth = {}
   GUI.officeWidth[trader] = 0.85
   GUI.officeWidth[merchant] = 0.95
@@ -44,8 +46,27 @@ function spawnBoard(k)
   })
 end
 
+function fullCityLoc(m)
+  local sc = 0.72
+  return { m.fullCitiesX + m.fullCities * sc, boardPieceZ, m.fullCitiesY }
+end
+
 function spawnMap(m,k)
   local sem = newSem()
+
+  sem.up()
+  spawnObject(
+    { type = "BlockSquare"
+    , scale = { 0.5, 0.5, 0.5 }
+    , position = fullCityLoc(m)
+    , callback_function = function(o)
+        GUI.fullCities = o
+        o.setColorTint({0,0,0})
+        o.setLock(true)
+        sem.down()
+      end
+    })
+
   for _,n in pairs(m.nodes) do
     sem.up()
     spawnNode(n,sem.down)

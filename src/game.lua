@@ -8,11 +8,42 @@ function newGame(colors,mkMap) -- Game
   game.curPlayer = 0
   game.turn = 0
 
+  game.endGame = false
+
+  game.bonus = nil
+  game.nextBonus = 0
+  setupBonusTokens(game)
+
   for turnOrder,color in ipairs(colors) do
     game.playerState[color] = newPlayer(color,turnOrder)
   end
 
   return game
+end
+
+function setupBonusTokens(g)
+  local startingTokens = { bonusSwap, bonusExtra, bonusMove }
+  shuffle(startingTokens)
+  local ix = 1
+  for _,edge in ipairs(g.map.edges) do
+    if edge.startingBonus then
+      edge.bonus = startingTokens[ix]
+      ix = ix + 1
+    end
+  end
+
+  local toks = {}
+  ix = 1
+  for i,n in ipairs(bonusNum) do
+    if n == bonusSwap or n == bonusExtra or n == bonusMove then n = n - 1 end
+    for j = 1,n do
+      toks[ix] = i
+      ix = ix + 1
+    end
+  end
+  shuffle(toks)
+  g.bonus = toks
+  g.nextBonus = 1
 end
 
 
@@ -135,6 +166,7 @@ function newEdge(map,node1,node2,region,x,y,r)    -- Edge
   edge.from   = node1.name
   edge.to     = node2.name
   edge.stops  = {}
+  edge.startingBonus = false
   edge.bonus  = nil
   edge.id     = push(map.edges,edge)
 
@@ -142,6 +174,7 @@ function newEdge(map,node1,node2,region,x,y,r)    -- Edge
   push(node2.edges,edge.id)
   return edge
 end
+
 
 function addStop(edge, type, x, y)  -- Stop
   local stop    = {}
@@ -158,6 +191,7 @@ function stopAccepts(stop, shape)
   return stop.type == stopRoad or
          stop.type == stopShip and shape == merchant
 end
+
 
 
 
@@ -185,7 +219,7 @@ function newPlayer(color,turnOrder)  -- Player
 
   p.turnActions = 0
   p.turnUsedActions = 0
-  p.turnReplaceBonus = 0
+  p.turnReplaceBonus = {}
 
   p.foreignBuilds = 0
   p.foreignBuildsIn = {}
@@ -210,7 +244,7 @@ function startTurn(g,p)
   local s = g.playerState[p]
   s.turnActions = actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
-  s.turnReplaceBonus = 0
+  s.turnReplaceBonus = {}
 
   local foreignBuildsIn = {}
   for _,r in ipairs(g.map.regions) do

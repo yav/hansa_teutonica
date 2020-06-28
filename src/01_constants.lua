@@ -45,6 +45,8 @@ local cityActionName =
 
 
 -- Bonus token
+local bonusNum = { 3, 2, 2, 5, 2, 2 } -- how many of each type are there
+
 local bonusUpgrade = 1
 local bonusSwap = 2
 local bonusMove = 3

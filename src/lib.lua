@@ -51,21 +51,15 @@ end
 
 function when(p,k) Wait.condition(k,p) end
 
--- Shuffle an array of things.  Returns a new array.
--- This is not good if the array is large.
+-- Shuffle an array of things in place
 function shuffle(xs)
   local n = #xs
-  local used = {}
-  local a = {}
-  for i = 1,n do
-    local x
-    repeat
-      x = math.random(n)
-    until not used[x]
-    used[x] = true
-    a[i] = xs[x]
+  for i = 1,n-1 do
+    local j = math.random(i,n)
+    local t = xs[i]
+    xs[i] = xs[j]
+    xs[j] = t
   end
-  return a
 end
 
 

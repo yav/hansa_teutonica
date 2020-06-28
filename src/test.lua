@@ -22,9 +22,8 @@ function test(g)
   local q = actQ()
   local e = 7
 
-  q.enQ(||doPlaceWorker(g,{edge=5,stop=1},{owner="Green",shape=trader},q.next))
-  q.enQ(||doPlaceWorker(g,{edge=5,stop=2},{owner="Green",shape=merchant},q.next))
-  q.enQ(||doPlaceWorker(g,{edge=5,stop=3},{owner="Green",shape=trader},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=26,stop=1},{owner="Green",shape=trader},q.next))
+  q.enQ(||doPlaceWorker(g,{edge=26,stop=2},{owner="Green",shape=merchant},q.next))
   q.enQ(||doPlaceWorker(g,{edge=1,stop=3},{owner="Green",shape=trader},q.next))
   q.enQ(||doPlaceWorker(g,{edge=1,stop=2},{owner="Purple",shape=trader},q.next))
   q.enQ(||nextTurn(g))

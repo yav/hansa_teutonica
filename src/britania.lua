@@ -18,6 +18,12 @@ function britaniaMap(map)
   map.investX = -25
   map.investY = -14.8
 
+  -- Location of full cities counter
+  map.fullCities = 0
+  map.fullCityLimit = 8
+  map.fullCitiesX = -11.62
+  map.fullCitiesY = 15.28
+
 
   -- Nodes
   region = { england }
@@ -225,6 +231,7 @@ function britaniaMap(map)
 
   from("Salisbury")
     to("Southampton",-2.24, -14.73,75)
+    curEdge.startingBonus = true
     road(-1.14, -13.77)
     road(-0.11, -14.31)
 
@@ -270,6 +277,7 @@ function britaniaMap(map)
     road(3.18, -5.20)
 
     to("Nottingham",2.27, -1.15,140)
+    curEdge.startingBonus = true
     road(1.66, -3.34)
     road(2.54, -2.64)
     road(3.39, -1.86)
@@ -337,6 +345,7 @@ function britaniaMap(map)
     road(-3.14, 8.21)
 
     to("Lancaster",-0.33, 4.29,270)
+    curEdge.startingBonus = true
     road(-1.74, 4.84)
     road(-2.00, 3.64)
 

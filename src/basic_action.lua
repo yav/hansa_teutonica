@@ -78,15 +78,26 @@ function doScorePoints(g,p,n)
   local ui = GUI.player[p]
   ui.score.setValue(s.score .. " VP")
 
+  if s.score >= 20 then g.endGame = true end
+
   print(playerColorBB(p) .. " scored " .. n .. " VP.")
 end
 
+function doCityBecameFull(g)
+  local n = g.map.fullCities
+  g.map.fullCities = n + 1
+  if g.map.fullCities >= g.map.fullCityLimit then g.endGame = true end
+  GUI.fullCities.setPositionSmooth(fullCityLoc(g.map),false,false)
+end
 
 function doFillOffice(g,n,w,k)
   local node = g.map.nodes[n]
   local x = node.x
   for i,off in ipairs(node.offices) do
     if not off.worker then
+      if i == #node.offices then
+        doCityBecameFull(g)
+      end
       off.worker = w
       spawnWorker(w, {x, boardPieceZ, node.y}, function(o)
         GUI.node[n].offices[i] = o
@@ -162,7 +173,14 @@ function doTakeBonus(g,p,e,k)
 
   local s = g.playerState[p]
   push(s.plates, edge.bonus)
-  s.turnReplaceBonus = s.turnReplaceBonus + 1
+
+  if g.nextBonus > #g.bonus then
+    g.endGame = true
+  else
+    local n = g.nextBonus
+    push(s.turnReplaceBonus, g.bonus[n])
+    g.nextBonus = n + 1
+  end
   spawnPlate(g,p,#s.plates,edge.bonus,function()
     print(playerColorBB(p) .. " picked up the bonus token between " ..
           g.map.nodes[edge.from].name .. " and " ..
