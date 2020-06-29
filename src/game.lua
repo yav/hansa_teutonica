@@ -89,18 +89,23 @@ function nodeHasFree(g,n)
   return false
 end
 
-function hasPresence(g,p,n)
+
+function getPresence(g,p,n)
+  local size = 0
   local node = g.map.nodes[n]
   for _,o in ipairs(node.offices) do
     if not o.worker then break end
-    if o.worker.owner == p then return true end
+    if o.worker.owner == p then size = size + 1 end
   end
 
   for _,w in ipairs(node.extraOffices) do
-    if w.owner == p then return true end
+    if w.owner == p then size = size + 1 end
   end
-  return false
+  return size
+end
 
+function hasPresence(g,p,n)
+  return getPresence(g,p,n) > 0
 end
 
 
@@ -267,6 +272,10 @@ function newPlayer(color,turnOrder)  -- Player
   return p
 end
 
+function totalBonus(g,p)
+  local s = g.playerState[p]
+  return s.finishedPlates + #s.plates
+end
 
 function gainForeignBuilds(g,p,node)
   if #node.gateway == 0 then return end

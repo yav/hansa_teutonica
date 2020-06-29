@@ -13,8 +13,7 @@ end
 
 function endAction(g,s)
   s.turnUsedActions = s.turnUsedActions + 1
-  -- XXX: check for end game
-  takeActions(g)
+  if g.endGame then finalScoring(g) else takeActions(g) end
 end
 
 function endTurn(g)
@@ -819,3 +818,7 @@ function doBonusPrintedPlace2(g,p,k)
   end
   q.enQ(k)
 end
+
+
+
+

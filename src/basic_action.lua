@@ -73,6 +73,7 @@ end
 
 
 function doScorePoints(g,p,n)
+  if n == 0 then return end
   local s = g.playerState[p]
   s.score = s.score + n
   local ui = GUI.player[p]

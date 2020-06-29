@@ -23,12 +23,14 @@ function test(g)
   local q = actQ()
   local e = 7
 
+
   q.enQ(||doAddExtra(g,"London",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Cambridge",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Coventry",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Nottingham",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"York",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Oxford",{owner="Green",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"London",{owner="Yellow",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"London",{owner="Yellow",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"Cambridge",{owner="Purple",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"Cambridge",{owner="Yellow",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"Cambridge",{owner="Yellow",shape=trader},q.next))
+  q.enQ(||finalScoring(g))
 
   q.enQ(||doPlaceWorker(g,{edge=26,stop=1},{owner="Green",shape=trader},q.next))
   q.enQ(||doPlaceWorker(g,{edge=26,stop=2},{owner="Green",shape=merchant},q.next))

@@ -1,4 +1,3 @@
-
 -- Collect free spots from the given edges.
 function freeSpotsOn(g,shape,es)
   local opts = {}
@@ -125,6 +124,7 @@ function completedEdges(g,p)
 end
 
 
+
 -- | is there an office connection for player `p` from `a` to `b
 function officeConnection(g,p,a,b)
   local done = {}
@@ -149,3 +149,56 @@ function officeConnection(g,p,a,b)
   return false
 end
 
+
+function largestNetwork(g,p)
+
+  local repFor = {}
+  local sizes = {}
+  local areaSizes = {}
+
+  local function presenceIn(n)
+    local s = sizes[n]
+    if not s then s = getPresence(g,p,n); sizes[n] = s end
+    return s
+  end
+
+  local function find(l)
+    local r = repFor[l]
+    if not r then
+      if not areaSizes[l] then areaSizes[l] = sizes[l] end
+      return l
+    end
+    local x = find(r)
+    repFor[l] = x
+    return x
+  end
+
+  local function union(a,b)
+    local s1 = find(a)
+    local s2 = find(b)
+    if s1 == s2 then return end
+    repFor[s1] = s2
+    local n = areaSizes[s1]
+    areaSizes[s1] = nil
+    areaSizes[s2] = areaSizes[s2] + n
+  end
+
+  for n,node in pairs(g.map.nodes) do
+    if presenceIn(n) > 0 then
+      for _,e in ipairs(node.edges) do
+        local edge = g.map.edges[e]
+        local other = edge.from
+        if other == n then other = edge.to end
+        if presenceIn(other) > 0 then union(n,other) end
+      end
+    end
+  end
+
+  local largest = 0
+  for _,sz in pairs(areaSizes) do
+    if sz > largest then largest = sz end
+  end
+
+
+  return largest
+end
