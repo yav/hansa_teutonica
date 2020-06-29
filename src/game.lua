@@ -8,6 +8,8 @@ function newGame(colors,mkMap) -- Game
   game.curPlayer = 0
   game.turn = 0
 
+  game.raceAward = 1
+
   game.endGame = false
 
   game.bonus = nil
@@ -85,6 +87,20 @@ function nodeHasFree(g,n)
     if not o.worker then return true end
   end
   return false
+end
+
+function hasPresence(g,p,n)
+  local node = g.map.nodes[n]
+  for _,o in ipairs(node.offices) do
+    if not o.worker then break end
+    if o.worker.owner == p then return true end
+  end
+
+  for _,w in ipairs(node.extraOffices) do
+    if w.owner == p then return true end
+  end
+  return false
+
 end
 
 

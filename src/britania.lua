@@ -19,10 +19,14 @@ function britaniaMap(map)
   map.investY = -14.8
 
   -- Location of full cities counter
-  map.fullCities = 0
+  map.fullCities    = 0
   map.fullCityLimit = 8
-  map.fullCitiesX = -11.62
-  map.fullCitiesY = 15.28
+  map.fullCitiesX   = -11.62
+  map.fullCitiesY   = 15.28
+
+  -- Race
+  map.raceFrom  = "Oxford"
+  map.raceTo    = "York"
 
 
   -- Nodes

@@ -124,3 +124,28 @@ function completedEdges(g,p)
   return xs
 end
 
+
+-- | is there an office connection for player `p` from `a` to `b
+function officeConnection(g,p,a,b)
+  local done = {}
+  local todo = {a}
+  local cur = 1
+  while cur <= #todo do
+    local n = todo[cur]; cur = cur + 1
+    if not done[n] then
+      done[n] = true
+      if hasPresence(g,p,n) then
+        if n == b then return true end
+        local node = g.map.nodes[n]
+        for _,e in ipairs(node.edges) do
+          local edge = g.map.edges[e]
+          local other = edge.from
+          if other == n then other = edge.to end
+          push(todo,other)
+        end
+      end
+    end
+  end
+  return false
+end
+

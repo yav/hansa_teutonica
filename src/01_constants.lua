@@ -34,6 +34,8 @@ local endGameInvestPoints = { 7,8,9,11 }
 local endGameBonusPoints = { 1, 3, 3, 6, 6, 10, 10, 15, 15, 21 }
                           -- use last one for more
 
+local raceAward = { 7, 4, 2 }
+
 local cityActionName =
   { "Upgrade actions"
   , "Upgrade movement (book)"

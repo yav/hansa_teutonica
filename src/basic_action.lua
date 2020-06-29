@@ -99,10 +99,10 @@ function doFillOffice(g,n,w,k)
         doCityBecameFull(g)
       end
       off.worker = w
+      print(playerColorBB(w.owner) .. " establised an office in " .. node.name)
+      checkWinRace(g,w.owner)
       spawnWorker(w, {x, boardPieceZ, node.y}, function(o)
         GUI.node[n].offices[i] = o
-        print(playerColorBB(w.owner) .. " establised an office in "
-                                                          .. node.name)
         if off.vp > 0 then doScorePoints(g,p,off.vp) end
         if i == 1 or node.offices[i - 1].worker.owner ~= p then
           -- we are the new right-most
@@ -130,6 +130,18 @@ function doBuildOffice(g,n,e,k)
   end
 end
 
+function checkWinRace(g,p)
+  local place = g.raceAward
+  if place > #raceAward then return end
+  if not officeConnection(g,p,g.map.raceFrom,g.map.raceTo) then return end
+
+  local suff = { "st","nd","rd" }
+  print(playerColorBB(p) .. " is " .. place .. suff[place] ..
+        " to connect " .. g.map.raceFrom .. " and " .. g.map.raceTo)
+  doScorePoints(g,p,raceAward[place])
+  g.raceAward = place + 1
+end
+
 
 function doAddExtra(g,n,w,k)
   local node = g.map.nodes[n]
@@ -138,11 +150,14 @@ function doAddExtra(g,n,w,k)
     x = x - GUI.officeWidth[w.shape]
   end
   x = x - GUI.officeWidth[w.shape]
+
+  print(playerColorBB(w.owner) .. " establised an expansion office in "
+                                                          .. node.name)
   push(node.extraOffices, w)
+  checkWinRace(g,w.owner)
+
   spawnWorker(w,{x,boardPieceZ,node.y}, function(o)
     push(GUI.node[n].extraOffices,o)
-    print(playerColorBB(w.owner) .. " establised an expansion office in "
-                                                          .. node.name)
     k()
   end)
 end
