@@ -104,6 +104,7 @@ function doFillOffice(g,n,w,k)
       checkWinRace(g,w.owner)
       spawnWorker(w, {x, boardPieceZ, node.y}, function(o)
         GUI.node[n].offices[i] = o
+        local p = w.owner
         if off.vp > 0 then doScorePoints(g,p,off.vp) end
         if i == 1 or node.offices[i - 1].worker.owner ~= p then
           -- we are the new right-most
@@ -189,6 +190,8 @@ function doTakeBonus(g,p,e,k)
 
   local s = g.playerState[p]
   push(s.plates, edge.bonus)
+  local b = edge.bonus
+  edge.bonus = nil
 
   if g.nextBonus > #g.bonus then
     g.endGame = true
@@ -197,7 +200,7 @@ function doTakeBonus(g,p,e,k)
     push(s.turnReplaceBonus, g.bonus[n])
     g.nextBonus = n + 1
   end
-  spawnPlate(g,p,#s.plates,edge.bonus,function()
+  spawnPlate(g,p,#s.plates,b,function()
     print(playerColorBB(p) .. " picked up the bonus token between " ..
           g.map.nodes[edge.from].name .. " and " ..
           g.map.nodes[edge.to].name)
@@ -228,7 +231,7 @@ function doUpgradeAction(g,p)
   local curActNum = actionLevelMap[s.actionLevel]
   s.actionLevel = s.actionLevel + 1
   local newActNum = actionLevelMap[s.actionLevel]
-  s.turnUsedActions = s.turnUsedActions + (newActNum - curActNum)
+  s.turnActions = s.turnActions + (newActNum - curActNum)
 
   GUI.player[p].actionLevel[s.actionLevel].destroy()
   doChangeActive(g,p,trader,1)
