@@ -207,6 +207,7 @@ end
 
 function edgeAcceptsBonus(g,edge)
   if edge.bonus then return false end
+  if edge.region ~= g.map.defaultRegion then return false end
 
   if not nodeHasFree(g,edge.from) and
      not nodeHasFree(g,edge.to) then return false end
