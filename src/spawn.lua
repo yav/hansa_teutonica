@@ -26,8 +26,37 @@ function newGUI(g,k)
     sem.up(); spawnPlayer(g,p,sem.down)
   end
 
+  sem.up(); spawnUndo(sem.down)
   sem.wait(k)
 end
+
+
+function spawnUndo(k)
+  GUI.undo = spawnObject(
+    { type = "BlockSquare"
+    , rotation = { 0, 0, 0 }
+    , scale = { 1, 0.2, 1 }
+    , position = { 3, boardPieceZ, -15 }
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint({0,0,0})
+        o.createButton(
+          { font_size = 300
+          , label = "Undo"
+          , click_function = "undoAction"
+          , rotation = {0,180,0}
+          , color = {0,0,0}
+          , font_color = {1,1,1}
+          , width = 2000
+          , height = 600
+          , position = { 0,0.5,0 }
+          })
+        k(o)
+      end
+    })
+end
+
+
 
 
 function spawnBoard(k)

@@ -88,3 +88,9 @@ function DYN_GLOB(f)
   GLOB_FUN_COUNTER = GLOB_FUN_COUNTER + 1
   return nm
 end
+
+--------------------------------------------------------------------------------
+
+local turnSave
+local actSaves = {}
+

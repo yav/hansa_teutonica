@@ -1,4 +1,6 @@
 function nextTurn(g)
+  turnSave = JSON.encode(g)
+
   g.turn = g.turn + 1
 
   local pn = g.curPlayer + 1
@@ -106,6 +108,15 @@ function checkCanHire(g,p,opts)
   end
 end
 
+function undoAction(o,p,alt)
+  local n = #actSaves
+  if n == 0 then return end
+  local g = JSON.decode(actSaves[n])
+  if mayPress(g.players[g.curPlayer],p) then
+    actSaves[n] = nil
+    newGUI(g,||takeActions(g))
+  end
+end
 
 
 function takeActions(g)
@@ -136,7 +147,10 @@ function takeActions(g)
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
   print("\n" .. msg)
-  askText(p,msg,opts,|f|f())
+  askText(p,msg,opts,function(f)
+    push(actSaves, JSON.encode(g))
+    f()
+  end)
 end
 
 

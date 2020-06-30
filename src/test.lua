@@ -24,14 +24,6 @@ function test(g)
   local e = 7
 
 
-  q.enQ(||doAddExtra(g,"London",{owner="Green",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"London",{owner="Yellow",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"London",{owner="Yellow",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Cambridge",{owner="Purple",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Cambridge",{owner="Yellow",shape=trader},q.next))
-  q.enQ(||doAddExtra(g,"Cambridge",{owner="Yellow",shape=trader},q.next))
-  q.enQ(||finalScoring(g))
-
   q.enQ(||doPlaceWorker(g,{edge=26,stop=1},{owner="Green",shape=trader},q.next))
   q.enQ(||doPlaceWorker(g,{edge=26,stop=2},{owner="Green",shape=merchant},q.next))
   q.enQ(||doPlaceWorker(g,{edge=1,stop=3},{owner="Green",shape=trader},q.next))

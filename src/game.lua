@@ -290,6 +290,8 @@ function gainForeignBuilds(g,p,node)
 end
 
 function startTurn(g,p)
+  actSaves = {}
+
   local s = g.playerState[p]
   s.turnActions = actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
