@@ -48,9 +48,9 @@ function askFreeAdjacent(g,p,q,e,w,k)
   return ask(p, ptrWorker(p,w,'∨'), q, freeAdjacent(g,w.shape,e),k)
 end
 
-function mayPress(x,y)
+function mayPress(p,c)
   if 1 == 1 then return true end  -- XXX: testing
-  if x == y then return true end
+  if p == c then return true end
   print(playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
                                                       "'s buttons.")
   return false
