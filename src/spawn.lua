@@ -26,10 +26,26 @@ function newGUI(g,k)
     sem.up(); spawnPlayer(g,p,sem.down)
   end
 
+  spawnPlateCounter(g)
+
   sem.up(); spawnUndo(sem.down)
   sem.wait(k)
 end
 
+function spawnPlateCounter(g)
+  GUI.plates = spawnObject(
+    { type = "3DText"
+    , position = { -4.75, boardPieceZ, 13.2 }
+    , rotation = { 90, 0, 0 }
+    }
+  )
+  updatePlateCounter(g)
+end
+
+function updatePlateCounter(g)
+  local n = #g.bonus - g.nextBonus + 1
+  GUI.plates.setValue(n .. "")
+end
 
 function spawnUndo(k)
   GUI.undo = spawnObject(

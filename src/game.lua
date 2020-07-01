@@ -37,7 +37,7 @@ function setupBonusTokens(g)
   local toks = {}
   ix = 1
   for i,n in ipairs(bonusNum) do
-    if n == bonusSwap or n == bonusExtra or n == bonusMove then n = n - 1 end
+    if i == bonusSwap or i == bonusExtra or i == bonusMove then n = n - 1 end
     for j = 1,n do
       toks[ix] = i
       ix = ix + 1

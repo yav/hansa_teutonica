@@ -199,6 +199,7 @@ function doTakeBonus(g,p,e,k)
     local n = g.nextBonus
     push(s.turnReplaceBonus, g.bonus[n])
     g.nextBonus = n + 1
+    updatePlateCounter(g)
   end
   spawnPlate(g,p,#s.plates,b,function()
     print(playerColorBB(p) .. " picked up the bonus token between " ..
