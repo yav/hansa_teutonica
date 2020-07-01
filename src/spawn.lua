@@ -392,7 +392,7 @@ function spawnPlayer(g,p,k)
   -- Finished plates
   actDX = -0.9
   actDY = 1.6
-  actDZ = 0.1
+  actDZ = 0.2
   ui.finishedPlates = spawnObject(
     { type     = "3DText"
     , position = rel(0)
