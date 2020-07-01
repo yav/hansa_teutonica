@@ -109,12 +109,14 @@ function checkCanHire(g,p,opts)
 end
 
 function undoAction(o,p,alt)
+  if undoing then return end
+  undoing = true
   local n = #actSaves
-  if n == 0 then return end
-  local g = JSON.decode(actSaves[n])
+  if n == 0 then undoing = false; return end
   if mayPress(g.players[g.curPlayer],p) then
+    local g = JSON.decode(actSaves[n])
     actSaves[n] = nil
-    newGUI(g,||takeActions(g))
+    newGUI(g,function() undoing = false; takeActions(g) end)
   end
 end
 

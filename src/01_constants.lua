@@ -93,4 +93,4 @@ end
 
 local turnSave
 local actSaves = {}
-
+local undoing = false
