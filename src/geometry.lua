@@ -53,7 +53,7 @@ function freeAdjacent(g,shape,e)
 
   local spots = {}
   while #spots == 0 do
-    local es = neighbourEdges(g,es)
+    es = neighbourEdges(g,es)
     es[e] = nil
     spots = freeSpotsOn(g,shape,es)
   end
