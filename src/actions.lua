@@ -113,8 +113,8 @@ function undoAction(o,p,alt)
   undoing = true
   local n = #actSaves
   if n == 0 then undoing = false; return end
+  local g = JSON.decode(actSaves[n])
   if mayPress(g.players[g.curPlayer],p) then
-    local g = JSON.decode(actSaves[n])
     actSaves[n] = nil
     newGUI(g,function() undoing = false; takeActions(g) end)
   end
