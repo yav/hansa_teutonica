@@ -412,7 +412,10 @@ function spawnPlayer(g,p,k)
   ui.plates = {}
   for i,b in ipairs(s.plates) do
     sem.up()
-    spawnPlate(p,i,b,sem.down)
+    spawnPlate(g,p,i,b,function(o)
+      push(ui.plates,o)
+      sem.down()
+    end)
   end
 
   sem.wait(function()
@@ -474,10 +477,7 @@ function spawnPlate(g,p,ix,bonus,k)
   loc[1] = loc[1] - 8 - col * 1.5
   loc[2] = 2
   loc[3] = loc[3] + 3 - row * 1.5
-  spawnBonus(bonus,loc,180,function(o)
-    push(GUI.player[p].plates,o)
-    k(o)
-  end)
+  spawnBonus(bonus,loc,180,k)
 end
 
 function spawnBonus(bonus,loc,rot,k)
