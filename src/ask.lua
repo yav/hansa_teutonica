@@ -51,7 +51,7 @@ end
 function mayPress(p,c)
   if 1 == 1 then return true end  -- XXX: testing
   if p == c then return true end
-  print(playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
+  say (playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
                                                       "'s buttons.")
   return false
 end
@@ -316,4 +316,7 @@ function ptrTri()
   }
 end
 
+function say(x)
+  printToAll(x, { r = 1, g = 1, b = 1 })
+end
 

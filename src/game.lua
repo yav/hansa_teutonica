@@ -293,7 +293,7 @@ function startTurn(g,p)
   actSaves = {}
 
   local s = g.playerState[p]
-  s.turnActions = actionLevelMap[s.actionLevel]
+  s.turnActions = 5 + actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
   s.turnReplaceBonus = {}
 

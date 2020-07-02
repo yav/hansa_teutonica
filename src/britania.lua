@@ -20,7 +20,7 @@ function britaniaMap(map)
 
   -- Location of full cities counter
   map.fullCities    = 0
-  map.fullCityLimit = 8
+  map.fullCityLimit = 1
   map.fullCitiesX   = -11.62
   map.fullCitiesY   = 15.28
 

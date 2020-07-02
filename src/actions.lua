@@ -8,7 +8,7 @@ function nextTurn(g)
   g.curPlayer = pn
   local p = g.players[pn]
 
-  print("\n Turn #" .. g.turn)
+  say("\n Turn #" .. g.turn)
   startTurn(g,p)
   takeActions(g)
 end
@@ -148,7 +148,7 @@ function takeActions(g)
   checkBonusAct(g,p,bonusAct4,opts,|| takeActions(g))
 
   local msg = playerColorBB(p) .. " has " .. remain .. " actions"
-  print("\n" .. msg)
+  say("\n" .. msg)
   askText(p,msg,opts,function(f)
     push(actSaves, JSON.encode(g))
     f()
@@ -165,7 +165,7 @@ end
 
 -- Assumes at least one active worker and one action
 function actPlaceActiveWorker(g,p)
-  print(playerColorBB(p) .. " chose to place a worker.")
+  say(playerColorBB(p) .. " chose to place a worker.")
 
   local s = g.playerState[p]
   local traderNum = s.active[trader]
@@ -220,7 +220,7 @@ function placeCompWorkers(g,p,e,todo,k)
 
   else
     --XXX
-    print(playerColorBB(p) .. " should be allowed to move a worker but this is not yet done.")
+    say(playerColorBB(p) .. " should be allowed to move a worker but this is not yet done.")
     k()
   end
 end
@@ -229,7 +229,7 @@ end
 
 
 function actReplaceOpponent(g,p,spots)
-  print(playerColorBB(p) .. " chose to replace an opponent's worker.")
+  say(playerColorBB(p) .. " chose to replace an opponent's worker.")
 
   local s = g.playerState[p]
   local loc
@@ -313,7 +313,7 @@ function moveWorkers(g,p,n,defaultOk,spots,k)
   local funs = {}
   local function putDown(obj,me,spot) return function()
     if busy then
-      print("Finish placing the other worker first.")
+      say("Finish placing the other worker first.")
       return
     end
     busy = true
@@ -392,7 +392,7 @@ end
 
 
 function actMoveWorkers(g,p,ourSpots)
-  print(playerColorBB(p) .. " chose to move workers.")
+  say(playerColorBB(p) .. " chose to move workers.")
   local s = g.playerState[p]
   local maxMove = bookLevelMap[s.bookLevel]
   moveWorkers(g,p,bookLevelMap[s.bookLevel], true, ourSpots, ||endAction(g,s))
@@ -412,7 +412,7 @@ function actCompleteRoute(g,p,edges)
   -- Controlling players of neighbouring cities score a point.
   q.enQ(function()
     edge = q.ans()
-    print(playerColorBB(p) .. " completed a route between " ..
+    say(playerColorBB(p) .. " completed a route between " ..
                         edge.from .. " and " .. edge.to)
     local c = getController(g,edge.from)
     if c then doScorePoints(g,c,1) end
@@ -488,7 +488,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
 
     local function doBuilid(spot)
       doUseUpBonus(g,p,ix)
-      print(playerColorBB(p) .. " used " .. lab)
+      say(playerColorBB(p) .. " used " .. lab)
       doRemoveWorker(g,spot)
       doAddExtra(g,n,spot.worker,k)
     end
@@ -597,7 +597,7 @@ end
 -- Hire workers
 
 function actHireWorkers(g,p)
-  print (playerColorBB(p) .. " chose to hire workers.")
+  say(playerColorBB(p) .. " chose to hire workers.")
   local s     = g.playerState[p]
   local limit = bagLevelMap[s.bagLevel]
   local ts    = s.passive[trader]
@@ -647,7 +647,7 @@ function checkBonusAct(g,p,b,opts,k)
     local s = g.playerState[p]
     local n = (b == bonusAct3) and 3 or 4
     s.turnActions = s.turnActions + n
-    print(playerColorBB(p) .. " gained " .. n .. " actions.")
+    say(playerColorBB(p) .. " gained " .. n .. " actions.")
     doUseUpBonus(g,p,ix)
     k()
   end
@@ -667,7 +667,7 @@ function checkBonusMove(g,p,opts,k)
   local lab = bonusName[bonusMove]
 
   local function useBonus()
-    print(playerColorBB(p) .. " used " .. lab)
+    say(playerColorBB(p) .. " used " .. lab)
 
     local q = actQ()
     local passed = false
@@ -682,7 +682,7 @@ function checkBonusMove(g,p,opts,k)
       askFreeSpot(g,p,"New location",w,regs,function(to)
         doPlaceWorker(g,to,w,q.next)
         local toe = g.map.edges[to.edge]
-        print(playerColorBB(p) .. " moved a " .. playerColorBB(w.owner) ..
+        say(playerColorBB(p) .. " moved a " .. playerColorBB(w.owner) ..
               " " .. workerName(w.shape) ..
               " from " .. edge.from .. "-" .. edge.to ..
               " to "   .. toe.from   .. "-" .. toe.to)
@@ -732,7 +732,7 @@ function checkBonusSwap(g,p,opts,k)
 
   local function useBonus()
     askOccupiedSpotL(p,"<","Office to move BACK",cs,function(v)
-      print(playerColorBB(p) .. " swapped office " ..
+      say(playerColorBB(p) .. " swapped office " ..
                 (v.office - 1) .. " and " .. v.office .. " in " .. v.node)
       doSwap(g,v.node,v.office,function()
         doUseUpBonus(g,p,ix)
@@ -785,7 +785,7 @@ function checkBonusUpgradeSkill(g,p,opts,k)
 
   local lab = bonusName[bonusUpgrade]
   local useBonus = function()
-    print(playerColorBB(p) .. " used " .. lab)
+    say(playerColorBB(p) .. " used " .. lab)
     askText(p,"Upgrade",skills,|f|f())
   end
 
@@ -795,7 +795,7 @@ function checkBonusUpgradeSkill(g,p,opts,k)
 end
 
 function doBonusPrintedMove2(g,p,k)
-  print(playerColorBB(p) .. " is using the shipping bonus")
+  say(playerColorBB(p) .. " is using the shipping bonus")
   moveWorkers(g,p,2,false,occupiedSpots(g,nil,nil),k)
 end
 

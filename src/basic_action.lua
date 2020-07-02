@@ -19,7 +19,7 @@ function doChangeActive(g,p,t,x)
   if amt < 0 then amt = - amt end
   local suff = "s"
   if amt == 1 then suff = "" end
-  print(playerColorBB(p) .. " " .. verb .. " " .. amt ..
+  say(playerColorBB(p) .. " " .. verb .. " " .. amt ..
                                 " active " .. workerName(t) .. suff .. ".")
 end
 
@@ -34,7 +34,7 @@ function doChangePassive(g,p,t,x)
   if amt < 0 then amt = - amt end
   local suff = "s"
   if amt == 1 then suff = "" end
-  print(playerColorBB(p) .. " " .. verb .. " " .. amt ..
+  say(playerColorBB(p) .. " " .. verb .. " " .. amt ..
                                 " passive " .. workerName(t) .. suff .. ".")
 end
 
@@ -52,7 +52,7 @@ function doRemoveWorker(g,spot)
   GUI.edge[spot.edge].stops[spot.stop].destroy()
 
   local thing = stopName(stop.type)
-  print(playerColorBB(w.owner) .. " removed a " .. workerName(w.shape) ..
+  say(playerColorBB(w.owner) .. " removed a " .. workerName(w.shape) ..
         " from the " .. thing .. " between " .. edge.from .. " and "
         .. edge.to .. ".")
 end
@@ -62,7 +62,7 @@ function doPlaceWorker(g,spot,w,k)
   local stop = edge.stops[spot.stop]
   stop.worker = w
   local thing = stopName(stop.type)
-  print(playerColorBB(w.owner) .. " placed a " .. workerName(w.shape) ..
+  say(playerColorBB(w.owner) .. " placed a " .. workerName(w.shape) ..
         " on the " .. thing .. " between " .. edge.from .. " and "
         .. edge.to .. ".")
   spawnWorker(w, { stop.x, boardPieceZ, stop.y }, function(o)
@@ -81,7 +81,7 @@ function doScorePoints(g,p,n)
 
   if s.score >= 20 then g.endGame = true end
 
-  print(playerColorBB(p) .. " scored " .. n .. " VP.")
+  say(playerColorBB(p) .. " scored " .. n .. " VP.")
 end
 
 function doCityBecameFull(g)
@@ -100,7 +100,7 @@ function doFillOffice(g,n,w,k)
         doCityBecameFull(g)
       end
       off.worker = w
-      print(playerColorBB(w.owner) .. " establised an office in " .. node.name)
+      say(playerColorBB(w.owner) .. " establised an office in " .. node.name)
       checkWinRace(g,w.owner)
       spawnWorker(w, {x, boardPieceZ, node.y}, function(o)
         GUI.node[n].offices[i] = o
@@ -138,7 +138,7 @@ function checkWinRace(g,p)
   if not officeConnection(g,p,g.map.raceFrom,g.map.raceTo) then return end
 
   local suff = { "st","nd","rd" }
-  print(playerColorBB(p) .. " is " .. place .. suff[place] ..
+  say(playerColorBB(p) .. " is " .. place .. suff[place] ..
         " to connect " .. g.map.raceFrom .. " and " .. g.map.raceTo)
   doScorePoints(g,p,raceAward[place])
   g.raceAward = place + 1
@@ -153,7 +153,7 @@ function doAddExtra(g,n,w,k)
   end
   x = x - GUI.officeWidth[w.shape]
 
-  print(playerColorBB(w.owner) .. " establised an expansion office in "
+  say(playerColorBB(w.owner) .. " establised an expansion office in "
                                                           .. node.name)
   push(node.extraOffices, w)
   checkWinRace(g,w.owner)
@@ -173,7 +173,7 @@ function doPlaceBouns(g,p,b,e,k)
   edge.bonus = b
   spawnBonus(b, {edge.x,boardPieceZ,edge.y}, edge.rotation, function(o)
     GUI.edge[e].bonus = o
-    print(playerColorBB(p) .. " placed a bonus token between " ..
+    say(playerColorBB(p) .. " placed a bonus token between " ..
           g.map.nodes[edge.from].name .. " and " ..
           g.map.nodes[edge.to].name)
     k()
@@ -202,7 +202,7 @@ function doTakeBonus(g,p,e,k)
     updatePlateCounter(g)
   end
   spawnPlate(g,p,#s.plates,b,function()
-    print(playerColorBB(p) .. " picked up the bonus token between " ..
+    say(playerColorBB(p) .. " picked up the bonus token between " ..
           g.map.nodes[edge.from].name .. " and " ..
           g.map.nodes[edge.to].name)
     k()
@@ -228,7 +228,7 @@ function doUpgradeAction(g,p)
   local s = g.playerState[p]
   if s.actionLevel == #actionLevelMap then return end
 
-  print(playerColorBB(p) .. " upgraded their actions.")
+  say(playerColorBB(p) .. " upgraded their actions.")
   local curActNum = actionLevelMap[s.actionLevel]
   s.actionLevel = s.actionLevel + 1
   local newActNum = actionLevelMap[s.actionLevel]
@@ -243,7 +243,7 @@ function doUpgradeBag(g,p)
   local s = g.playerState[p]
   if s.bagLevel == #bagLevelMap then return end
 
-  print(playerColorBB(p) .. " upgraded their bag.")
+  say(playerColorBB(p) .. " upgraded their bag.")
   s.bagLevel = s.bagLevel + 1
 
   GUI.player[p].bagLevel[s.bagLevel].destroy()
@@ -255,7 +255,7 @@ function doUpgradeBuilding(g,p)
   local s = g.playerState[p]
   if s.buildingLevel == #buildingLevelMap then return end
 
-  print(playerColorBB(p) .. " upgraded their building.")
+  say(playerColorBB(p) .. " upgraded their building.")
   s.buildingLevel = s.buildingLevel + 1
 
   GUI.player[p].buildingLevel[s.buildingLevel].destroy()
@@ -266,7 +266,7 @@ function doUpgradeKey(g,p)
   local s = g.playerState[p]
   if s.keyLevel == #keyLevelMap then return end
 
-  print(playerColorBB(p) .. " upgraded their keys.")
+  say(playerColorBB(p) .. " upgraded their keys.")
   s.keyLevel = s.keyLevel + 1
 
   GUI.player[p].keyLevel[s.keyLevel].destroy()
@@ -277,7 +277,7 @@ function doUpgradeBook(g,p)
   local s = g.playerState[p]
   if s.bookLevel == #bookLevelMap then return end
 
-  print(playerColorBB(p) .. " upgraded their books.")
+  say(playerColorBB(p) .. " upgraded their books.")
   s.bookLevel = s.bookLevel + 1
 
   GUI.player[p].bookLevel[s.bookLevel].destroy()
