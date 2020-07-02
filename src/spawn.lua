@@ -217,13 +217,21 @@ function playerFontColor(p)
   if p == "Yellow" then return {0,0,0} else return {1,1,1} end
 end
 
-function playerColorBB(p)
+function playerColorNote(p,txt)
   local c = playerColor(p)
-  return string.format("[%02x%02x%02x]" .. p .. "[-]",
+  return string.format("[%02x%02x%02x]" .. txt .. "[-]",
     math.floor(c[1] * 255),
     math.floor(c[2] * 255),
     math.floor(c[3] * 255))
 end
+
+function playerColorBB(p)
+  return playerColorNote(p,p)
+end
+
+
+
+
 
 
 

@@ -14,27 +14,27 @@ function askWorkerType(p,q,workers,k)
   if workers[trader] == 0 then k(merchant); return end
   if workers[merchant] == 0 then k(trader); return end
 
-  local opts = { { x = 2, y = 10, r = 0, val = trader }
-               , { x = 5, y = 10, r = 0, val = merchant }
-               }
-  return ask(p, ptrWorkerType(), q, opts, k)
+  local opts =
+        { { text = "Trader "   .. playerColorNote(p, "■"), val = trader }
+        , { text = "Merchant " .. playerColorNote(p, "●"), val = merchant }
+        }
+
+  return askText(p,q, opts, k)
 end
 
 
 function askWorkerTypeOrPass(p,q,workers,k)
   local opts = {}
-  local x = 2
   if workers[trader] > 0 then
-    push(opts, { x = x, y = 10, r = 0, val = trader })
-    x = x + 3
+    push(opts, { text = "Trader " .. playerColorNote(p, "■"), val = trader })
   end
 
   if workers[merchant] > 0 then
-    push(opts, { x = x, y = 10, r = 0, val = merchant })
+    push(opts,{ text = "Merchant " .. playerColorNote(p, "●"), val = merchant })
   end
 
-  push(opts, { x = 5, y = 6, r = 0, val = nil })
-  return ask(p, ptrWorkerType(), q, opts, k)
+  push(opts, { text = "Pass", val = nil })
+  return askText(p, q, opts, k)
 end
 
 
@@ -66,14 +66,7 @@ function askOccupiedSpotL(p,lab,q,spots,k)
   local ui = {}
 
   local ql
-  if q then
-    ql = spawnObject({
-      type = "3DText",
-      position = {3,2,15},
-      rotation = {90,0,0}
-    })
-    ql.setValue(q)
-  end
+  if q then ql = question(q) end
 
 
   local finished = false
@@ -138,50 +131,87 @@ function askOccupiedSpotOrPass(p,q,spots,k)
 end
 
 function askText(p, q, labs, k)
-  local x = 0
-  local y = 2
-  local z = 15
-
-  local ls = {}
-  local objs = {}
-
-  local ix = 1
-
-  for i,l in ipairs(labs) do
-    if l.separator and i == #labs then break end -- skip end separator
-
-    local zz = z - 2 * i
-    if not l.separator then
-      ls[ix] = { x = x, y = zz-0.3, r = 90, val = l.val }
-      ix = ix + 1
-    end
-    local t = spawnObject({
-      type = "3DText",
-      position = { x+2, y, zz },
-      rotation = { 90,0,0 }
-    })
-    t.setValue(l.text)
-    local b = t.getBounds().size.x / 100
-    t.setPosition { x + 2 + b/2, y, zz }
-    objs[i] = t
-  end
+  local o
+  local funs = {}
 
   local function cleanUp()
-    for _,o in ipairs(objs) do
-       o.destroy()
+    for _,f in ipairs(funs) do
+      _G[f] = nil
     end
+    o.destroy()
   end
 
-  local function ans(i)
-    cleanUp()
-    k(i)
-  end
+  o = spawnObject(
+    { type = "BlockSquare"
+    , position = { 5, 0, 13 }
+    , callback_function = function(o)
+        o.setLock(true)
+        local function btn(y,l,f)
+          local bg = { 0, 0, 0 }
+          local fg = {1,1,1}
+          local lab = (f == "nop") and l
+                or (playerColorNote(p, "> ") .. l .. playerColorNote(p, " <"))
+          o.createButton(
+            { font_size      = 300
+            , font_color     = fg
+            , color          = bg
+            , label          = lab
+            , click_function = f or "nop"
+            , position       = { 0, boardPieceZ, -y }
+            , rotation       = { 0, 180, 0 }
+            , width          = 4000
+            , height         = 400
+            }
+          )
+        end
 
-  local rmMarkers = ask(p, ptrTri(), q, ls, ans)
+        if q then btn(-1,q,"nop") end
 
-  return function() rmMarkers(); cleanUp() end
+        for i,l in ipairs(labs) do
+          if l.separator and i == #labs then break end -- skip end separator
+
+          if not l.separator then
+            local finished = false
+            local fun = DYN_GLOB(function (obj,c,alt)
+                                    if finished then return end
+                                    if not mayPress(p,c) then return end
+                                    finished = true
+                                    cleanUp()
+                                    k(l.val)
+                                  end)
+            push(funs,fun)
+            btn(i, l.text, fun)
+          end
+        end
+
+      end
+    }
+  )
+  return cleanUp
 
 end
+
+function question(q)
+  return spawnObject(
+    { type = "BlockSquare"
+    , position = { 5, 0, 13 }
+    , callback_function = function(o)
+        o.setLock(true)
+        o.createButton(
+          { font_size      = 300
+          , font_color     = {1,1,1}
+          , color          = {0,0,0}
+          , label          = q
+          , click_function = "nop"
+          , position       = { 0, boardPieceZ, 1 }
+          , rotation       = { 0, 180, 0 }
+          , width          = 4000
+          , height         = 400
+          })
+        end
+    })
+end
+
 
 function askEdge(g, p, q, es, k)
   local opts = {}
@@ -197,12 +227,7 @@ function ask(p, mark, q, locs, k)     -- locs: {x,y,r,val}
 
   local ql
   if q then
-    ql = spawnObject({
-      type = "3DText",
-      position = {3,2,15},
-      rotation = {90,0,0}
-    })
-    ql.setValue(q)
+    ql = question(q)
   end
 
 
@@ -263,10 +288,10 @@ function ptrWorkerType () return
               if loc.val then
                 return spawnWorker( { owner = p, shape = loc.val }
                                   , { loc.x, 2, loc.y }
-                                  , function(o)
+                                  , k --[[function(o)
                                       o.setScale({1,1,1})
                                       k(o)
-                                    end
+                                    end --]]
                                   )
               else
                 return spawnPass({loc.x, 2, loc.y},k)
