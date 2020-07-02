@@ -7,6 +7,7 @@ function newGame(colors,mkMap) -- Game
   game.playerState = {}
   game.curPlayer = 0
   game.turn = 0
+  finalScore = nil
 
   game.raceAward = 1
 

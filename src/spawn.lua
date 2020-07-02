@@ -538,4 +538,45 @@ function setLabel(x,l)
   effect(x)
 end
 
+function spawnEndGame(g)
+  spawnObject(
+    { type = "BlockSquare"
+    , position = { 3, 0, 15 }
+    , callback_function = function(o)
+        o.setLock(true)
+        local function lab(w,a,c,l,x,y)
+          o.createInput (
+            { input_function = "nop"
+            , position   = { x * 2, boardPieceZ, y * 0.9 }
+            , rotation   = { 0, 180, 0 }
+            , font_color = c
+            , font_size  = 300
+            , color      = { 0, 0, 0 }
+            , value      = l
+            , width      = w
+            , height     = 400
+            , alignment  = a
+            })
+        end
+        local pnum = 1
+        for p,stats in pairs(g.finalScore) do
+          for i,stat in ipairs(stats) do
+            if pnum == 1 then
+              lab(2000, 2, {1,1,1}, stat.lab, 0, -i)
+            end
+            lab(1000, 4, playerColor(p), stat.val .. "", -(pnum+0.5), -i)
+          end
+          local i = #stats + 1.2
+          if pnum == 1 then
+            lab(2000, 2, {1,1,1}, "Total", 0, -i)
+          end
+          lab(1000, 4, playerColor(p), g.playerState[p].score.. "",
+                                                      -(pnum+0.5), -i)
+
+          pnum = pnum + 1
+        end
+      end
+    }
+  )
+end
 

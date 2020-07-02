@@ -5,13 +5,13 @@ function finalScoring(g)
 
   local function points(p,n)
     local v = score[p][curStat]
-    score[p][curStat] = v + n
+    v.val = v.val + n
     doScorePoints(g,p,n)
   end
 
   local function newStat(p,x)
-    curStat = x
-    score[p][curStat] = 0
+    push(score[p], { lab = x, val = 0 })
+    curStat = #score[p]
   end
 
   local rs = {}
@@ -25,44 +25,46 @@ function finalScoring(g)
   for _,p in ipairs(g.players) do
     score[p] = {}
     local s = g.playerState[p]
-    score[p]["game"] = s.score
+    push(score[p], { lab = "Game", val = s.score })
 
-    newStat(p,"upgrades")
+    newStat(p,"Upgrades")
     if s.actionLevel == #actionLevelMap     then points(p,4) end
     if s.bagLevel == #bagLevelMap           then points(p,4) end
     if s.buildingLevel == #buildingLevelMap then points(p,4) end
     if s.bookLevel == #bookLevelMap         then points(p,4) end
 
-    newStat(p,"bonusMarkers")
+    newStat(p,"Bonuses")
     local n = totalBonus(g,p)
     if n > 0 then
       if n > #endGameBonusPoints then n = #endGameBonusPoints end
       points(p,endGameBonusPoints[n])
     end
 
-    newStat(p,"invested")
+    newStat(p,g.map.investName)
     for i,w in ipairs(g.map.endGameInvest) do
       if w.owner == p then
         points(p,endGameInvestPoints[i])
       end
     end
 
-    newStat(p,"control")
+    newStat(p,"Cities")
     for _,node in pairs(g.map.nodes) do
       if getController(g,node.name) == p then points(p,2) end
     end
 
-    newStat(p,"keys")
+    newStat(p,"Network")
     points(p, largestNetwork(g,p) * keyLevelMap[s.keyLevel])
 
-    newStat(p,"regions")
     local total = 0
     for r,ps in pairs(rs) do
-      total = total + ps[p]
+      newStat(p, g.map.regionNames[r])
+      points(p, ps[p])
     end
-    points(p, total)
 
   end
+
+  g.finalScore = score
+  spawnEndGame(g)
 end
 
 function scoreRegion(g,r)
