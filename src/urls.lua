@@ -6,8 +6,6 @@ board_brit23_url = "http://cloud-3.steamusercontent.com/ugc/1295297714546088412/
 
 round_token_model_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863621334/0068A92DFB2B3E093D7C72189D71DFB0AB44D520/"
 
-pass_url = "http://cloud-3.steamusercontent.com/ugc/1257016010465217486/94C90003E6AA508121FC081FA76189072E952DB0/"
-
 player_board_url =
   { Yellow = "http://cloud-3.steamusercontent.com/ugc/1181580167863328041/C6BB8C6C587D3A0F1DE3467A6F09E50A52C1904A/"
   , Red = "http://cloud-3.steamusercontent.com/ugc/1181580167863327522/AC0CBEFC07C94769ECCEF5FF3D4EC669579C53F0/"
