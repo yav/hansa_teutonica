@@ -23,13 +23,29 @@ function originalMap(map)
     addStop(curEdge, stopShip, x, y)
   end
 
+  -- Location of invest token
+  map.investX = -12
+  map.investY = -7
+  map.investName = "Coellen"
+
+  -- Location of full cities counter
+  map.fullCities    = 0
+  map.fullCityLimit = 10
+  map.fullCitiesX   = -15
+  map.fullCitiesY   = 9
+
+  -- Race
+  map.raceFrom  = "Arnheim"
+  map.raceTo    = "Stendal"
 
   -- Regions
-  local default = 0
+  local default = 1
   map.regions = { default }
+  map.regionNames = { "England" }
   map.defaultRegion = default
   region = { default }
 
+  -- Nodes
 
   node("Coellen",-15.18,-9.04)
   office(trader,1)

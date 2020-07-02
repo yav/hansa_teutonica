@@ -8,15 +8,17 @@ function britaniaMap23(map)
   local function office(l,n) curOffice = addOffice(curNode,l,n) end
 
   -- Regions
-  local england = 0
-  local scotland = 1
-  local wells = 2
+  local england = 1
+  local scotland = 2
+  local wells = 3
   map.regions = { england, wells }
+  map.regionNames = { "England", "Wales" }
   map.defaultRegion = england
 
   -- Location of invest token
   map.investX = -25
   map.investY = -14.8
+  map.investName = "Plymouth"
 
   -- Location of full cities counter
   map.fullCities    = 0
