@@ -185,6 +185,7 @@ function largestNetwork(g,p)
 
   for n,node in pairs(g.map.nodes) do
     if presenceIn(n) > 0 then
+      if not areaSizes[n] then areaSizes[n] = sizes[n] end
       for _,e in ipairs(node.edges) do
         local edge = g.map.edges[e]
         local other = edge.from
