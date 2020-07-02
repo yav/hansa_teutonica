@@ -10,8 +10,8 @@ function britaniaMap23(map)
   -- Regions
   local england = 1
   local scotland = 2
-  local wells = 3
-  map.regions = { england, wells }
+  local wales = 3
+  map.regions = { england, wales }
   map.regionNames = { "England", "Wales" }
   map.defaultRegion = england
 
@@ -35,7 +35,7 @@ function britaniaMap23(map)
   region = { england }
 
   node("London",4.80,-9.35)
-  addGateway(curNode, wells)
+  addGateway(curNode, wales)
   addAction(curNode, upgradeBuilding)
   office(trader,1)
   office(trader,2)
@@ -50,7 +50,7 @@ function britaniaMap23(map)
   office(trader,4)
 
   node("Ipswich",10.25,-5.25)
-  office(trader,1); curOffice.vp = 2
+  office(trader,2); curOffice.vp = 2
 
   node("Norwich",9.5,-2.25)
   addAction(curNode, upgradeBook)
@@ -89,8 +89,7 @@ function britaniaMap23(map)
   office(trader, 2)
 
   node("Bristol", -2, -9.75)
-  office(trader,1)
-  curOffice.vp = 2
+  office(trader,2); curOffice.vp = 2
 
   node("Salisbury", -0.75, -12.5)
   office(trader,2)
@@ -99,8 +98,7 @@ function britaniaMap23(map)
   node("Plymouth", -9, -13.3)
   addAction(curNode,invest)
   office(trader,1)
-  office(merchant,1)
-  curOffice.vp = 2
+  office(merchant,2); curOffice.vp = 2
 
   node("Southampton", 1, -15)
   office(trader,1)
@@ -128,7 +126,7 @@ function britaniaMap23(map)
   office(trader,4)
 
 
-  region = { wells }
+  region = { wales }
 
 
   node("Cardiff", -6.75, -8.2)
@@ -136,7 +134,7 @@ function britaniaMap23(map)
   office(trader,2)
   office(trader,3)
   office(merchant,3)
-  addGateway(curNode, wells)
+  addGateway(curNode, wales)
 
   node("Pembroke", -10.45, -6.2)
   office(trader,1)
@@ -157,7 +155,7 @@ function britaniaMap23(map)
   office(merchant,2)
   office(trader,4)
 
-  region = { england, wells }
+  region = { england, wales }
   node("Isle of Man", -9.28, 5.02)
   office(trader,1)
   office(trader,3)
@@ -352,7 +350,7 @@ function britaniaMap23(map)
 -- Wales
 --------------------------------------------------------------------------------
 
-  edgeRegion = wells
+  edgeRegion = wales
 
   from("Montgomery")
     to("Cardiff",-5.58, -5.14,160)

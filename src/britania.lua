@@ -10,9 +10,9 @@ function britaniaMap(map)
   -- Regions
   local england = 1
   local scotland = 2
-  local wells = 3
-  map.regions = { england, scotland, wells }
-  map.regionNames = { "England", "Scotland", "Wells" }
+  local wales = 3
+  map.regions = { england, scotland, wales }
+  map.regionNames = { "England", "Scotland", "Wales" }
   map.defaultRegion = england
 
   -- Location of invest token
@@ -35,7 +35,7 @@ function britaniaMap(map)
   region = { england }
 
   node("London",3,-9.5)
-  addGateway(curNode, wells)
+  addGateway(curNode, wales)
   addGateway(curNode, scotland)
   addAction(curNode, upgradeBuilding)
   office(trader,1)
@@ -53,7 +53,7 @@ function britaniaMap(map)
   office(trader,4)
 
   node("Ipswich",10.25,-5.25)
-  office(trader,1); curOffice.vp = 2
+  office(trader,2); curOffice.vp = 2
 
   node("Norwich",9.5,-2.25)
   addAction(curNode, upgradeBook)
@@ -92,8 +92,7 @@ function britaniaMap(map)
   office(trader, 2)
 
   node("Bristol", -2, -9.75)
-  office(trader,1)
-  curOffice.vp = 2
+  office(trader,2); curOffice.vp = 2
 
   node("Salisbury", -0.75, -12.5)
   office(trader,2)
@@ -102,8 +101,7 @@ function britaniaMap(map)
   node("Plymouth", -9, -13.3)
   addAction(curNode,invest)
   office(trader,1)
-  office(merchant,1)
-  curOffice.vp = 2
+  office(merchant,2); curOffice.vp = 2
 
   node("Southampton", 1, -15)
   office(trader,1)
@@ -120,7 +118,7 @@ function britaniaMap(map)
   office(trader,3)
 
 
-  region = { wells }
+  region = { wales }
 
 
   node("Cardiff", -7.55, -8.4)
@@ -129,7 +127,7 @@ function britaniaMap(map)
   office(trader,3)
   office(merchant,3)
   office(merchant,4)
-  addGateway(curNode, wells)
+  addGateway(curNode, wales)
 
   node("Pembroke", -10.45, -6.2)
   office(trader,1)
@@ -180,7 +178,7 @@ function britaniaMap(map)
   node("Dunbar", -0.99, 14.56)
   office(trader,4)
 
-  region = { scotland, wells }
+  region = { scotland, wales }
   node("Isle of Man", -9.28, 5.02)
   office(merchant,1)
   office(merchant,3)
@@ -362,7 +360,7 @@ function britaniaMap(map)
     road(-3.68, 6.12)
 
 
-  edgeRegion = wells
+  edgeRegion = wales
   from("Montgomery")
     to("Cardiff",-5.58, -5.14,160)
     road(-4.21, -5.29)
@@ -432,4 +430,3 @@ function britaniaMap(map)
     road(0.30, 12.41)
     road(1.40, 11.82)
 end
-

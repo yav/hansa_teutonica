@@ -48,7 +48,9 @@ function originalMap(map)
   -- Nodes
 
   node("Coellen",-15.18,-9.04)
+  addAction(curNode,invest)
   office(trader,1)
+  curOffice.vp = 1
   office(trader,3)
 
   node("Warburg",-5.18,-10.12)
@@ -56,12 +58,15 @@ function originalMap(map)
   office(trader,3)
 
   node("Göttingen",2.05,-9.32)
+  addAction(curNode, upgradeAction)
   office(trader,1)
   office(merchant,1)
   office(trader,3)
 
   node("Halle",12.91,-9.07)
+  addAction(curNode, upgradeKey)
   office(trader,1)
+  curOffice.vp = 1
   office(trader,2)
 
   node("Quedlinburg",10.22,-7.50)
@@ -148,10 +153,13 @@ function originalMap(map)
   office(trader,3)
 
   node("Gröningen",-15.05,7.71)
+  addAction(curNode, upgradeBook)
   office(trader,1)
+  curOffice.vp = 1
   office(merchant,2)
 
   node("Stade",1.07,9.33)
+  addAction(curNode, upgradeBuilding)
   office(merchant,1)
 
   node("Hamburg",7.69,10.01)
@@ -160,7 +168,9 @@ function originalMap(map)
   office(trader,4)
 
   node("Lübeck",12.89,9.77)
+  addAction(curNode,upgradeBag)
   office(trader,1)
+  curOffice.vp = 1
   office(trader,3)
 
   edgeRegion = default
