@@ -189,7 +189,7 @@ function doTakeBonus(g,p,e,k)
   x.destroy()
 
   local s = g.playerState[p]
-  push(s.plates, edge.bonus)
+  local plate_ix = push(s.plates, edge.bonus)
   local b = edge.bonus
   edge.bonus = nil
 
@@ -201,7 +201,8 @@ function doTakeBonus(g,p,e,k)
     g.nextBonus = n + 1
     updatePlateCounter(g)
   end
-  spawnPlate(g,p,#s.plates,b,function()
+  spawnPlate(g,p,#s.plates,b,function(o)
+    GUI.player[p].plates[plate_ix] = o
     say(playerColorBB(p) .. " picked up the bonus token between " ..
           g.map.nodes[edge.from].name .. " and " ..
           g.map.nodes[edge.to].name)
