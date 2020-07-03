@@ -18,35 +18,6 @@ function endAction(g,s)
   if g.endGame then finalScoring(g) else takeActions(g) end
 end
 
-function endTurn(g)
-  local p = g.players[g.curPlayer]
-  local q = actQ()
-
-  local function placeBonus(b)
-    local opts = {}
-    for _,edge in ipairs(g.map.edges) do
-      if edgeAcceptsBonus(g,edge) then push(opts,edge.id) end
-    end
-
-    local q1 = actQ()
-    local here = { 3, boardPieceZ, 13 }
-    local img
-    q1.enQ(function () img = spawnBonus(b,here,180,q1.next) end)
-    q1.enQ(||askEdge(g, p, "Place token", opts, q1.next))
-    q1.enQ(||doPlaceBouns(g,p,b,q1.ans().id,q1.next))
-    q1.enQ(function() img.destroy(); q.next() end)
-  end
-
-  local s = g.playerState[p]
-  for _,b in ipairs(s.turnReplaceBonus) do
-    q.enQ(||placeBonus(b))
-  end
-  q.enQ(||nextTurn(g))
-end
-
-
---------------------------------------------------------------------------------
-
 --------------------------------------------------------------------------------
 
 function checkCanPlace(g,p,opts)
@@ -108,27 +79,53 @@ function checkCanHire(g,p,opts)
   end
 end
 
-function undoAction(o,p,alt)
-  if undoing then return end
-  undoing = true
-  local n = #actSaves
-  if n == 0 then undoing = false; return end
-  local g = JSON.decode(actSaves[n])
-  if mayPress(g.players[g.curPlayer],p) then
-    actSaves[n] = nil
-    newGUI(g,function() undoing = false; takeActions(g) end)
+function eotPlaceBonus(g,p)
+  local s    = g.playerState[p]
+  local todo = #s.turnReplaceBonus
+
+  if s.turnDoneReplaceBonus == todo then
+    if todo == 0 then nextTurn(g); return
+    else
+      local opts = { { text = "End turn", val = nil } }
+      askText(p,nil,opts,|| nextTurn(g))
+      return
+    end
   end
+
+  local nextTok = s.turnDoneReplaceBonus + 1
+  local b       = s.turnReplaceBonus[nextTok]
+  local msg     = string.format("Place token %d/%d",nextTok,todo)
+
+  local opts = {}
+  for _,edge in ipairs(g.map.edges) do
+    if edgeAcceptsBonus(g,edge) then push(opts,edge.id) end
+  end
+
+  local here = { 5, boardPieceZ, 12 }
+  local img
+  local q = actQ()
+  q.enQ(function () img = spawnBonus(b,here,180,q.next) end)
+  q.enQ(||askEdge(g, p, msg, opts, q.next))
+  q.enQ(function() checkPoint(g); doPlaceBouns(g,p,b,q.ans().id,q.next) end)
+  q.enQ(function()
+          img.destroy()
+          s.turnDoneReplaceBonus = nextTok
+          takeActions(g)
+        end)
 end
+
 
 
 function takeActions(g)
   local p      = g.players[g.curPlayer]
   local s      = g.playerState[p]
+
+  if s.turnEnded then eotPlaceBonus(g,p); return end
+
   local remain = s.turnActions - s.turnUsedActions
 
-
   local opts = {}
-  if remain > 0 then
+  if remain > 0 and not s.turnEnded then
     checkCanPlace(g,p,opts)
     checkCanReplace(g,p,opts)
     checkCanMove(g,p,opts)
@@ -136,25 +133,27 @@ function takeActions(g)
     checkCanHire(g,p,opts)
   end
 
-  if remain == 0 or #opts == 0 then
-    push(opts, { text = "End turn", val = || endTurn(g) })
+  if true or remain == 0 or #opts == 0 then
+    local msg = (#s.turnReplaceBonus > 0) and "End turn (place bonus)"
+            or "End turn"
+    push(opts, { text = msg
+               , val  = function()
+                          s.turnEnded = true
+                          eotPlaceBonus(g,p)
+                        end
+               })
   end
 
   push(opts, { text = "Use bonus", val = nil, separator = true })
-  checkBonusUpgradeSkill(g,p,opts,|| takeActions(g))
-  checkBonusSwap(g,p,opts,|| takeActions(g))
-  checkBonusMove(g,p,opts,|| takeActions(g))
-  checkBonusAct(g,p,bonusAct3,opts,|| takeActions(g))
-  checkBonusAct(g,p,bonusAct4,opts,|| takeActions(g))
+  checkBonusUpgradeSkill(g,p,opts)
+  checkBonusSwap(g,p,opts)
+  checkBonusMove(g,p,opts)
+  checkBonusAct(g,p,bonusAct3,opts)
+  checkBonusAct(g,p,bonusAct4,opts)
 
-  local msg = playerColorBB(p) .. " has " .. remain .. " actions"
-  say("\n" .. msg)
-  askText(p,msg,opts,function(f)
-    push(actSaves, JSON.encode(g))
-    f()
-  end)
+  local msg = string.format("%s has %d actions.", playerColorBB(p), remain)
+  askText(p,msg,opts,function(f) checkPoint(g); f() end)
 end
-
 
 
 
@@ -638,7 +637,7 @@ function usePrintedBonus(g,p,b,k)
   end
 end
 
-function checkBonusAct(g,p,b,opts,k)
+function checkBonusAct(g,p,b,opts)
   local ix = haveBounusToken(g,p,b)
   if not ix then return end
   local lab = bonusName[b]
@@ -649,14 +648,14 @@ function checkBonusAct(g,p,b,opts,k)
     s.turnActions = s.turnActions + n
     say(playerColorBB(p) .. " gained " .. n .. " actions.")
     doUseUpBonus(g,p,ix)
-    k()
+    takeActions(g)
   end
 
   push(opts, { text = lab, val = useBonus })
 end
 
 
-function checkBonusMove(g,p,opts,k)
+function checkBonusMove(g,p,opts)
   local ix = haveBounusToken(g,p,bonusMove)
   if not ix then return end
 
@@ -705,7 +704,7 @@ function checkBonusMove(g,p,opts,k)
     for i = 1,3 do q.enQ(||pickUp(i)) end
     q.enQ(function()
       doUseUpBonus(g,p,ix)
-      k()
+      takeActions(g)
     end)
   end
 
@@ -714,7 +713,7 @@ end
 
 
 
-function checkBonusSwap(g,p,opts,k)
+function checkBonusSwap(g,p,opts)
   local ix = haveBounusToken(g,p,bonusSwap)
   if not ix then return end
 
@@ -736,7 +735,7 @@ function checkBonusSwap(g,p,opts,k)
                 (v.office - 1) .. " and " .. v.office .. " in " .. v.node)
       doSwap(g,v.node,v.office,function()
         doUseUpBonus(g,p,ix)
-        k()
+        takeActions(g)
       end)
     end)
   end
@@ -746,7 +745,7 @@ end
 
 
 
-function checkBonusUpgradeSkill(g,p,opts,k)
+function checkBonusUpgradeSkill(g,p,opts)
   local s = g.playerState[p]
   local skills = {}
 
@@ -758,7 +757,7 @@ function checkBonusUpgradeSkill(g,p,opts,k)
                 , val = function()
                           fun()
                           doUseUpBonus(g,p,ix)
-                          k()
+                          takeActions(g)
                         end
                 })
   end

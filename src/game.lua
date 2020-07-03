@@ -263,9 +263,11 @@ function newPlayer(color,turnOrder)  -- Player
   p.passive[trader] = 7 - turnOrder
   p.passive[merchant] = 0
 
+  p.turnEnded = false
   p.turnActions = 0
   p.turnUsedActions = 0
   p.turnReplaceBonus = {}
+  p.turnDoneReplaceBonus = 0
 
   p.foreignBuilds = 0
   p.foreignBuildsIn = {}
@@ -296,7 +298,9 @@ function startTurn(g,p)
   local s = g.playerState[p]
   s.turnActions = actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
+  s.turnEnded = false
   s.turnReplaceBonus = {}
+  s.turnDoneReplaceBonus = 0
 
   local foreignBuildsIn = {}
   for _,r in ipairs(g.map.regions) do
