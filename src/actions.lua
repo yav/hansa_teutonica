@@ -135,7 +135,7 @@ function takeActions(g)
     checkCanHire(g,p,opts)
   end
 
-  if true or remain == 0 or #opts == 0 then
+  if remain == 0 or #opts == 0 then
     local msg = (#s.turnReplaceBonus > 0) and "End turn (place bonus)"
             or "End turn"
     push(opts, { text = msg
