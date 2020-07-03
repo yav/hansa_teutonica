@@ -468,16 +468,21 @@ function spawnMerchant(p,loc,k)
   return o
 end
 
--- Bonus token in a player's area
-function spawnPlate(g,p,ix,bonus,k)
+-- Location of plate i for the given player
+function plateLoc(g,p,ix)
   local loc = playerZoneLoc(g,p)
   ix = ix - 1
   local col = math.floor(ix / 4)
   local row = ix % 4
   loc[1] = loc[1] - 8 - col * 1.5
-  loc[2] = 2
+  loc[2] = boardPieceZ
   loc[3] = loc[3] + 3 - row * 1.5
-  spawnBonus(bonus,loc,180,k)
+  return loc
+end
+
+-- Bonus token in a player's area
+function spawnPlate(g,p,ix,bonus,k)
+  spawnBonus(bonus,plateLoc(g,p,ix),180,k)
 end
 
 function spawnBonus(bonus,loc,rot,k)

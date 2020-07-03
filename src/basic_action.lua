@@ -184,9 +184,8 @@ function doTakeBonus(g,p,e,k)
   local map = g.map
   local edge = map.edges[e]
 
-  local x = GUI.edge[e].bonus
+  local o = GUI.edge[e].bonus
   GUI.edge[e].bonus = nil
-  x.destroy()
 
   local s = g.playerState[p]
   local plate_ix = push(s.plates, edge.bonus)
@@ -201,13 +200,11 @@ function doTakeBonus(g,p,e,k)
     g.nextBonus = n + 1
     updatePlateCounter(g)
   end
-  spawnPlate(g,p,#s.plates,b,function(o)
-    GUI.player[p].plates[plate_ix] = o
-    say(playerColorBB(p) .. " picked up the bonus token between " ..
-          g.map.nodes[edge.from].name .. " and " ..
-          g.map.nodes[edge.to].name)
-    k()
-  end)
+  GUI.player[p].plates[plate_ix] = o
+  o.setPositionSmooth(plateLoc(g,p,plate_ix),false,false)
+  say(playerColorBB(p) .. " picked up the bonus token between " ..
+                        edge.from .. " and " .. edge.to)
+  k()
 end
 
 function doUseUpBonus(g,p,i)
@@ -216,7 +213,9 @@ function doUseUpBonus(g,p,i)
   ui.plates[i].destroy()
   for j = (i+1),#s.plates do
     s.plates[j-1] = s.plates[j]
-    ui.plates[j-1] = ui.plates[j]
+    local o = ui.plates[j]
+    ui.plates[j-1] = o
+    o.setPositionSmooth(plateLoc(g,p,j-1),false,false)
   end
   s.plates[#s.plates] = nil
   ui.plates[#ui.plates] = nil
