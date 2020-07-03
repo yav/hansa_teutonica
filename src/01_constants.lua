@@ -89,6 +89,10 @@ function DYN_GLOB(f)
   return nm
 end
 
+function DEL_DYN(nm)
+  _G[nm] = nil
+end
+
 --------------------------------------------------------------------------------
 
 local turnSave

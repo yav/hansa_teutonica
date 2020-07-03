@@ -73,7 +73,7 @@ function askOccupiedSpotL(p,lab,q,spots,k)
 
   local function cleanUp()
     for _,thing in ipairs(ui) do
-      _G[thing.fun] = nil
+      DEL_DYN(thing.fun)
       thing.obj.removeButton(0)
     end
     if ql then ql.destroy() end
@@ -136,7 +136,7 @@ function askText(p, q, labs, k)
 
   local function cleanUp()
     for _,f in ipairs(funs) do
-      _G[f] = nil
+      DEL_DYN(f)
     end
     o.destroy()
   end
@@ -149,8 +149,10 @@ function askText(p, q, labs, k)
         local function btn(y,l,f)
           local bg = { 0, 0, 0 }
           local fg = {1,1,1}
-          local lab = (f == "nop") and l
-                or (playerColorNote(p, "> ") .. l .. playerColorNote(p, " <"))
+          local lab = l
+          if f then
+            lab = playerColorNote(p, "> ") .. l .. playerColorNote(p, " <")
+          end
           o.createButton(
             { font_size      = 300
             , font_color     = fg
@@ -165,7 +167,7 @@ function askText(p, q, labs, k)
           )
         end
 
-        if q then btn(-1,q,"nop") end
+        if q then btn(-1,q,nil) end
 
         local ix = 1
         for i,l in ipairs(labs) do
@@ -174,7 +176,7 @@ function askText(p, q, labs, k)
           local finished = false
           local fun
           if l.separator then
-            fun = "nop"
+            fun = nil
             ix = ix + 1
           else fun = DYN_GLOB(function (obj,c,alt)
                                     if finished then return end
@@ -184,7 +186,7 @@ function askText(p, q, labs, k)
                                     k(l.val)
                                   end)
           end
-          push(funs,fun)
+          if fun then push(funs,fun) end
           btn(ix, l.text, fun)
           ix = ix + 1
         end
@@ -241,7 +243,7 @@ function ask(p, mark, q, locs, k)     -- locs: {x,y,r,val}
 
   local function cleanUp()
     for i,m in ipairs(markers) do
-      _G[m.fun] = nil
+      DEL_DYN(m.fun)
       m.obj.destroy()
     end
     if ql then ql.destroy() end

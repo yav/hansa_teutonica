@@ -324,7 +324,7 @@ function moveWorkers(g,p,n,defaultOk,spots,k)
         sem.down()
         busy = false
         obj.destroy()
-        _G[funs[me]] = nil
+        DEL_DYN(funs[me])
       end)
     end)
   end
