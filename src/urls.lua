@@ -22,5 +22,7 @@ bonus_token_url =
   , "http://cloud-3.steamusercontent.com/ugc/1181580227101444557/563FB2591B078BB6C51E7ADAB708D745F3A1FEA7/" -- move
   , "http://cloud-3.steamusercontent.com/ugc/1181580227101444047/752B29395DC37FC096FBBB63AECB551C3C40A262/" -- extra
   , "http://cloud-3.steamusercontent.com/ugc/1181580227101443500/D464B24A3DB5210A62309185ACC7F15D103E45F3/" -- act 4
-  , "http://cloud-3.steamusercontent.com/ugc/1181580227101443500/D464B24A3DB5210A62309185ACC7F15D103E45F3/" -- act 3
+  , "http://cloud-3.steamusercontent.com/ugc/1181580227101442963/F7B18289170C10E1925240C9E887640CE71A408D/" -- act 3
   }
+
+
