@@ -41,7 +41,7 @@ function finalScoring(g)
     end
 
     newStat(p,g.map.investName)
-    for i,w in ipairs(g.map.endGameInvest) do
+    for i,w in pairs(g.map.endGameInvest) do
       if w.owner == p then
         points(p,endGameInvestPoints[i])
       end
@@ -126,5 +126,3 @@ function scoreRegion(g,r)
   finishGroup()
   return points
 end
-
-
