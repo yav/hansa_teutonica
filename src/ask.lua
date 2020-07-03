@@ -167,23 +167,27 @@ function askText(p, q, labs, k)
 
         if q then btn(-1,q,"nop") end
 
+        local ix = 1
         for i,l in ipairs(labs) do
           if l.separator and i == #labs then break end -- skip end separator
 
-          if not l.separator then
-            local finished = false
-            local fun = DYN_GLOB(function (obj,c,alt)
+          local finished = false
+          local fun
+          if l.separator then
+            fun = "nop"
+            ix = ix + 1
+          else fun = DYN_GLOB(function (obj,c,alt)
                                     if finished then return end
                                     if not mayPress(p,c) then return end
                                     finished = true
                                     cleanUp()
                                     k(l.val)
                                   end)
-            push(funs,fun)
-            btn(i, l.text, fun)
           end
+          push(funs,fun)
+          btn(ix, l.text, fun)
+          ix = ix + 1
         end
-
       end
     }
   )
