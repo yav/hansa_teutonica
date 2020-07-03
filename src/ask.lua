@@ -130,6 +130,8 @@ function askOccupiedSpotOrPass(p,q,spots,k)
 
 end
 
+
+
 function askText(p, q, labs, k)
   local o
   local funs = {}
@@ -141,33 +143,8 @@ function askText(p, q, labs, k)
     o.destroy()
   end
 
-  o = spawnObject(
-    { type = "BlockSquare"
-    , position = { 5, 0, 13 }
-    , callback_function = function(o)
-        o.setLock(true)
-        local function btn(y,l,f)
-          local bg = { 0, 0, 0 }
-          local fg = {1,1,1}
-          local lab = l
-          if f then
-            lab = playerColorNote(p, "> ") .. l .. playerColorNote(p, " <")
-          end
-          o.createButton(
-            { font_size      = 300
-            , font_color     = fg
-            , color          = bg
-            , label          = lab
-            , click_function = f or "nop"
-            , position       = { 0, boardPieceZ, -y }
-            , rotation       = { 0, 180, 0 }
-            , width          = 4000
-            , height         = 400
-            }
-          )
-        end
-
-        if q then btn(-1,q,nil) end
+  o = spawnMenu(5,13,function(o)
+        if q then spawnMenuItem(p,o,-1,q,nil) end
 
         local ix = 1
         for i,l in ipairs(labs) do
@@ -187,35 +164,16 @@ function askText(p, q, labs, k)
                                   end)
           end
           if fun then push(funs,fun) end
-          btn(ix, l.text, fun)
+          spawnMenuItem(p,o,ix,l.text,fun)
           ix = ix + 1
         end
-      end
-    }
-  )
+      end)
   return cleanUp
 
 end
 
 function question(q)
-  return spawnObject(
-    { type = "BlockSquare"
-    , position = { 5, 0, 13 }
-    , callback_function = function(o)
-        o.setLock(true)
-        o.createButton(
-          { font_size      = 300
-          , font_color     = {1,1,1}
-          , color          = {0,0,0}
-          , label          = q
-          , click_function = "nop"
-          , position       = { 0, boardPieceZ, 1 }
-          , rotation       = { 0, 180, 0 }
-          , width          = 4000
-          , height         = 400
-          })
-        end
-    })
+  return spawnMenu(5,13,|m|spawnMenuItem(nil,m,-1,q,nil))
 end
 
 

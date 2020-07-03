@@ -117,6 +117,8 @@ end
 
 
 function takeActions(g)
+  maybeHideUndo(g)
+
   local p      = g.players[g.curPlayer]
   local s      = g.playerState[p]
 

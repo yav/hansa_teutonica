@@ -48,28 +48,10 @@ function updatePlateCounter(g)
 end
 
 function spawnUndo(k)
-  GUI.undo = spawnObject(
-    { type = "BlockSquare"
-    , rotation = { 0, 0, 0 }
-    , scale = { 1, 0.2, 1 }
-    , position = { 3, boardPieceZ, -15 }
-    , callback_function = function(o)
-        o.setLock(true)
-        o.setColorTint({0,0,0})
-        o.createButton(
-          { font_size = 300
-          , label = "Undo"
-          , click_function = "undoAction"
-          , rotation = {0,180,0}
-          , color = {0,0,0}
-          , font_color = {1,1,1}
-          , width = 2000
-          , height = 600
-          , position = { 0,0.5,0 }
-          })
-        k(o)
-      end
-    })
+  GUI.undo = spawnMenu(5,-15, function(m)
+    spawnMenuItem(nil,m,0,"Undo","undoAction")
+    k()
+  end)
 end
 
 
@@ -214,7 +196,7 @@ function playerColor(p)
 end
 
 function playerFontColor(p)
-  if p == "Yellow" then return {0,0,0} else return {1,1,1} end
+  if p == "Yellow" or p == "White" then return {0,0,0} else return {1,1,1} end
 end
 
 function playerColorNote(p,txt)
@@ -592,4 +574,37 @@ function spawnEndGame(g)
     }
   )
 end
+
+
+
+function spawnMenu(x,y,k)
+  return spawnObject(
+    { type              = "BlockSquare"
+    , position          = { x, 0, y }
+    , callback_function = function(o) o.setLock(true); k(o) end
+    }
+  )
+end
+
+function spawnMenuItem(p,menu,ix,lab,f)
+  local bg  = {0,0,0}
+  local fg  = {1,1,1}
+  local msg = lab
+  if p and f then
+    msg = playerColorNote(p, "> ") .. lab .. playerColorNote(p, " <")
+  end
+  menu.createButton(
+    { font_size      = 300
+    , font_color     = fg
+    , color          = bg
+    , label          = msg
+    , click_function = f or "nop"
+    , position       = { 0, boardPieceZ, -ix }
+    , rotation       = { 0, 180, 0 }
+    , width          = 4000
+    , height         = 400
+    }
+  )
+end
+
 

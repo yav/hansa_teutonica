@@ -14,6 +14,13 @@ end
 
 function checkPoint(g)
   push(actSaves, JSON.encode(g))
+  GUI.undo.setInvisibleTo({})
+end
+
+function maybeHideUndo(g)
+  if (#actSaves == 0) then
+    GUI.undo.setInvisibleTo(g.players)
+  end
 end
 
 function undoAction(o,p,alt)
@@ -27,5 +34,6 @@ function undoAction(o,p,alt)
     newGUI(g,function() undoing = false; takeActions(g) end)
   end
 end
+
 
 
