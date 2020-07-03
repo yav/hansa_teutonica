@@ -154,7 +154,7 @@ function spawnNode(node,k)
   local x = node.x
   local extra = {}
   for i,worker in ipairs(node.extraOffices) do
-    x = x - w[worker.shape]
+    x = x - GUI.officeWidth[worker.shape]
     sem.up()
     extra[i] = spawnWorker(worker,{x,boardPieceZ,y},sem.down)
   end
