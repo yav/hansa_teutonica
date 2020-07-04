@@ -25,6 +25,7 @@ function originalMap(map)
 
   -- board
   map.url   = board_original_url
+  map.orientation = landscape
   map.scale = 12.5
   map.x     = -10
   map.y     = -5

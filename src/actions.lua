@@ -87,7 +87,7 @@ function eotPlaceBonus(g,p)
     if todo == 0 then nextTurn(g); return
     else
       local opts = { { text = "End turn", val = nil } }
-      askText(p,nil,opts,|| nextTurn(g))
+      askText(g,p,nil,opts,||nextTurn(g))
       return
     end
   end
@@ -126,6 +126,8 @@ function takeActions(g)
 
   local remain = s.turnActions - s.turnUsedActions
 
+  local menus = {}
+
   local opts = {}
   if remain > 0 and not s.turnEnded then
     checkCanPlace(g,p,opts)
@@ -146,16 +148,19 @@ function takeActions(g)
                })
   end
 
-  push(opts, { text = "Use bonus", val = nil, separator = true })
-  checkBonusUpgradeSkill(g,p,opts)
-  checkBonusSwap(g,p,opts)
-  checkBonusMove(g,p,opts)
-  checkBonusAct(g,p,bonusAct3,opts)
-  checkBonusAct(g,p,bonusAct4,opts)
-
   local msg = string.format("%s has %d actions.", playerColorBB(p), remain)
+  push(menus, { question = msg, choices = opts })
+
+  local opts1 = {}
+  checkBonusUpgradeSkill(g,p,opts1)
+  checkBonusSwap(g,p,opts1)
+  checkBonusMove(g,p,opts1)
+  checkBonusAct(g,p,bonusAct3,opts1)
+  checkBonusAct(g,p,bonusAct4,opts1)
+  push(menus, { question = "Use bonus", choices = opts1 })
+
   say("---")
-  askText(p,msg,opts,function(f) checkPoint(g); f() end)
+  askTextMany(g,p,menus,function(f) checkPoint(g); f() end)
 end
 
 
@@ -177,7 +182,7 @@ function actPlaceActiveWorker(g,p)
   local reg = accessibleRegions(g,p)
 
   local q = actQ()
-  q.enQ(|| askWorkerType(p,"Choose worker type",s.active, q.next))
+  q.enQ(|| askWorkerType(g,p,"Choose worker type",s.active, q.next))
   q.enQ(function()
     workerType = q.ans()
     askFreeSpot(g,p, "Place a " .. workerName(workerType)
@@ -216,10 +221,10 @@ function placeCompWorkers(g,p,e,todo,k)
   end
 
   if s.passive[trader] + s.passive[merchant] > 0 then
-    askWorkerTypeOrPass(p,"Place passive?",s.passive,placing(doPlacePassive))
+    askWorkerTypeOrPass(g,p,"Place passive?",s.passive,placing(doPlacePassive))
 
   elseif s.active[trader] + s.active[merchant] > 0 then
-    askWorkerTypeOrPass(p,"Place active?",s.active,placing(doPlaceActive))
+    askWorkerTypeOrPass(g,p,"Place active?",s.active,placing(doPlaceActive))
 
   else
     --XXX
@@ -241,7 +246,7 @@ function actReplaceOpponent(g,p,spots)
 
   -- Choose who to bump
   local q = actQ()
-  q.enQ(||askOccupiedSpot(p,"Replace",spots,q.next))
+  q.enQ(||askOccupiedSpot(g,p,"Replace",spots,q.next))
   q.enQ(function()
     loc = q.ans()
     w = loc.worker
@@ -267,7 +272,7 @@ function actReplaceOpponent(g,p,spots)
     if ty == stopShip then
       q.next(merchant)
     else
-      askWorkerType(p,"Place worker",s.active,q.next)
+      askWorkerType(g,p,"Place worker",s.active,q.next)
     end
   end)
 
@@ -280,7 +285,7 @@ function actReplaceOpponent(g,p,spots)
     -- Pay active workers
     local q1 = actQ()
     for i = 1,cost do
-      q1.enQ(|| askWorkerType(p,"Deactivate worker",s.active,q1.next))
+      q1.enQ(|| askWorkerType(g,p,"Make passive",s.active,q1.next))
       q1.enQ(function()
         local t = q1.ans()
         doChangeActive(g,p,t,-1)
@@ -319,14 +324,15 @@ function moveWorkers(g,p,n,defaultOk,spots,k)
 
   -- these we've picked up
   local pickedUp = {}
-  local x,y      = 3,10
+  local loc      = menuLoc[g.map.orientation]
+  local x,y      = loc[1], loc[2] - 3
 
   local q = actQ()
 
   local function pickUp(i)
     if passed then q.next(); return end
     local msg = string.format("Pickup worker %d/%d",i,n)
-    askOccupiedSpotOrPass(p,msg,curSpots,function(spot)
+    askOccupiedSpotOrPass(g,p,msg,curSpots,function(spot)
       if not spot then passed = true; q.next(); return end
       pickedUp[i] = { spot = spot
                     , obj  = doRemoveWorker( g
@@ -479,7 +485,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
     end
 
     if #spots > 1 then
-      askOccupiedSpotL(p,"?","Use worker",spots,doBuilid)
+      askOccupiedSpotL(g,p,"?","Use worker",spots,doBuilid)
     else doBuilid(spots[1]) end
   end
 
@@ -530,7 +536,7 @@ function checkCityAction(g,p,edge,n,opts,k)
 end
 
 function makeInvestment(g,p,edge,yes,k)
-  askInvestmentSpot(g.map,p,yes.opts,function(i)
+  askInvestmentSpot(g,p,yes.opts,function(i)
     doRemoveWorker(g, {edge=edge.id,stop=yes.stop})
     doAddInvest(g,p,i,k)
   end)
@@ -563,18 +569,22 @@ end
 
 
 function performCompleteRouteAction(g,p,edge,k)
+  local menus = {}
+
   local opts = {}
   checkBuildOffice(g,p,edge,edge.from,opts,k)
   checkBuildOffice(g,p,edge,edge.to,opts,k)
   checkCityAction(g,p,edge,edge.from,opts,k)
   checkCityAction(g,p,edge,edge.to,opts,k)
   push(opts, { text = "Do nothing", val = k })
+  push(menus, { question = "Choose action", choices = opts })
 
-  push(opts, {text = "Use bonus", val = nil, separator = true })
-  checkBuildBonusOffice(g,p,edge,edge.from,opts,k)
-  checkBuildBonusOffice(g,p,edge,edge.to,opts,k)
+  local opts1 = {}
+  checkBuildBonusOffice(g,p,edge,edge.from,opts1,k)
+  checkBuildBonusOffice(g,p,edge,edge.to,opts1,k)
+  push(menus, { question = "Use bonus", choices = opts1 })
 
-  askText(p,"Choose action",opts,|f|f())
+  askTextMany(g,p,menus,|f|f())
 end
 
 
@@ -605,7 +615,7 @@ function actHireWorkers(g,p)
   local q = actQ()
 
   local function hireOne()
-    askWorkerType(p,"Hire worker",s.passive,function(t)
+    askWorkerType(g,p,"Hire worker",s.passive,function(t)
       doChangePassive(g,p,t,-1)
       doChangeActive(g,p,t,1)
       say(string.format("%s hired a %s.", playerColorBB(p), workerName(t)))
@@ -686,7 +696,7 @@ function checkBonusMove(g,p,opts)
       if #cs == 0 then q.next(); return end
 
       local msg = "Move worker " .. i .. "/3"
-      askOccupiedSpotOrPass(p,msg,cs,function(from)
+      askOccupiedSpotOrPass(g,p,msg,cs,function(from)
         if not from then passed = true; q.next() return end
         doRemoveWorker(g,from)
         putDown(from)
@@ -722,7 +732,7 @@ function checkBonusSwap(g,p,opts)
   if #cs == 0 then return end
 
   local function useBonus()
-    askOccupiedSpotL(p,"<","Office to move BACK",cs,function(v)
+    askOccupiedSpotL(g,p,"<","Office to move BACK",cs,function(v)
       say(string.format( "Bonus: %s swapped office %d and %d in %s."
                        , playerColorBB(p), v.office - 1, v.office, v.node))
 
@@ -777,7 +787,7 @@ function checkBonusUpgradeSkill(g,p,opts)
 
   local useBonus = function()
     say(string.format("Bonus: %s upgrades a skill.", playerColorBB(p)))
-    askText(p,"Upgrade",skills,|f|f())
+    askText(g,p,"Upgrade",skills,|f|f())
   end
 
   if #skills > 0 then push(opts, { text = bonusName[bonusUpgrade]
@@ -822,7 +832,7 @@ function doBonusPrintedPlace2(g,p,k)
     if #freeSpots(g,shape,regs) == 0 then passed = true; q.next(); return end
 
     local msg = "Place worker " .. i .. "/" .. n
-    askWorkerTypeOrPass(p,msg,s.active,function(t)
+    askWorkerTypeOrPass(g,p,msg,s.active,function(t)
       if not t then passed = true; q.next(); return end
       local w = { owner = p, shape = t }
       askFreeSpot(g,p,msg,w,regs,|spot| doPlaceActive(g,spot,w,q.next))

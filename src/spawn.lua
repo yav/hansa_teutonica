@@ -28,7 +28,7 @@ function newGUI(g,k)
 
   spawnPlateCounter(g)
 
-  sem.up(); spawnUndo(sem.down)
+  sem.up(); spawnUndo(g,sem.down)
   sem.wait(k)
 end
 
@@ -51,8 +51,9 @@ function updatePlateCounter(g)
   GUI.plates.setValue(n .. "")
 end
 
-function spawnUndo(k)
-  GUI.undo = spawnMenu(5,-15, function(m)
+function spawnUndo(g,k)
+  local loc = undoLoc[g.map.orientation]
+  GUI.undo = spawnMenu(loc[1],loc[2], function(m)
     spawnMenuItem(nil,m,0,"Undo","undoAction")
     k()
   end)

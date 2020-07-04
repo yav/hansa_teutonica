@@ -28,6 +28,9 @@ function test(g)
     doFillOffice(g,n,{owner=p,shape=trader},k)
   end
 
+  q.enQ(||doPlaceBonus(g,"Green",bonusAct4,1,q.next))
+  q.enQ(||doTakeBonus(g,"Green",1,q.next))
+
   q.enQ(||nextTurn(g))
 
 end

@@ -1,5 +1,10 @@
--- Board offset
+-- Board info
 local boardPieceZ = 1.5
+local landscape = 1
+local portrait = 2
+
+local menuLoc = { {-15,14}, {5,13} }
+local undoLoc = { {-23,17}, {5,-15} }
 
 -- Type Shape
 local trader = 1

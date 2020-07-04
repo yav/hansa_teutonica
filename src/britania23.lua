@@ -9,6 +9,7 @@ function britaniaMap23(map)
 
   -- Board
   map.url = board_britannia23_url
+  map.orientation = portrait
   map.scale = 18
   map.x     = -14
   map.y     = 0

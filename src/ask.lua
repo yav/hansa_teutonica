@@ -1,16 +1,17 @@
 
 
-function askInvestmentSpot(m,p,spots,k)
+function askInvestmentSpot(g,p,spots,k)
+  local m = g.map
   if #spots == 1 then k(spots[1]); return end
   local opts = {}
   for i,x in ipairs(spots) do
     opts[i] = { x = investLocX(m,x), y = m.investY, r = 0, val = x }
   end
-  ask(p, ptrWorker(p, {owner=p,shape=merchant},'?'), "Choose spot", opts, k)
+  ask(g, p, ptrWorker(p, {owner=p,shape=merchant},'?'), "Choose spot", opts, k)
 end
 
 
-function askWorkerType(p,q,workers,k)
+function askWorkerType(g,p,q,workers,k)
   if workers[trader] == 0 then k(merchant); return end
   if workers[merchant] == 0 then k(trader); return end
 
@@ -19,11 +20,11 @@ function askWorkerType(p,q,workers,k)
         , { text = "Merchant " .. playerColorNote(p, "●"), val = merchant }
         }
 
-  return askText(p,q, opts, k)
+  return askText(g,p,q,opts,k)
 end
 
 
-function askWorkerTypeOrPass(p,q,workers,k)
+function askWorkerTypeOrPass(g,p,q,workers,k)
   local opts = {}
   if workers[trader] > 0 then
     push(opts, { text = "Trader " .. playerColorNote(p, "■"), val = trader })
@@ -34,18 +35,18 @@ function askWorkerTypeOrPass(p,q,workers,k)
   end
 
   push(opts, { text = "Pass", val = nil })
-  return askText(p, q, opts, k)
+  return askText(g, p, q, opts, k)
 end
 
 
 
 
 function askFreeSpot(g, p, q, w, r, k)
-  return ask(p, ptrWorker(p,w,'∨'), q, freeSpots(g,w.shape,r), k)
+  return ask(g, p, ptrWorker(p,w,'∨'), q, freeSpots(g,w.shape,r), k)
 end
 
 function askFreeAdjacent(g,p,q,e,w,k)
-  return ask(p, ptrWorker(p,w,'∨'), q, freeAdjacent(g,w.shape,e),k)
+  return ask(g, p, ptrWorker(p,w,'∨'), q, freeAdjacent(g,w.shape,e),k)
 end
 
 function mayPress(p,c)
@@ -56,17 +57,17 @@ function mayPress(p,c)
   return false
 end
 
-function askOccupiedSpot(p,q,spots,k)
-  return askOccupiedSpotL(p,"∧",q,spots,k)
+function askOccupiedSpot(g,p,q,spots,k)
+  return askOccupiedSpotL(g,p,"∧",q,spots,k)
 end
 
 -- This is different from `ask` in that it does not spawn
 -- new objects for the question, but rather labels existing ones
-function askOccupiedSpotL(p,lab,q,spots,k)
+function askOccupiedSpotL(g, p,lab,q,spots,k)
   local ui = {}
 
   local ql
-  if q then ql = question(q) end
+  if q then ql = question(g, q) end
 
 
   local finished = false
@@ -116,64 +117,74 @@ function askOccupiedSpotL(p,lab,q,spots,k)
 end
 
 
-function askOccupiedSpotOrPass(p,q,spots,k)
+function askOccupiedSpotOrPass(g, p,q,spots,k)
   local cancelPass = nop
-  local cancelPick = askOccupiedSpot(p,q,spots,function(i)
+  local cancelPick = askOccupiedSpot(g,p,nil,spots,function(i)
     cancelPass()
     k(i)
   end)
 
-  cancelPass = askText(p,nil, { { text = "Pass", val = nil } },function()
+  cancelPass = askText(g, p,q, { { text = "Pass", val = nil } }, function()
     cancelPick()
     k(nil)
   end)
 
 end
 
+function askTextMany (g, p, qs, k)
+  local orient = g.map.orientation
 
-
-function askText(p, q, labs, k)
-  local o
+  local dy = 0
+  local w  = 10
+  local menus = {}
   local funs = {}
 
   local function cleanUp()
+    for _,o in pairs(menus) do o.destroy() end
     for _,f in ipairs(funs) do
       DEL_DYN(f)
     end
-    o.destroy()
   end
 
-  o = spawnMenu(5,13,function(o)
+
+  for i, opts in ipairs(qs) do
+    local loc = menuLoc[orient]
+    local x = loc[1]
+    local y = loc[2]
+    if orient == portrait then y = y - dy else x = x + (i-1) * w end
+
+    local q       = opts.question
+    local choices = opts.choices
+    if #choices > 0 then
+      dy = dy + 3 + #opts.choices
+      menus[i] = spawnMenu(x,y,function(o)
         if q then spawnMenuItem(p,o,-1,q,nil) end
 
-        local ix = 1
-        for i,l in ipairs(labs) do
-          if l.separator and i == #labs then break end -- skip end separator
-
+        for i,l in ipairs(choices) do
           local finished = false
-          local fun
-          if l.separator then
-            fun = nil
-            ix = ix + 1
-          else fun = DYN_GLOB(function (obj,c,alt)
-                                    if finished then return end
-                                    if not mayPress(p,c) then return end
-                                    finished = true
-                                    cleanUp()
-                                    k(l.val)
-                                  end)
-          end
-          if fun then push(funs,fun) end
-          spawnMenuItem(p,o,ix,l.text,fun)
-          ix = ix + 1
+          local fun = DYN_GLOB(function (obj,c,alt)
+                                 if finished then return end
+                                 if not mayPress(p,c) then return end
+                                 finished = true
+                                 cleanUp()
+                                 k(l.val)
+                               end)
+          spawnMenuItem(p,o,i,l.text,fun)
         end
       end)
+    end
+  end
   return cleanUp
-
 end
 
-function question(q)
-  return spawnMenu(5,13,|m|spawnMenuItem(nil,m,-1,q,nil))
+
+function askText(g, p, q, labs, k)
+  return askTextMany(g, p, { { question = q, choices = labs } }, k)
+end
+
+function question(g, q)
+  local loc = menuLoc[g.map.orientation]
+  return spawnMenu(loc[1],loc[2],|m|spawnMenuItem(nil,m,-1,q,nil))
 end
 
 
@@ -183,15 +194,15 @@ function askEdge(g, p, q, es, k)
     local ed = getEdge(g.map,e)
     push(opts, { x = ed.x, y = ed.y, r = ed.rotation, val = ed })
   end
-  ask(p, ptrTri(), q, opts, k)
+  ask(g, p, ptrTri(), q, opts, k)
 end
 
 
-function ask(p, mark, q, locs, k)     -- locs: {x,y,r,val}
+function ask(g, p, mark, q, locs, k)     -- locs: {x,y,r,val}
 
   local ql
   if q then
-    ql = question(q)
+    ql = question(g, q)
   end
 
 
@@ -242,28 +253,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Pointers
-
-function ptrWorkerType () return
-  { label = "?"
-  , font_size = 600
-  , rotation = { 0, 180, 0 }
-  , position = { 0, 0.5, 0 }
-  , spawn = function(p,loc,k)
-              if loc.val then
-                return spawnWorker( { owner = p, shape = loc.val }
-                                  , { loc.x, 2, loc.y }
-                                  , k --[[function(o)
-                                      o.setScale({1,1,1})
-                                      k(o)
-                                    end --]]
-                                  )
-              else
-                return spawnPass({loc.x, 2, loc.y},k)
-              end
-    end
-  }
-end
-
 
 
 function ptrWorker(p,w,l) return
