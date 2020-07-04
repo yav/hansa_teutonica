@@ -1,9 +1,21 @@
 function doPlaceActive(g,spot,w,k)
+  local e = getEdge(g.map,spot.edge)
+  say(string.format( "%s placed an active %s on %s-%s."
+                   , playerColorBB(w.owner)
+                   , workerName(w.shape)
+                   , e.from, e.to
+                   ))
   doChangeActive(g,w.owner,w.shape,-1)
   doPlaceWorker(g,spot,w,k)
 end
 
 function doPlacePassive(g,spot,w,k)
+  local e = getEdge(g.map,spot.edge)
+  say(string.format( "%s placed a passive %s on %s-%s."
+                   , playerColorBB(w.owner)
+                   , workerName(w.shape)
+                   , e.from, e.to
+                   ))
   doChangePassive(g,w.owner,w.shape,-1)
   doPlaceWorker(g,spot,w,k)
 end
@@ -14,13 +26,6 @@ function doChangeActive(g,p,t,x)
   local s = g.playerState[p]
   s.active[t] = s.active[t] + x
   setLabel(GUI.player[p].active[t], s.active[t] .. "")
-  local verb = x > 0 and "gained" or "lost"
-  local amt = x
-  if amt < 0 then amt = - amt end
-  local suff = "s"
-  if amt == 1 then suff = "" end
-  say(playerColorBB(p) .. " " .. verb .. " " .. amt ..
-                                " active " .. workerName(t) .. suff .. ".")
 end
 
 function doChangePassive(g,p,t,x)
@@ -29,13 +34,6 @@ function doChangePassive(g,p,t,x)
   local s = g.playerState[p]
   s.passive[t] = s.passive[t] + x
   setLabel(GUI.player[p].passive[t], s.passive[t] .. "")
-  local verb = x > 0 and "gained" or "lost"
-  local amt = x
-  if amt < 0 then amt = - amt end
-  local suff = "s"
-  if amt == 1 then suff = "" end
-  say(playerColorBB(p) .. " " .. verb .. " " .. amt ..
-                                " passive " .. workerName(t) .. suff .. ".")
 end
 
 function doMoveWorker(g,from,to,k)
@@ -45,7 +43,6 @@ function doMoveWorker(g,from,to,k)
 end
 
 function doRemoveWorker(g,spot,newLoc)
-  log(spot)
   local edge = getEdge(g.map,spot.edge)
   local stop = edge.stops[spot.stop]
   local w = stop.worker
@@ -63,9 +60,6 @@ function doPlaceWorker(g,spot,w,k)
   local stop = edge.stops[spot.stop]
   stop.worker = w
   local thing = stopName(stop.type)
-  say(playerColorBB(w.owner) .. " placed a " .. workerName(w.shape) ..
-        " on the " .. thing .. " between " .. edge.from .. " and "
-        .. edge.to .. ".")
   spawnWorker(w, { stop.x, boardPieceZ, stop.y }, function(o)
     GUI.edge[spot.edge].stops[spot.stop] = o
     k()
@@ -94,7 +88,7 @@ function doScorePoints(g,p,n)
 
   if s.score >= 20 then g.endGame = true end
 
-  say(playerColorBB(p) .. " scored " .. n .. " VP.")
+  say(string.format("%s scored %d VP.", playerColorBB(p),n))
 end
 
 function doCityBecameFull(g)
@@ -113,7 +107,9 @@ function doFillOffice(g,n,w,k)
         doCityBecameFull(g)
       end
       off.worker = w
-      say(playerColorBB(w.owner) .. " establised an office in " .. node.name)
+      say(string.format("%s establised an office in %s."
+                       , playerColorBB(w.owner)
+                       , node.name))
       checkWinRace(g,w.owner)
       spawnWorker(w, {x, boardPieceZ, node.y}, function(o)
         GUI.node[n].offices[i] = o
@@ -166,8 +162,8 @@ function doAddExtra(g,n,w,k)
   end
   x = x - GUI.officeWidth[w.shape]
 
-  say(playerColorBB(w.owner) .. " establised an expansion office in "
-                                                          .. node.name)
+  say(string.format("%s established an expansion office in %s."
+                   , playerColorBB(w.owner), node.name))
   push(node.extraOffices, w)
   checkWinRace(g,w.owner)
 
@@ -181,14 +177,14 @@ end
 
 
 
-function doPlaceBouns(g,p,b,e,k)
+function doPlaceBonus(g,p,b,e,k)
   local edge = g.map.edges[e]
   edge.bonus = b
   spawnBonus(b, {edge.x,boardPieceZ,edge.y}, edge.rotation, function(o)
     GUI.edge[e].bonus = o
-    say(playerColorBB(p) .. " placed a bonus token between " ..
-          g.map.nodes[edge.from].name .. " and " ..
-          g.map.nodes[edge.to].name)
+    say(string.format("%s placed a bonus token on %s-%s."
+                     , playerColorBB(p)
+                     , edge.from, edge.to))
     k()
   end)
 end
@@ -215,8 +211,7 @@ function doTakeBonus(g,p,e,k)
   end
   GUI.player[p].plates[plate_ix] = o
   o.setPositionSmooth(plateLoc(g,p,plate_ix),false,false)
-  say(playerColorBB(p) .. " picked up the bonus token between " ..
-                        edge.from .. " and " .. edge.to)
+  o.setRotation({0,180,0})
   k()
 end
 
@@ -256,7 +251,7 @@ function doUpgradeBag(g,p)
   local s = g.playerState[p]
   if s.bagLevel == #bagLevelMap then return end
 
-  say(playerColorBB(p) .. " upgraded their bag.")
+  say(playerColorBB(p) .. " upgraded their coffers.")
   s.bagLevel = s.bagLevel + 1
 
   GUI.player[p].bagLevel[s.bagLevel].destroy()
@@ -268,7 +263,7 @@ function doUpgradeBuilding(g,p)
   local s = g.playerState[p]
   if s.buildingLevel == #buildingLevelMap then return end
 
-  say(playerColorBB(p) .. " upgraded their building.")
+  say(playerColorBB(p) .. " upgraded their privilege.")
   s.buildingLevel = s.buildingLevel + 1
 
   GUI.player[p].buildingLevel[s.buildingLevel].destroy()
@@ -290,7 +285,7 @@ function doUpgradeBook(g,p)
   local s = g.playerState[p]
   if s.bookLevel == #bookLevelMap then return end
 
-  say(playerColorBB(p) .. " upgraded their books.")
+  say(playerColorBB(p) .. " upgraded their library.")
   s.bookLevel = s.bookLevel + 1
 
   GUI.player[p].bookLevel[s.bookLevel].destroy()

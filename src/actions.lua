@@ -106,7 +106,7 @@ function eotPlaceBonus(g,p)
   local q = actQ()
   q.enQ(function () img = spawnBonus(b,here,180,q.next) end)
   q.enQ(||askEdge(g, p, msg, opts, q.next))
-  q.enQ(function() checkPoint(g); doPlaceBouns(g,p,b,q.ans().id,q.next) end)
+  q.enQ(function() checkPoint(g); doPlaceBonus(g,p,b,q.ans().id,q.next) end)
   q.enQ(function()
           img.destroy()
           s.turnDoneReplaceBonus = nextTok
@@ -154,6 +154,7 @@ function takeActions(g)
   checkBonusAct(g,p,bonusAct4,opts)
 
   local msg = string.format("%s has %d actions.", playerColorBB(p), remain)
+  say("---")
   askText(p,msg,opts,function(f) checkPoint(g); f() end)
 end
 
@@ -186,6 +187,7 @@ function actPlaceActiveWorker(g,p)
   local buildOn
   q.enQ(function ()
           buildOn = q.ans()
+          local e = getEdge(g.map,buildOn.edge)
           doPlaceActive(g, buildOn, {owner=p,shape=workerType},q.next)
         end)
   q.enQ(function() noteBuiltOn(g,p,buildOn.edge); endAction(g,s) end)
@@ -341,7 +343,7 @@ function moveWorkers(g,p,n,defaultOk,spots,k)
     if not info then q.next(); return end
     local spot = info.spot
     local obj  = info.obj
-    local msg  = string.format("Location for %d/%d",i,#pickedUp)
+    local msg  = string.format("New location for %d/%d",i,#pickedUp)
     local regs = {}
     regs[g.map.edges[spot.edge].region] = true
     if defaultOk then regs[g.map.defaultRegion] = true end
@@ -394,8 +396,9 @@ function actCompleteRoute(g,p,edges)
   -- Controlling players of neighbouring cities score a point.
   q.enQ(function()
     edge = q.ans()
-    say(playerColorBB(p) .. " completed a route between " ..
-                        edge.from .. " and " .. edge.to)
+    say(string.format("%s completed %s-%s."
+                     , playerColorBB(p), edge.from, edge.to
+                     ))
     local c = getController(g,edge.from)
     if c then doScorePoints(g,c,1) end
     local c = getController(g,edge.to)
@@ -443,7 +446,7 @@ function checkBuildOffice(g,p,edge,n,opts,k)
   end
   if not have then return end
 
-  push(opts, { text = "Build office in " .. n
+  push(opts, { text = "Office in " .. n
              , val  = ||doBuildOffice(g,n,edge.id,k)
              })
 end
@@ -480,7 +483,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
     else doBuilid(spots[1]) end
   end
 
-  push(opts, { text = "Build offfice in " .. n, val = useToken })
+  push(opts, { text = "Expansion in " .. n, val = useToken })
 end
 
 function checkCityAction(g,p,edge,n,opts,k)
@@ -589,6 +592,12 @@ function actHireWorkers(g,p)
     doChangeActive(g,p,trader,ts)
     doChangePassive(g,p,merchant,-ms)
     doChangeActive(g,p,merchant,ms)
+    for i = 1,ts do
+      say(string.format("%s hired a traders.", playerColorBB(p)))
+    end
+    for i = 1,ms do
+      say(string.format("%s hired a merchant.", playerColorBB(p)))
+    end
     endAction(g,s)
     return
   end
@@ -599,6 +608,7 @@ function actHireWorkers(g,p)
     askWorkerType(p,"Hire worker",s.passive,function(t)
       doChangePassive(g,p,t,-1)
       doChangeActive(g,p,t,1)
+      say(string.format("%s hired a %s.", playerColorBB(p), workerName(t)))
       q.next()
     end)
   end
@@ -629,7 +639,7 @@ function checkBonusAct(g,p,b,opts)
     local s = g.playerState[p]
     local n = (b == bonusAct3) and 3 or 4
     s.turnActions = s.turnActions + n
-    say(playerColorBB(p) .. " gained " .. n .. " actions.")
+    say(string.format("Bonus: %s gained %d actions.", playerColorBB(p), n))
     doUseUpBonus(g,p,ix)
     takeActions(g)
   end
@@ -664,10 +674,9 @@ function checkBonusMove(g,p,opts)
       askFreeSpot(g,p,"New location",w,regs,function(to)
         doPlaceWorker(g,to,w,q.next)
         local toe = g.map.edges[to.edge]
-        say(playerColorBB(p) .. " moved a " .. playerColorBB(w.owner) ..
-              " " .. workerName(w.shape) ..
-              " from " .. edge.from .. "-" .. edge.to ..
-              " to "   .. toe.from   .. "-" .. toe.to)
+        say(string.format("%s moved a %s %s from %s-%s to %s-%s."
+                         , playerColorBB(p), w.owner, workerName(w.shape)
+                         , edge.from, edge.to, toe.from, toe.to))
       end)
     end
 
@@ -714,8 +723,9 @@ function checkBonusSwap(g,p,opts)
 
   local function useBonus()
     askOccupiedSpotL(p,"<","Office to move BACK",cs,function(v)
-      say(playerColorBB(p) .. " swapped office " ..
-                (v.office - 1) .. " and " .. v.office .. " in " .. v.node)
+      say(string.format( "Bonus: %s swapped office %d and %d in %s."
+                       , playerColorBB(p), v.office - 1, v.office, v.node))
+
       doSwap(g,v.node,v.office,function()
         doUseUpBonus(g,p,ix)
         takeActions(g)
@@ -750,39 +760,50 @@ function checkBonusUpgradeSkill(g,p,opts)
   end
 
   if s.bookLevel < #bookLevelMap then
-    addOpt("Book", ||doUpgradeBook(g,p))
+    addOpt("Library", ||doUpgradeBook(g,p))
   end
 
   if s.keyLevel < #keyLevelMap then
-    addOpt("Key", ||doUpgradeKey(g,p))
+    addOpt("Keys", ||doUpgradeKey(g,p))
   end
 
   if s.bagLevel < #bagLevelMap then
-    addOpt("Bag", ||doUpgradeBag(g,p))
+    addOpt("Coffers", ||doUpgradeBag(g,p))
   end
 
   if s.buildingLevel < #buildingLevelMap then
-    addOpt("Building", ||doUpgradeBuilding(g,p))
+    addOpt("Privilege", ||doUpgradeBuilding(g,p))
   end
 
-  local lab = bonusName[bonusUpgrade]
   local useBonus = function()
-    say(playerColorBB(p) .. " used " .. lab)
+    say(string.format("Bonus: %s upgrades a skill.", playerColorBB(p)))
     askText(p,"Upgrade",skills,|f|f())
   end
 
-  if #skills > 0 then
-    push(opts, { text = lab, val = useBonus })
-  end
+  if #skills > 0 then push(opts, { text = bonusName[bonusUpgrade]
+                                 , val = useBonus }) end
 end
 
 function doBonusPrintedMove2(g,p,k)
-  say(playerColorBB(p) .. " is using the shipping bonus")
-  moveWorkers(g,p,2,false,occupiedSpots(g,nil,nil),k)
+  local n = 2
+  say(string.format("Shipping bonus: %s may move %d workers."
+                   , playerColorBB(p), n))
+  moveWorkers(g,p,n,false,occupiedSpots(g,nil,nil),k)
 end
 
 function doBonusPrintedPlace2(g,p,k)
   local n = 2
+
+  local lab
+  for _,r in ipairs(g.map.regions) do
+    if r ~= g.map.defaultRegion then
+      local nm = g.map.regionNames[r]
+      if not lab then lab = nm else lab = lab .. "/" .. nm end
+    end
+  end
+
+  say(string.format("Shipping bonus: %s may place %d workers in %s."
+                   , playerColorBB(p), n, lab))
 
   local s = g.playerState[p]
   local regs = {}
@@ -804,10 +825,7 @@ function doBonusPrintedPlace2(g,p,k)
     askWorkerTypeOrPass(p,msg,s.active,function(t)
       if not t then passed = true; q.next(); return end
       local w = { owner = p, shape = t }
-      askFreeSpot(g,p,msg,w,regs,function(spot)
-        doChangeActive(g,p,t,-1)
-        doPlaceWorker(g,spot,w,q.next)
-      end)
+      askFreeSpot(g,p,msg,w,regs,|spot| doPlaceActive(g,spot,w,q.next))
     end)
   end
 

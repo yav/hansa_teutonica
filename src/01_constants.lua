@@ -38,10 +38,10 @@ local raceAward = { 7, 4, 2 }
 
 local cityActionName =
   { "Upgrade actions"
-  , "Upgrade movement (book)"
+  , "Upgrade library"
   , "Upgrade key"
-  , "Upgrade hiring (bag)"
-  , "Upgrade office types"
+  , "Upgrade coffers"
+  , "Upgrade privilege"
   , "End game VP"
   }
 
@@ -64,12 +64,12 @@ local bonusPrintedMove2 = 8
 local bonusName =
   { "Upgrade a skill"
   , "Swap 2 offices"
-  , "Move others 3 times"
-  , "Build external office"
+  , "Move opponents 3 times"
+  , "Build office expansion"
   , "Gain 4 actions"
   , "Gain 3 actions"
   , "Place 2 in Scotland/England"
-  , "Move any 2 workers, swaps OK"
+  , "Move 2 workers, swaps OK"
   }
 
 

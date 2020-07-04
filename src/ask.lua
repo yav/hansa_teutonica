@@ -180,7 +180,7 @@ end
 function askEdge(g, p, q, es, k)
   local opts = {}
   for _,e in ipairs(es) do
-    local ed = g.map.edges[e]
+    local ed = getEdge(g.map,e)
     push(opts, { x = ed.x, y = ed.y, r = ed.rotation, val = ed })
   end
   ask(p, ptrTri(), q, opts, k)
