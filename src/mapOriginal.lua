@@ -229,6 +229,7 @@ function originalMap(map)
   from("Bremen")
 
     to("Osnabrück",-4.63,5.92,135)
+    curEdge.startingBonus = true
     road(-2.95,5.36)
     road(-4.56,4.24)
     road(-5.93,2.85)
@@ -314,6 +315,7 @@ function originalMap(map)
     road(5.59,2.11)
 
     to("Perleberg",10.34,1.71,45)
+    curEdge.startingBonus = true
     road(10.48,3.38)
     road(12.00,3.69)
     road(13.41,4.38)
@@ -375,6 +377,7 @@ function originalMap(map)
     road(12.71,-5.96)
 
     to("Hildesheim",7.94,-2.23,180)
+    curEdge.startingBonus = true
     road(8.52,-3.92)
     road(7.18,-3.53)
     road(5.98,-3.14)
