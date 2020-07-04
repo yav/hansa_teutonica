@@ -69,8 +69,8 @@ function newNode(map,name,regions,x,y)    -- Node
   local node    = {}
   node.name     = name
   node.region   = regions
-  node.x        = boardDX + x
-  node.y        = boardDY + y
+  node.x        = map.x + x
+  node.y        = map.y + y
   node.edges    = {}
   node.offices  = {}
   node.extraOffices = {}  -- first one is closest to the city
@@ -194,8 +194,8 @@ end
 
 function newEdge(map,node1,node2,region,x,y,r)    -- Edge
   local edge  = {}
-  edge.x      = x + boardDX
-  edge.y      = y + boardDY
+  edge.x      = x + map.x
+  edge.y      = y + map.y
   edge.rotation = r
   edge.region = region
   edge.from   = node1.name
@@ -226,11 +226,11 @@ end
 
 
 
-function addStop(edge, type, x, y)  -- Stop
+function addStop(map, edge, type, x, y)  -- Stop
   local stop    = {}
   stop.type     = type
-  stop.x        = x + boardDX
-  stop.y        = y + boardDY
+  stop.x        = x + map.x
+  stop.y        = y + map.y
   stop.edge     = edge.id
   stop.worker   = nil
   stop.id       = push(edge.stops,stop)

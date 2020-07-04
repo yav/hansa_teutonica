@@ -1,8 +1,12 @@
 --------------------------------------------------------------------------------
 -- URLS
 
-board_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863115149/424C6AB8EA53ADC4EBD3C957BC02DFA9C3C72B91/"
-board_brit23_url = "http://cloud-3.steamusercontent.com/ugc/1295297714546088412/D9C2F9DECCF81F625194479AA35F52B0237E0645/"
+
+board_original_url = "http://cloud-3.steamusercontent.com/ugc/1295297877742768378/6A23D9C7B927FB6CDB9EF4D0C21D32FB1D7D3210/"
+board_east_rul = "http://cloud-3.steamusercontent.com/ugc/1295297877742788778/D42F95169A48066FFFD84D8C9A7A459CF0B64725/"
+board_britannia_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863115149/424C6AB8EA53ADC4EBD3C957BC02DFA9C3C72B91/"
+board_britannia23_url = "http://cloud-3.steamusercontent.com/ugc/1295297714546088412/D9C2F9DECCF81F625194479AA35F52B0237E0645/"
+
 
 round_token_model_url = "http://cloud-3.steamusercontent.com/ugc/1181580167863621334/0068A92DFB2B3E093D7C72189D71DFB0AB44D520/"
 

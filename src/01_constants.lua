@@ -1,6 +1,4 @@
 -- Board offset
-local boardDX = -14
-local boardDY = 0
 local boardPieceZ = 1.5
 
 -- Type Shape

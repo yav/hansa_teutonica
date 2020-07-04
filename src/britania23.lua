@@ -7,6 +7,13 @@ function britaniaMap23(map)
   local function node(n,x,y) curNode = newNode(map,n,region,x,y) end
   local function office(l,n) curOffice = addOffice(curNode,l,n) end
 
+  -- Board
+  map.url = board_britannia23_url
+  map.scale = 18
+  map.x     = -14
+  map.y     = 0
+  map.counter = { x = 9.2, y = 13.2 } -- in board coords
+
   -- Regions
   local england = 1
   local scotland = 2
@@ -16,15 +23,15 @@ function britaniaMap23(map)
   map.defaultRegion = england
 
   -- Location of invest token
-  map.investX = -25
+  map.investX = -11
   map.investY = -14.8
   map.investName = "Plymouth"
 
   -- Location of full cities counter
   map.fullCities    = 0
   map.fullCityLimit = 8
-  map.fullCitiesX   = -11.62
-  map.fullCitiesY   = 15.28
+  map.fullCitiesX   = 2.5     -- board coords
+  map.fullCitiesY   = 15.28   -- board coords
 
   -- Race
   map.raceFrom  = "Oxford"
@@ -171,10 +178,10 @@ function britaniaMap23(map)
     curEdge = newEdge(map,curFrom,curTo,edgeRegion,x,y,r)
   end
   local function road(x,y)
-    addStop(curEdge, stopRoad, x, y)
+    addStop(map,curEdge, stopRoad, x, y)
   end
   local function ship(x,y)
-    addStop(curEdge, stopShip, x, y)
+    addStop(map,curEdge, stopShip, x, y)
   end
 
 --------------------------------------------------------------------------------

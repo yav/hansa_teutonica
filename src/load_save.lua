@@ -3,10 +3,11 @@ function onLoad(state)
   if state and state ~= "" then
     g = JSON.decode(state)
   else
-    g = newGame({"Green","Purple" }, britaniaMap)
+    -- g = newGame({"Green","Purple" }, britaniaMap)
+    g = newGame({"Green","Purple" }, originalMap)
   end
-  newGUI(g, ||nextTurn(g))
-  -- newGUI(g, ||test(g))
+  -- newGUI(g, ||nextTurn(g))
+  newGUI(g, ||test(g))
 end
 
 function onSave()

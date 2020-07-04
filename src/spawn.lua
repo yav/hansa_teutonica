@@ -20,7 +20,7 @@ function newGUI(g,k)
   GUI.endGameInvest = {}
 
   local sem = newSem()
-  sem.up(); spawnBoard(sem.down)
+  sem.up(); spawnBoard(g.map, sem.down)
   sem.up(); spawnMap(g.map, sem.down)
   for _,p in pairs(g.players) do
     sem.up(); spawnPlayer(g,p,sem.down)
@@ -33,9 +33,13 @@ function newGUI(g,k)
 end
 
 function spawnPlateCounter(g)
+  local map = g.map
+  local counter = map.counter
+  local x = map.x + counter.x
+  local y = map.y + counter.y
   GUI.plates = spawnObject(
     { type = "3DText"
-    , position = { -4.75, boardPieceZ, 13.2 }
+    , position = { x, boardPieceZ, y }
     , rotation = { 90, 0, 0 }
     }
   )
@@ -57,25 +61,27 @@ end
 
 
 
-function spawnBoard(k)
+function spawnBoard(map,k)
   GUI.board = spawnObject({
     type = "Custom_Tile",
-    position = { boardDX, 1, boardDY },
+    position = { map.x, 1, map.y },
     rotation = { 0, 180, 0 },
-    scale = { 18, 1, 18 },
+    scale = { map.scale, 1, map.scale },
     callback_function = function(o)
       o.setLock(true)
       k()
     end
   })
   GUI.board.setCustomObject({
-    image = board_url
+    image = map.url
   })
 end
 
 function fullCityLoc(m)
   local sc = 0.72
-  return { m.fullCitiesX + m.fullCities * sc, boardPieceZ, m.fullCitiesY }
+  local x = m.x + m.fullCitiesX + m.fullCities * sc
+  local y = m.y + m.fullCitiesY
+  return { x, boardPieceZ, y }
 end
 
 function spawnMap(m,k)
@@ -90,6 +96,7 @@ function spawnMap(m,k)
         GUI.fullCities = o
         o.setColorTint({0,0,0})
         o.setLock(true)
+        o.setName(m.fullCities .. "")
         sem.down()
       end
     })
@@ -109,11 +116,14 @@ function spawnMap(m,k)
   sem.wait(k)
 end
 
-function investLocX(m,i) return m.investX + i * 1.2 end
+function investLocX(m,i) return m.x + m.investX + i * 1.2 end
 
 function spawnInvest(m,w,i,k)
   GUI.endGameInvest[i] =
-    spawnWorker(w,{investLocX(m,i),boardPieceZ,m.investY},k)
+    spawnWorker(w,{investLocX(m,i),boardPieceZ,m.y + m.investY},function(o)
+      o.setName(endGameInvestPoints[i] .. "")
+      k()
+      end)
 end
 
 

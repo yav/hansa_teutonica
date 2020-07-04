@@ -17,22 +17,29 @@ function originalMap(map)
     curEdge = newEdge(map,curFrom,curTo,edgeRegion,x,y,r)
   end
   local function road(x,y)
-    addStop(curEdge, stopRoad, x, y)
+    addStop(map,curEdge, stopRoad, x, y)
   end
   local function ship(x,y)
-    addStop(curEdge, stopShip, x, y)
+    addStop(map,curEdge, stopShip, x, y)
   end
 
+  -- board
+  map.url   = board_original_url
+  map.scale = 12.5
+  map.x     = -10
+  map.y     = -5
+  map.counter = { x = -2, y = 11 } -- location of bonus counter
+
   -- Location of invest token
-  map.investX = -12
-  map.investY = -7
+  map.investX = -13.3
+  map.investY = -8.1
   map.investName = "Coellen"
 
   -- Location of full cities counter
   map.fullCities    = 0
   map.fullCityLimit = 10
   map.fullCitiesX   = -15
-  map.fullCitiesY   = 9
+  map.fullCitiesY   = 10
 
   -- Race
   map.raceFrom  = "Arnheim"

@@ -95,7 +95,9 @@ function doCityBecameFull(g)
   local n = g.map.fullCities
   g.map.fullCities = n + 1
   if g.map.fullCities >= g.map.fullCityLimit then g.endGame = true end
-  GUI.fullCities.setPositionSmooth(fullCityLoc(g.map),false,false)
+  local obj = GUI.fullCities
+  obj.setPositionSmooth(fullCityLoc(g.map),false,false)
+  obj.setName(g.map.fullCities .. "")
 end
 
 function doFillOffice(g,n,w,k)
