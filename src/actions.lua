@@ -101,7 +101,8 @@ function eotPlaceBonus(g,p)
     if edgeAcceptsBonus(g,edge) then push(opts,edge.id) end
   end
 
-  local here = { 5, boardPieceZ, 12 }
+  local menu = menuLoc[g.map.orientation]
+  local here = { menu[1], boardPieceZ, menu[2] - 3 }
   local img
   local q = actQ()
   q.enQ(function () img = spawnBonus(g.map,b,here,180,q.next) end)
