@@ -222,7 +222,7 @@ function originalMap(map)
     road(-9.12,4.20)
     road(-8.04,3.21)
 
-    to("Stade", -3,61, 9.32, 180)
+    to("Stade",-3.61,9.32, 180)
     road(-4.92, 7.76)
     road(-2.19, 8.61)
     road(-0.68, 8.88)
