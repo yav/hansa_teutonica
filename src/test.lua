@@ -1,6 +1,6 @@
 
 function where()
-  local p = Player["White"].getPointerPosition()
+  local p = Player["Green"].getPointerPosition()
   local msg = string.format("road(%.2f, %.2f)", p[1], p[3])
   log(msg)
 end
@@ -28,7 +28,7 @@ function test(g)
     doFillOffice(g,n,{owner=p,shape=trader},k)
   end
 
-  q.enQ(||doPlaceBonus(g,"Green",bonusAct4,1,q.next))
+  q.enQ(||doPlaceBonus(g,"Green",bonusMove,1,q.next))
   q.enQ(||doTakeBonus(g,"Green",1,q.next))
 
   q.enQ(||nextTurn(g))

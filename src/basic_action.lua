@@ -182,7 +182,7 @@ end
 function doPlaceBonus(g,p,b,e,k)
   local edge = g.map.edges[e]
   edge.bonus = b
-  spawnBonus(b, {edge.x,boardPieceZ,edge.y}, edge.rotation, function(o)
+  spawnBonus(g.map, b, {edge.x,boardPieceZ,edge.y}, edge.rotation, function(o)
     GUI.edge[e].bonus = o
     say(string.format("%s placed a bonus token on %s-%s."
                      , playerColorBB(p)

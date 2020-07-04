@@ -104,7 +104,7 @@ function eotPlaceBonus(g,p)
   local here = { 5, boardPieceZ, 12 }
   local img
   local q = actQ()
-  q.enQ(function () img = spawnBonus(b,here,180,q.next) end)
+  q.enQ(function () img = spawnBonus(g.map,b,here,180,q.next) end)
   q.enQ(||askEdge(g, p, msg, opts, q.next))
   q.enQ(function() checkPoint(g); doPlaceBonus(g,p,b,q.ans().id,q.next) end)
   q.enQ(function()
@@ -461,7 +461,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
   local ix = haveBounusToken(g,p,bonusExtra)
   if not ix then return end
 
-  local lab = bonusName[bonusExtra]
+  local lab = bonusName(g,bonusExtra)
 
   local node = g.map.nodes[n]
   if #node.offices ~= 0 and node.offices[1].worker == nil then return end
@@ -643,7 +643,7 @@ end
 function checkBonusAct(g,p,b,opts)
   local ix = haveBounusToken(g,p,b)
   if not ix then return end
-  local lab = bonusName[b]
+  local lab = bonusName(g,b)
 
   local function useBonus()
     local s = g.playerState[p]
@@ -662,11 +662,64 @@ function checkBonusMove(g,p,opts)
   local ix = haveBounusToken(g,p,bonusMove)
   if not ix then return end
 
+  if g.map.modifiedRemove
+    then doBonusMove(g,p,ix,opts)
+    else doBonusRemove(g,p,ix,opts)
+  end
+end
+
+function doBonusRemove(g,p,ix,opts)
+  local cs = occupiedSpots(g,nil,nil)
+  if #cs == 0 then return end
+  local lab = bonusName(g,bonusMove)
+
+  local n = 3
+
+  local function useBonus()
+    say(playerColorBB(p) .. " used " .. lab)
+    local q = actQ()
+    local passed = false
+
+    local function pickUp(i)
+      if passed then q.next(); return end
+      local cs = occupiedSpots(g,nil,nil)
+      if #cs == 0 then passed = true; q.next(); return end
+      local msg = string.format("Remove worker %d/%d",i,n)
+      askOccupiedSpotOrPass(g,p,msg,cs,function(spot)
+        if not spot
+          then passed = true
+          else doRemoveWorker(g,spot)
+               local e = getEdge(g.map,spot.edge)
+               local w = spot.worker
+               say(string.format("%s removed a %s %s from %s-%s."
+                                        , playerColorBB(p)
+                                        , playerColorBB(w.owner)
+                                        , workerName(w.shape)
+                                        , e.from, e.to))
+               doChangeActive(g,w.owner,w.shape,1)
+        end
+        q.next()
+      end)
+    end
+
+    for i = 1,n do
+      q.enQ(||pickUp(i))
+    end
+    q.enQ(function()
+      doUseUpBonus(g,p,ix)
+      takeActions(g)
+    end)
+  end
+
+  push(opts, { text = lab, val = useBonus })
+end
+
+function doBonusMove(g,p,ix,ops)
   local cs = opponentSpots(g,p,false,false,nil)
   if #cs == 0 then return end
 
 
-  local lab = bonusName[bonusMove]
+  local lab = bonusName(g,b)
 
   local function useBonus()
     say(playerColorBB(p) .. " used " .. lab)
@@ -743,7 +796,7 @@ function checkBonusSwap(g,p,opts)
     end)
   end
 
-  push(opts, { text = bonusName[bonusSwap], val = useBonus })
+  push(opts, { text = bonusName(g,bonusSwap), val = useBonus })
 end
 
 
@@ -790,7 +843,7 @@ function checkBonusUpgradeSkill(g,p,opts)
     askText(g,p,"Upgrade",skills,|f|f())
   end
 
-  if #skills > 0 then push(opts, { text = bonusName[bonusUpgrade]
+  if #skills > 0 then push(opts, { text = bonusName(g,bonusUpgrade)
                                  , val = useBonus }) end
 end
 
@@ -801,16 +854,21 @@ function doBonusPrintedMove2(g,p,k)
   moveWorkers(g,p,n,false,occupiedSpots(g,nil,nil),k)
 end
 
-function doBonusPrintedPlace2(g,p,k)
-  local n = 2
-
-  local lab
-  for _,r in ipairs(g.map.regions) do
-    if r ~= g.map.defaultRegion then
-      local nm = g.map.regionNames[r]
+function foreignOptions(m)
+  local lab = ""
+  for _,r in ipairs(m.regions) do
+    if r ~= m.defaultRegion then
+      local nm = m.regionNames[r]
       if not lab then lab = nm else lab = lab .. "/" .. nm end
     end
   end
+  return lab
+end
+
+function doBonusPrintedPlace2(g,p,k)
+  local n = 2
+
+  local lab = foreignOptions(g.map)
 
   say(string.format("Shipping bonus: %s may place %d workers in %s."
                    , playerColorBB(p), n, lab))

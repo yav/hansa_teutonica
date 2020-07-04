@@ -108,7 +108,7 @@ function spawnMap(m,k)
   end
   for _,e in ipairs(m.edges) do
     sem.up()
-    spawnEdge(e,sem.down)
+    spawnEdge(m,e,sem.down)
   end
   for i,w in pairs(m.endGameInvest) do
     sem.up()
@@ -160,7 +160,7 @@ function spawnNode(node,k)
 end
 
 
-function spawnEdge(e,k)
+function spawnEdge(m,e,k)
   local sem = newSem()
   local ui = {}
   ui.stops = {}
@@ -174,17 +174,10 @@ function spawnEdge(e,k)
     end
   end
 
-  --[[
-  -- XXX: DEVEL
-  if not (e.x == nil) and not (e.y == nil) and not (e.rotation == nil) then
-    e.bonus = 1
-  end
-  --]]
-
   if e.bonus and e.bonus < #bonus_token_url then
     sem.up()
     local loc = { e.x, boardPieceZ, e.y }
-    ui.bonus = spawnBonus(e.bonus, loc, e.rotation, sem.down)
+    ui.bonus = spawnBonus(m, e.bonus, loc, e.rotation, sem.down)
   end
 
 
@@ -475,10 +468,10 @@ end
 
 -- Bonus token in a player's area
 function spawnPlate(g,p,ix,bonus,k)
-  spawnBonus(bonus,plateLoc(g,p,ix),180,k)
+  spawnBonus(g.map,bonus,plateLoc(g,p,ix),180,k)
 end
 
-function spawnBonus(bonus,loc,rot,k)
+function spawnBonus(m,bonus,loc,rot,k)
   local sc = 0.7
   local o = spawnObject(
     { type = "Custom_Model"
@@ -487,7 +480,7 @@ function spawnBonus(bonus,loc,rot,k)
     , scale = { sc, sc, sc }
     , callback_function = function(o)
         o.setLock(true)
-        -- XXX: add description
+        o.setName(bonusName(m,bonus))
         k(o)
       end
     })

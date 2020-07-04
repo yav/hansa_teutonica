@@ -7,6 +7,8 @@ function britaniaMap(map)
   local function node(n,x,y) curNode = newNode(map,n,region,x,y) end
   local function office(l,n) curOffice = addOffice(curNode,l,n) end
 
+  map.modifiedRemove = true
+
   -- Board
   map.url = board_britannia_url
   map.orientation = portrait

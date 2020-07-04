@@ -64,17 +64,21 @@ local bonusPrintedPlace2 = 7
 local bonusPrintedMove2 = 8
 
 
-local bonusName =
-  { "Upgrade a skill"
-  , "Swap 2 offices"
-  , "Move opponents 3 times"
-  , "Build office expansion"
-  , "Gain 4 actions"
-  , "Gain 3 actions"
-  , "Place 2 in Scotland/England"
-  , "Move 2 workers, swaps OK"
-  }
-
+function bonusName(m,b)
+  if     b == bonusUpgrade then return "Upgrade a skill"
+  elseif b == bonusSwap    then return "Swap 2 offices"
+  elseif b == bonusMove    then
+            return m.modifiedRemove and "Move 3 opponents"
+                                     or "Remove 3 workers"
+  elseif b == bonusExtra   then return "Build office expansion"
+  elseif b == bonusAct4    then return "Gain 4 actions"
+  elseif b == bonusAct3    then return "Gain 3 actions"
+  elseif b == bonusPrintedPlace2 then
+      return string.format("Place 2 in %s",foreignOptions(m))
+  elseif b == bonusPrintedMove2 then return "Move 2 workers, swaps OK"
+  else return string.format("Bonus %d",b)
+  end
+end
 
 function workerName(t) return (t == trader) and "trader" or "merchant" end
 

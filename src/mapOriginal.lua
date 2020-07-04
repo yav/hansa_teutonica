@@ -23,6 +23,8 @@ function originalMap(map)
     addStop(map,curEdge, stopShip, x, y)
   end
 
+  map.modifiedRemove = false
+
   -- board
   map.url   = board_original_url
   map.orientation = landscape
