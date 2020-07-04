@@ -299,67 +299,11 @@ end
 --------------------------------------------------------------------------------
 -- Move workers
 
--- Move up to `n` workers from the given spots.
--- Moves must be in the same region, unless `defaultOk` is true,
--- in which case they may also move to the defualt region
 function moveWorkers(g,p,n,defaultOk,spots,k)
-  local x = 2
-  local y = 10
-  local sem = newSem()
-  local maxMove = n
-  if maxMove > #spots then maxMove = #spots end
+  local passed = false
 
-  local busy = flase
-  local nextBtn = 1
-  local funs = {}
-  local function putDown(obj,me,spot) return function()
-    if busy then
-      say("Finish placing the other worker first.")
-      return
-    end
-    busy = true
-    local regs = {}
-    regs[g.map.edges[spot.edge].region] = true
-    if defaultOk then regs[g.map.defaultRegion] = true end
-    askFreeSpot (g, p,"New location", spot.worker,regs,function(newLoc)
-      doPlaceWorker(g,newLoc,spot.worker,function()
-        sem.down()
-        busy = false
-        obj.destroy()
-        DEL_DYN(funs[me])
-      end)
-    end)
-  end
-  end
 
-  local function pickUp(spot,k)
-    sem.up()
-    doRemoveWorker(g,spot)
-
-    spawnWorker(spot.worker, {x,2,y}, function(o)
-      local fun = DYN_GLOB(putDown(o,nextBtn,spot))
-      funs[nextBtn] = fun
-      nextBtn = nextBtn + 1
-
-      x = x + 2
-      o.setScale({1,1,1})
-      o.createButton({
-        label = "∨",
-        font_size = 800,
-        width = 650,
-        height = 650,
-        rotation = { 0, 180, 0 },
-        position = { 0, 1, 0 },
-        color = playerColor(spot.worker.owner),
-        font_color = (spot.worker.owner == p) and playerFontColor(p)
-                   or playerColor(p),
-        click_function = fun
-      })
-      k()
-    end)
-  end
-
-  local q = actQ()
+  -- choices for pickup
   local curSpots = spots
   local function rmSpot(sp)
     local new = {}
@@ -371,26 +315,63 @@ function moveWorkers(g,p,n,defaultOk,spots,k)
     curSpots = new
   end
 
-  local function choosePickUp()
-    askOccupiedSpotOrPass(p,"Pickup worker",curSpots,function(i)
-      if not i then q.stop(); sem.down()
-               else pickUp(i,q.next)
-      end
+  -- these we've picked up
+  local pickedUp = {}
+  local x,y      = 3,10
+
+  local q = actQ()
+
+  local function pickUp(i)
+    if passed then q.next(); return end
+    local msg = string.format("Pickup worker %d/%d",i,n)
+    askOccupiedSpotOrPass(p,msg,curSpots,function(spot)
+      if not spot then passed = true; q.next(); return end
+      pickedUp[i] = { spot = spot
+                    , obj  = doRemoveWorker( g
+                                           , spot
+                                           , { x + 1.5 * i, boardPieceZ, y })
+                    }
+      rmSpot(spot)
+      q.next()
     end)
   end
 
-  sem.up() -- waits to end picking things up
-  for i = 1,maxMove do
-    q.enQ(choosePickUp)
+  local function putDown(i)
+    local info = pickedUp[i]
+    if not info then q.next(); return end
+    local spot = info.spot
+    local obj  = info.obj
+    local msg  = string.format("Location for %d/%d",i,#pickedUp)
+    local regs = {}
+    regs[g.map.edges[spot.edge].region] = true
+    if defaultOk then regs[g.map.defaultRegion] = true end
+    askFreeSpot (g, p, msg, spot.worker, regs, function(newLoc)
+      doPlaceExistingWorker(g,newLoc,spot.worker,obj)
+      local eFrom = getEdge(g.map,spot.edge)
+      local eTo   = getEdge(g.map,newLoc.edge)
+      local note = string.format("%s moved a %s from %s-%s to %s-%s."
+                                , playerColorBB(p)
+                                , workerName(spot.worker.shape)
+                                , eFrom.from, eFrom.to
+                                , eTo.from,   eTo.to
+                                )
+      say(note)
+      q.next()
+    end)
   end
-  q.enQ(sem.down)
 
-  sem.wait(k)
+
+  for i = 1,n do
+    q.enQ(||pickUp(i))
+  end
+
+  for i = 1,n do
+    q.enQ(||putDown(i))
+  end
+
+  q.enQ(k)
+
 end
-
-
-
-
 
 function actMoveWorkers(g,p,ourSpots)
   say(playerColorBB(p) .. " chose to move workers.")

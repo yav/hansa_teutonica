@@ -5,7 +5,8 @@ function onLoad(state)
   else
     g = newGame({"Green","Purple" }, britaniaMap)
   end
-  newGUI(g, ||nextTurn(g))
+  -- newGUI(g, ||nextTurn(g))
+  newGUI(g, ||test(g))
 end
 
 function onSave()

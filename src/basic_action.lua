@@ -44,17 +44,18 @@ function doMoveWorker(g,from,to,k)
   doPlaceWorker(g,to,w,k)
 end
 
-function doRemoveWorker(g,spot)
-  local edge = g.map.edges[spot.edge]
+function doRemoveWorker(g,spot,newLoc)
+  log(spot)
+  local edge = getEdge(g.map,spot.edge)
   local stop = edge.stops[spot.stop]
   local w = stop.worker
   stop.worker = nil
-  GUI.edge[spot.edge].stops[spot.stop].destroy()
+  local obj = GUI.edge[spot.edge].stops[spot.stop]
+  GUI.edge[spot.edge].stops[spot.stop] = nil
+  if not newLoc then obj.destroy(); return nil end
 
-  local thing = stopName(stop.type)
-  say(playerColorBB(w.owner) .. " removed a " .. workerName(w.shape) ..
-        " from the " .. thing .. " between " .. edge.from .. " and "
-        .. edge.to .. ".")
+  obj.setPositionSmooth(newLoc,false,false)
+  return obj
 end
 
 function doPlaceWorker(g,spot,w,k)
@@ -70,6 +71,18 @@ function doPlaceWorker(g,spot,w,k)
     k()
   end)
 end
+
+function doPlaceExistingWorker(g,spot,w,obj)
+  local edge = g.map.edges[spot.edge]
+  local stop = edge.stops[spot.stop]
+  obj.setPositionSmooth({stop.x, boardPieceZ, stop.y }, false, false)
+
+  stop.worker = w
+  local thing = stopName(stop.type)
+  GUI.edge[spot.edge].stops[spot.stop] = obj
+end
+
+
 
 
 function doScorePoints(g,p,n)

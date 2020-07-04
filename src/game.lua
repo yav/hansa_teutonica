@@ -114,6 +114,10 @@ function getNode(map,name) -- Node
   return map.nodes[name]
 end
 
+function getEdge(map,id) -- Edge
+  return map.edges[id]
+end
+
 -- For access to special regions
 function getRightMost(g,n)
   local node = g.map.nodes[n]
@@ -296,7 +300,7 @@ function startTurn(g,p)
   actSaves = {}
 
   local s = g.playerState[p]
-  s.turnActions = actionLevelMap[s.actionLevel]
+  s.turnActions = 5 + actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
   s.turnEnded = false
   s.turnReplaceBonus = {}
