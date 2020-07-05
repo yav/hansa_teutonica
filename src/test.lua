@@ -29,6 +29,20 @@ function test(g)
     doFillOffice(g,n,{owner=p,shape=t},k)
   end
 
+  for n,node in pairs(g.map.nodes) do
+    for _,o in ipairs(node.offices) do
+      q.enQ(||addOffice("Green",n,o.shape,q.next))
+    end
+  end
+
+  for e,edge in ipairs(g.map.edges) do
+    q.enQ(||doPlaceBonus(g,"Green",bonusAct4,e,q.next))
+    for i,s in ipairs(edge.stops) do
+      local sh = (s.type == stopShip) and merchant or trader
+      q.enQ(||doPlaceWorker(g,{ edge=e,stop=i},{ owner = "Yellow",shape = sh},q.next))
+    end
+  end
+
   q.enQ(||nextTurn(g))
 
 end
