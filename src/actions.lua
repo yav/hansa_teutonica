@@ -490,7 +490,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
     else doBuilid(spots[1]) end
   end
 
-  push(opts, { text = "Expansion in " .. n, val = useToken })
+  push(opts, { text = "Annex in " .. n, val = useToken })
 end
 
 function checkCityAction(g,p,edge,n,opts,k)

@@ -164,7 +164,7 @@ function doAddExtra(g,n,w,k)
   end
   x = x - GUI.officeWidth[w.shape]
 
-  say(string.format("%s established an expansion office in %s."
+  say(string.format("%s established an annex in %s."
                    , playerColorBB(w.owner), node.name))
   push(node.extraOffices, w)
   checkWinRace(g,w.owner)

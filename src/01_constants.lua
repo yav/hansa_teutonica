@@ -70,7 +70,7 @@ function bonusName(m,b)
   elseif b == bonusMove    then
             return m.modifiedRemove and "Move 3 opponents"
                                      or "Remove 3 workers"
-  elseif b == bonusExtra   then return "Build office expansion"
+  elseif b == bonusExtra   then return "Build annex"
   elseif b == bonusAct4    then return "Gain 4 actions"
   elseif b == bonusAct3    then return "Gain 3 actions"
   elseif b == bonusPrintedPlace2 then
