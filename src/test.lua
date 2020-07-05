@@ -29,6 +29,7 @@ function test(g)
     doFillOffice(g,n,{owner=p,shape=t},k)
   end
 
+--[[
   for n,node in pairs(g.map.nodes) do
     for _,o in ipairs(node.offices) do
       q.enQ(||addOffice("Green",n,o.shape,q.next))
@@ -42,7 +43,11 @@ function test(g)
       q.enQ(||doPlaceWorker(g,{ edge=e,stop=i},{ owner = "Yellow",shape = sh},q.next))
     end
   end
-
+  q.enQ(||doAddExtraRight(g,"Dresden",{owner="Green",shape=trader},q.next))
+  q.enQ(||doAddExtraRight(g,"Dresden",{owner="Yellow",shape=trader},q.next))
+  q.enQ(||doAddExtraRight(g,"Dresden",{owner="Purple",shape=trader},q.next))
+  q.enQ(||doAddExtra(g,"Dresden",{owner="Red",shape=trader},q.next))
+--]]
   q.enQ(||nextTurn(g))
 
 end

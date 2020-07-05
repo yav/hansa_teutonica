@@ -28,6 +28,8 @@ function checkCanPlace(g,p,opts)
     push(opts, { text = "Place worker"
                , val  = || actPlaceActiveWorker(g,p)
                })
+  else
+    log("NO FREE SPOTS?")
   end
 end
 
@@ -495,45 +497,47 @@ end
 
 function checkCityAction(g,p,edge,n,opts,k)
   local node = g.map.nodes[n]
-  local act = node.action
-  if not act then return end
+  local acts = node.action
+  if #acts == 0 then return end
 
   local s = g.playerState[p]
 
-  local lab = cityActionName[act]
-  local function addOpt(f)
-    push(opts, { text = lab
-               , val = function() f(); k() end
-               })
+  for _,act in ipairs(acts) do
+    local lab = cityActionName[act]
+    local function addOpt(f)
+      push(opts, { text = lab
+                 , val = function() f(); k() end
+                 })
+    end
+
+    if     act == upgradeAction then
+      if s.actionLevel == #actionLevelMap then return end
+      addOpt(||doUpgradeAction(g,p))
+
+    elseif act == upgradeBook then
+      if s.bookLevel == #bookLevelMap then return end
+      addOpt(||doUpgradeBook(g,p))
+
+    elseif act == upgradeKey then
+      if s.keyLevel == #keyLevelMap then return end
+      addOpt(||doUpgradeKey(g,p))
+
+    elseif act == upgradeBag then
+      if s.bagLevel == #bagLevelMap then return end
+      addOpt(||doUpgradeBag(g,p))
+
+    elseif act == upgradeBuilding then
+      if s.buildingLevel == #buildingLevelMap then return end
+      addOpt(||doUpgradeBuilding(g,p))
+
+    elseif act == invest then
+      local yes = checkCanInvest(g,p,edge)
+      if not yes then return end
+      push(opts, { text = lab
+                 , val  = ||makeInvestment(g,p,edge,yes,k)
+                 })
+    else log("UNKNOWN ACTION: " .. n); return end
   end
-
-  if     act == upgradeAction then
-    if s.actionLevel == #actionLevelMap then return end
-    addOpt(||doUpgradeAction(g,p))
-
-  elseif act == upgradeBook then
-    if s.bookLevel == #bookLevelMap then return end
-    addOpt(||doUpgradeBook(g,p))
-
-  elseif act == upgradeKey then
-    if s.keyLevel == #keyLevelMap then return end
-    addOpt(||doUpgradeKey(g,p))
-
-  elseif act == upgradeBag then
-    if s.bagLevel == #bagLevelMap then return end
-    addOpt(||doUpgradeBag(g,p))
-
-  elseif act == upgradeBuilding then
-    if s.buildingLevel == #buildingLevelMap then return end
-    addOpt(||doUpgradeBuilding(g,p))
-
-  elseif act == invest then
-    local yes = checkCanInvest(g,p,edge)
-    if not yes then return end
-    push(opts, { text = lab
-               , val  = ||makeInvestment(g,p,edge,yes,k)
-               })
-  else log("UNKNOWN ACTION: " .. n); return end
 end
 
 function makeInvestment(g,p,edge,yes,k)
@@ -635,8 +639,9 @@ end
 -- Using Bonus Tokens
 
 function usePrintedBonus(g,p,b,k)
-  if     b == bonusPrintedMove2 then doBonusPrintedMove2(g,p,k)
-  elseif b == bonusPrintedPlace2 then doBonusPrintedPlace2(g,p,k)
+  if     b == bonusPrintedMove2         then doBonusPrintedMove2(g,p,k)
+  elseif b == bonusPrintedPlace2        then doBonusPrintedPlace2(g,p,k)
+  elseif b == bonusPrintedGainPrivilege then doBonusPrintedGainPrivilege(g,p,k)
   else k()
   end
 end
@@ -905,5 +910,9 @@ function doBonusPrintedPlace2(g,p,k)
 end
 
 
-
+function doBonusPrintedGainPrivilege(g,p,k)
+  say(string.format("Shipping bonus: %s gain 1 privilage.",p))
+  doUpgradeBuilding(g,p)
+  k()
+end
 

@@ -62,6 +62,9 @@ local bonusAct3 = 6
 local printedBonus = 7      --printed should be >= this
 local bonusPrintedPlace2 = 7
 local bonusPrintedMove2 = 8
+local bonusPrintedGainPrivilege = 9
+local bonusPrintedBuildInGreen = 10
+local bonusPrintedReuse2 = 11
 
 
 function bonusName(m,b)

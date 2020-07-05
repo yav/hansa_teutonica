@@ -75,7 +75,7 @@ function newNode(map,name,regions,x,y)    -- Node
   node.offices  = {}
   node.extraOffices = {}  -- first one is closest to the city
   node.gateway  = {}
-  node.action   = nil
+  node.action   = {}
 
   map.nodes[name] = node
   return node
@@ -188,7 +188,7 @@ function addGateway(node,region)    -- void
 end
 
 function addAction(node,act)
-  node.action = act
+  push(node.action,act)
 end
 
 
@@ -300,7 +300,7 @@ function startTurn(g,p)
   actSaves = {}
 
   local s = g.playerState[p]
-  s.turnActions = actionLevelMap[s.actionLevel]
+  s.turnActions = 5 + actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
   s.turnEnded = false
   s.turnReplaceBonus = {}

@@ -4,7 +4,8 @@ function onLoad(state)
     g = JSON.decode(state)
   else
     -- g = newGame({"Green","Purple" }, britaniaMap)
-    g = newGame({"Green","Purple" }, originalMap)
+    -- g = newGame({"Green","Purple" }, originalMap)
+    g = newGame({"Green","Purple" }, eastMap)
   end
   -- newGUI(g, ||nextTurn(g))
   newGUI(g, ||test(g))

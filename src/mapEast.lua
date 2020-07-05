@@ -31,7 +31,7 @@ function eastMap(map)
   map.scale = 12.5
   map.x     = -10
   map.y     = -5
-  map.counter = { x = -2, y = 11 } -- location of bonus counter
+  map.counter = { x = -4.9, y = -9.8 } -- location of bonus counter
 
   -- Location of invest token
   map.investX = 11.83
@@ -52,12 +52,13 @@ function eastMap(map)
   map.regions = { default }
   map.regionNames = { "Hansa" }
   map.defaultRegion = default
-  region = { default }
 
   -- Nodes
+  region = { default }
 
   node("Havelberg",-14.63,0.18)
   office(trader,1)
+  curOffice.vp = 1
   office(merchant,1)
   office(trader,3)
   office(trader,4)
@@ -66,7 +67,9 @@ function eastMap(map)
   office(trader,2)
 
   node("Magdeburg",-14.83,-6.53)
+  addAction(curNode, upgradeBuilding)
   office(trader,1)
+  curOffice.vp = 1
   office(trader,2)
 
   node("Brandenburg",-9.40,-2.97)
@@ -77,9 +80,11 @@ function eastMap(map)
   office(trader,1)
   office(merchant,2)
 
-  node("Dresden",-1.48,-10.18)
+  node("Dresden",1.48,-10.18)
+  addAction(curNode, upgradeKey)
 
   node("Breslau",5.66,-7.95)
+  addAction(curNode, upgradeBook)
   office(trader,1)
   office(merchant,2)
   office(trader,4)
@@ -91,6 +96,7 @@ function eastMap(map)
 
   node("Thorn",10.62,-5.14)
   office(trader,1)
+  curOffice.vp = 1
   office(trader,2)
   office(trader,4)
 
@@ -112,6 +118,7 @@ function eastMap(map)
   office(merchant,2)
 
   node("Königsberg",14.58,7.85)
+  addAction(curNode,invest)
   office(trader,2)
   office(trader,4)
 
@@ -135,9 +142,11 @@ function eastMap(map)
   node("Berlin-Cölln",-2.87,-2.86)
   office(trader,2)
 
-  node("Belgard",0.94,5.83)
+  node("Belgard",3.94,5.83)
 
-  node("Waren",-10.24,3.54)
+  node("Waren",-7.24,3.54)
+  addAction(curNode,upgradeBag)
+  addAction(curNode,upgradeAction)
 
   node("Danzig",7.03,5.14)
   office(trader,1)
@@ -168,6 +177,8 @@ function eastMap(map)
   office(trader,3)
 
   -- Edges --
+  edgeRegion = default
+
   from("Krakau")
 
     to("Thorn",14.56,-6.81,240)
@@ -183,6 +194,7 @@ function eastMap(map)
   from("Allenstein")
 
     to("Braunsberg",14.81,-2.77,330)
+    curEdge.startingBonus = true
     road(13.09,-1.84)
     road(14.54,-0.86)
     road(15.06,0.54)
@@ -210,6 +222,7 @@ function eastMap(map)
     road(4.73,5.05)
 
     to("Malmö",5.44,8.39,195)
+    curEdge.bonus = bonusPrintedReuse2
     road(7.99,6.69)
     road(6.81,7.32)
     road(5.24,6.89)
@@ -223,6 +236,7 @@ function eastMap(map)
     road(-15.35,8.20)
 
     to("Stralsund",-8.46,10.11,149)
+    curEdge.bonus = bonusPrintedMove2
     road(-8.86,8.69)
     ship(-7.30,9.54)
     ship(-5.58,9.67)
@@ -248,6 +262,7 @@ function eastMap(map)
   from("Brandenburg")
 
     to("Tangermünde",-13.13,-1.56,150)
+    curEdge.startingBonus = true
     road(-11.21,-2.61)
     road(-12.49,-2.84)
 
@@ -309,6 +324,7 @@ function eastMap(map)
   from("Stettin")
 
     to("Kulm",1.28,1.14,179)
+    curEdge.startingBonus = true
     road(0.16,-0.07)
     road(1.89,-0.39)
     road(3.96,-0.64)
@@ -359,6 +375,7 @@ function eastMap(map)
   from("Malmö")
 
     to("Visby",6.94,10.22,210)
+    curEdge.bonus = bonusPrintedBuildInGreen
     road(3.97,9.81)
     ship(5.55,9.78)
     road(7.58,8.99)
@@ -366,6 +383,7 @@ function eastMap(map)
   from("Stralsund")
 
     to("Malmö",-3.52,10.36,149)
+    curEdge.bonus = bonusPrintedGainPrivilege
     road(-3.78,8.63)
     ship(-2.68,9.46)
     ship(-1.37,9.98)

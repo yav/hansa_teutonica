@@ -157,7 +157,7 @@ end
 
 
 function doAddExtra(g,n,w,k)
-  local node = g.map.nodes[n]
+  local node = getNode(g.map,n)
   local x = node.x
   for i,w in ipairs(node.extraOffices) do
     x = x - GUI.officeWidth[w.shape]
@@ -167,12 +167,42 @@ function doAddExtra(g,n,w,k)
   say(string.format("%s established an annex in %s."
                    , playerColorBB(w.owner), node.name))
   push(node.extraOffices, w)
+  if #node.offices == 0 and #node.extraOffices == 1 then doCityBecameFull(g) end
   checkWinRace(g,w.owner)
 
   spawnWorker(w,{x,boardPieceZ,node.y}, function(o)
     push(GUI.node[n].extraOffices,o)
     k()
   end)
+end
+
+function doAddExtraRight(g,n,w,k)
+  local node = getNode(g.map,n)
+  local thisWidth = GUI.officeWidth[w.shape]
+
+  local ui = GUI.node[n].extraOffices
+  local len = #node.extraOffices
+  for i = 1,len do
+    local ix = len - (i-1)
+    node.extraOffices[ix + 1] = node.extraOffices[ix]
+    local obj = ui[ix]
+    local pos = obj.getPosition()
+    pos.x = pos.x - thisWidth
+    obj.setPosition(pos)
+    ui[ix+1] = obj
+  end
+
+  node.extraOffices[1] = w
+  checkWinRace(g,w.owner)
+
+  say(string.format("%s established an office in %s."
+                   , playerColorBB(w.owner), node.name))
+  if #node.offices == 0 and #node.extraOffices == 1 then doCityBecameFull(g) end
+  spawnWorker(w,{node.x - thisWidth,boardPieceZ,node.y},function(o)
+    ui[1] = o
+    k()
+  end)
+
 end
 
 
