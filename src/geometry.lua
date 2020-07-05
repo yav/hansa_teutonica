@@ -91,17 +91,24 @@ function opponentSpots(g,p,onlyTrader,onlyRoad,okRegions)
   return opts
 end
 
+-- Occupied spots by player `p` on this particular edge are added to opts
+function occupiedSpotsOn(g,p,e,opts)
+  for _,s in ipairs(e.stops) do
+    local w = s.worker
+    if w and (not p or w.owner == p) then
+      push(opts, { worker = w, edge = e.id, stop = s.id })
+    end
+  end
+end
+
+
+
 function occupiedSpots(g,p,r) -- if p == nil, then occupied by anyone
                               -- if r == nil, then any region
   local opts = {}
   for _,e in ipairs(g.map.edges) do
     if not r or e.region == r then
-      for _,s in ipairs(e.stops) do
-        local w = s.worker
-        if w and (not p or w.owner == p) then
-          push(opts, { worker = w, edge = e.id, stop = s.id })
-        end
-      end
+      occupiedSpotsOn(g,p,e,opts)
     end
   end
 

@@ -418,6 +418,8 @@ function actCompleteRoute(g,p,edges)
   -- Build office or do city action
   q.enQ(||performCompleteRouteAction(g,p,edge,q.next))
 
+  q.enQ(||usePrintedBonusEarly(g,p,edge,q.next))
+
   -- Return workers from the route back to the supply
   q.enQ(function()
     for _,stop in ipairs(edge.stops) do
@@ -637,6 +639,13 @@ end
 
 --------------------------------------------------------------------------------
 -- Using Bonus Tokens
+
+function usePrintedBonusEarly(g,p,e,k)
+  local b = e.bonus
+  if b == bonusPrintedReuse2 then doBonusPrintedReuse2(g,p,e,k)
+  else k()
+  end
+end
 
 function usePrintedBonus(g,p,b,k)
   if     b == bonusPrintedMove2         then doBonusPrintedMove2(g,p,k)
@@ -944,4 +953,39 @@ function doBonusPrintedBuildInGreen(g,p,k)
   push(opts, { text = "Pass", val = k })
 
   askText(g,p,"Establish office",opts,|f|f())
+end
+
+
+
+function doBonusPrintedReuse2(g,p,e,k)
+
+  say(string.format( "Shipping bonus: %s may move workers from route."
+                   , playerColorBB(p)
+                   ))
+  local n = 2
+
+  local q = actQ()
+  local passed = false
+
+  local function reuse(i)
+    if passed then q.next(); return end
+    local spots = {}
+    occupiedSpotsOn(g,p,e,spots)
+    if #spots == 0 then passed = true; q.next() return end
+    local msg = string.format("Move worker %d/%d",i,n)
+    askOccupiedSpotOrPass(g,p,msg,spots,function(spot)
+      if not spot then passed = true; q.next(); return end
+      local w = spot.worker
+      local regs = nil -- any region (on the East expansion there no regions)
+      local tgts = freeSpots(g,w.shape,regs)
+      if #tgts == 0 then passed = turn; q.next(); return end
+      askFreeSpot(g, p, "New location", w, regs,
+                                  |tgt|doMoveWorker(g,spot,tgt,q.next))
+    end)
+  end
+
+  for i = 1,n do
+    q.enQ(||reuse(i))
+  end
+  q.enQ(k)
 end
