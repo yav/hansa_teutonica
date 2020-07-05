@@ -642,6 +642,7 @@ function usePrintedBonus(g,p,b,k)
   if     b == bonusPrintedMove2         then doBonusPrintedMove2(g,p,k)
   elseif b == bonusPrintedPlace2        then doBonusPrintedPlace2(g,p,k)
   elseif b == bonusPrintedGainPrivilege then doBonusPrintedGainPrivilege(g,p,k)
+  elseif b == bonusPrintedBuildInGreen  then doBonusPrintedBuildInGreen(g,p,k)
   else k()
   end
 end
@@ -916,3 +917,31 @@ function doBonusPrintedGainPrivilege(g,p,k)
   k()
 end
 
+function doBonusPrintedBuildInGreen(g,p,k)
+  say(string.format("Shipping bonus: %s may establish an office in a restricted city.",p))
+  local s = g.playerState[p]
+  if s.active[trader] + s.active[merchant] == 0 then
+    say(string.format("%s has no active workers",p))
+    k();
+    return
+  end
+
+  local function buildIn(n)
+    askWorkerType(g,p,"Worker type",s.active,function(t)
+      doAddExtraRight(g,n,{owner=p,shape=t},k)
+    end)
+  end
+
+  local opts = {}
+  for n,node in pairs(g.map.nodes) do
+    if #node.offices == 0 then
+      push(opts, { text = "Office in " .. node.name
+                 , val  = ||buildIn(n)
+                 })
+    end
+  end
+
+  push(opts, { text = "Pass", val = k })
+
+  askText(g,p,"Establish office",opts,|f|f())
+end

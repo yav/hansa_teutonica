@@ -79,6 +79,10 @@ function bonusName(m,b)
   elseif b == bonusPrintedPlace2 then
       return string.format("Place 2 in %s",foreignOptions(m))
   elseif b == bonusPrintedMove2 then return "Move 2 workers, swaps OK"
+  elseif b == bonusPrintedGainPrivilege then return "Gain 1 privilege"
+  elseif b == bonusPrintedBuildInGreen then return "Office in restricted city"
+  elseif b == bonusPrintedReuse2 then
+                        return "Reuse 2 workers from a completed route"
   else return string.format("Bonus %d",b)
   end
 end
