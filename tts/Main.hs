@@ -44,7 +44,7 @@ instance JS.FromJSON Msg where
                  Msg <$> withObject "script" (.: "script") (v Vector.! 0)
            2 -> Msg <$> o .: "message"
            3 -> Msg <$> o .: "error"
-           _ -> fail "Unknown message number"
+           _ -> pure (Msg "")
 
 
 
