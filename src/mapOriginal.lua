@@ -51,7 +51,7 @@ function originalMap(map)
   -- Regions
   local default = 1
   map.regions = { default }
-  map.regionNames = { "England" }
+  map.regionNames = { "Hansa" }
   map.defaultRegion = default
   region = { default }
 
