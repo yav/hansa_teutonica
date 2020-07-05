@@ -37,9 +37,17 @@ function spawnPlateCounter(g)
   local counter = map.counter
   local x = map.x + counter.x
   local y = map.y + counter.y
+
+  GUI.platesBG = spawnBonusToken(bonusAct4,{x,boardPieceZ,y-0.4},180,function(o)
+    o.setName("Remaining bonus tokens")
+    o.setLock(false)
+    o.flip()
+    o.setLock(true)
+  end)
+
   GUI.plates = spawnObject(
     { type = "3DText"
-    , position = { x, boardPieceZ, y }
+    , position = { x, boardPieceZ+0.2, y }
     , rotation = { 90, 0, 0 }
     }
   )
@@ -49,6 +57,11 @@ end
 function updatePlateCounter(g)
   local n = #g.bonus - g.nextBonus + 1
   GUI.plates.setValue(n .. "")
+  if n == 0 then
+    local o = GUI.platesBG
+    GUI.platesBG = nil
+    o.destroy()
+  end
 end
 
 function spawnUndo(g,k)
@@ -472,15 +485,21 @@ function spawnPlate(g,p,ix,bonus,k)
 end
 
 function spawnBonus(m,bonus,loc,rot,k)
+  return spawnBonusToken(bonus,loc,rot,function(o)
+    o.setName(bonusName(m,bonus))
+    k(o)
+  end)
+end
+
+function spawnBonusToken(bonus,loc,rot,k)
   local sc = 0.7
   local o = spawnObject(
     { type = "Custom_Model"
     , position = loc
-    , rotation = { 0, rot, 0 }
+    , rotation = {0,rot,0}
     , scale = { sc, sc, sc }
     , callback_function = function(o)
         o.setLock(true)
-        o.setName(bonusName(m,bonus))
         k(o)
       end
     })
