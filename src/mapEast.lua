@@ -34,8 +34,8 @@ function eastMap(map)
   map.counter = { x = -4.9, y = -9.8 } -- location of bonus counter
 
   -- Location of invest token
-  map.investX = 11.83
-  map.investY = 10,37
+  map.investX = 10.75
+  map.investY = 10.37
   map.investName = "Königsberg"
 
   -- Location of full cities counter
