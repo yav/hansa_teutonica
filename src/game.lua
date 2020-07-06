@@ -1,4 +1,6 @@
 function newGame(colors,mkMap) -- Game
+  shuffle(colors)
+
   local game = {}
   local m = newMap()
   mkMap(m)
