@@ -38,11 +38,9 @@ function spawnPlateCounter(g)
   local x = map.x + counter.x
   local y = map.y + counter.y
 
-  GUI.platesBG = spawnBonusToken(bonusAct4,{x,boardPieceZ,y-0.4},180,function(o)
+  GUI.platesBG = spawnBonusToken(bonusAct4,{x,boardPieceZ,y-0.4},{180,180,0},function(o)
     o.setName("Remaining bonus tokens")
-    o.setLock(false)
-    o.flip()
-    o.setLock(true)
+    o.setRotation({180,0,0})
   end)
 
   GUI.plates = spawnObject(
@@ -485,7 +483,7 @@ function spawnPlate(g,p,ix,bonus,k)
 end
 
 function spawnBonus(m,bonus,loc,rot,k)
-  return spawnBonusToken(bonus,loc,rot,function(o)
+  return spawnBonusToken(bonus,loc,{0,rot,0},function(o)
     o.setName(bonusName(m,bonus))
     k(o)
   end)
@@ -496,7 +494,7 @@ function spawnBonusToken(bonus,loc,rot,k)
   local o = spawnObject(
     { type = "Custom_Model"
     , position = loc
-    , rotation = {0,rot,0}
+    , rotation = rot
     , scale = { sc, sc, sc }
     , callback_function = function(o)
         o.setLock(true)
