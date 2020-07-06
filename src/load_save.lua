@@ -1,14 +1,13 @@
 function onLoad(state)
-  local g
   if state and state ~= "" then
-    g = JSON.decode(state)
+    local g = JSON.decode(state)
+    if not g or g.version ~= version
+      then mainMenu()
+      else newGUI(g, ||nextTurn(g))
+    end
   else
-    -- g = newGame({"Green","Purple" }, britaniaMap)
-    -- g = newGame({"Green","Purple" }, originalMap)
-    g = newGame({"Green","Purple" }, eastMap)
+    mainMenu()
   end
-  -- newGUI(g, ||nextTurn(g))
-  newGUI(g, ||test(g))
 end
 
 function onSave()

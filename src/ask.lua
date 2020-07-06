@@ -51,7 +51,7 @@ end
 
 function mayPress(p,c)
   if 1 == 1 then return true end  -- XXX: testing
-  if p == c then return true end
+  if not p or p == c then return true end
   say (playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
                                                       "'s buttons.")
   return false

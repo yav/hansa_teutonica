@@ -1,3 +1,5 @@
+local version = 1   -- just used to force reload sometimes
+
 -- Board info
 local boardPieceZ = 1.5
 local landscape = 1

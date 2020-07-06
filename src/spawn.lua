@@ -610,7 +610,7 @@ function spawnMenu(x,y,k)
 end
 
 function spawnMenuItem(p,menu,ix,lab,f)
-  local bg  = {0,0,0}
+  local bg  = f and {0,0,0} or {0.2,0.2,0.2}
   local fg  = {1,1,1}
   local msg = lab
   if p and f then

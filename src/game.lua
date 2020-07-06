@@ -2,6 +2,7 @@ function newGame(colors,mkMap) -- Game
   local game = {}
   local m = newMap()
   mkMap(m)
+  game.version = version
   game.map = m
   game.players = colors
   game.playerState = {}
@@ -300,7 +301,7 @@ function startTurn(g,p)
   actSaves = {}
 
   local s = g.playerState[p]
-  s.turnActions = 5 + actionLevelMap[s.actionLevel]
+  s.turnActions = actionLevelMap[s.actionLevel]
   s.turnUsedActions = 0
   s.turnEnded = false
   s.turnReplaceBonus = {}
