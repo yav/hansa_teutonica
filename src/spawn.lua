@@ -258,8 +258,10 @@ function spawnPlayer(g,p,k)
       sem.down()
     end
   })
+  local url = player_board_url[p]
+  if not url then url = player_board_url["Yellow"] end
   ui.board.setCustomObject({
-    image = player_board_url[p]
+    image = url
   })
 
   -- Action Level Counter
