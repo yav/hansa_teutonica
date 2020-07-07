@@ -50,7 +50,6 @@ function askFreeAdjacent(g,p,q,e,w,k)
 end
 
 function mayPress(p,c)
-  if 1 == 1 then return true end  -- XXX: testing
   if not p or p == c then return true end
   say (playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
                                                       "'s buttons.")

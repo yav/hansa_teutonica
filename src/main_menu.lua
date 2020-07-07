@@ -3,16 +3,21 @@ function mainMenu()
     o.destroy()
   end
 
-  local players = Player.getPlayers()
-  local pnum    = #players
-
-  -- These are for testing
-  players = {"Purple","Yellow"}
-  pnum    = 3 -- used to select map
-  -- end testing
-
   local funs = {}
   local function startGame(map3,map45)
+    local ps      = Player.getPlayers()
+    local players = {}
+    for i,p in ipairs(ps) do
+      players[i] = p.color
+    end
+    -- ps = { "Purple", "Blue", "Green" } -- XXX: testing
+    local pnum = #ps
+
+    if pnum < 3 then
+      broadcastToAll("Need at least 3 players.")
+      return
+    end
+
     for _,f in ipairs(funs) do
       DEL_DYN(f)
     end
@@ -35,16 +40,6 @@ function mainMenu()
     }
 
   spawnMenu(0,0,function(m)
-    local msg = string.format("Starting a %d player game",pnum)
-    spawnMenuItem(nil,m,-4,msg,nil)
-
-    msg = ""
-    for _,c in ipairs(players) do
-      if msg == "" then msg = playerColorNote(c,"■")
-                   else msg = msg .. ' ' .. playerColorNote(c,"■")
-      end
-    end
-    spawnMenuItem(nil,m,-3,"Players " .. msg,nil)
     spawnMenuItem(nil,m,0,"Choose map:",nil)
 
     for i,o in ipairs(opts) do
