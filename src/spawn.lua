@@ -614,9 +614,16 @@ function spawnMenuItem(p,menu,ix,lab,f)
   if p and f then
     msg = playerColorNote(p, "> ") .. lab .. playerColorNote(p, " <")
   end
+  local hover = f and {0.3,0.3,0.3} or bg
+  if p and f then
+    local h = playerColor(p)
+    hover = Color(h.r * 0.5, h.g * 0.5, h.b * 0.5)
+  end
   menu.createButton(
     { font_size      = 300
     , font_color     = fg
+    , hover_color    = hover
+    , press_color    = f and {0.5,0.5,0.5} or bg
     , color          = bg
     , label          = msg
     , click_function = f or "nop"
