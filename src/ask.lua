@@ -49,8 +49,9 @@ function askFreeAdjacent(g,p,q,e,w,k)
   return ask(g, p, ptrWorker(p,w,'∨'), q, freeAdjacent(g,w.shape,e),k)
 end
 
-function mayPress(p,c)
-  if not p or p == c then return true end
+function mayPress(g,p,c)
+  if not p or g.controller[p] == c then return true end
+
   say (playerColorBB(c) .. " cannot press " .. playerColorBB(p) ..
                                                       "'s buttons.")
   return false
@@ -84,7 +85,7 @@ function askOccupiedSpotL(g, p,lab,q,spots,k)
 
     local fun = DYN_GLOB(function(obj,c,alt)
       if finished then return end
-      if not mayPress(p,c) then return end
+      if not mayPress(g,p,c) then return end
       finished = true
       cleanUp()
       k(spots[me + 1])
@@ -163,7 +164,7 @@ function askTextMany (g, p, qs, k)
           local finished = false
           local fun = DYN_GLOB(function (obj,c,alt)
                                  if finished then return end
-                                 if not mayPress(p,c) then return end
+                                 if not mayPress(g,p,c) then return end
                                  finished = true
                                  cleanUp()
                                  k(l.val)
@@ -220,7 +221,7 @@ function ask(g, p, mark, q, locs, k)     -- locs: {x,y,r,val}
   local function btn(i,m)
     local fun = DYN_GLOB(function (obj,c,alt)
                   if finished then return end
-                  if not mayPress(p,c) then return end
+                  if not mayPress(g,p,c) then return end
                   finished = true
                   cleanUp()
                   k(locs[i].val)

@@ -1,5 +1,11 @@
-function newGame(colors,mkMap) -- Game
-  shuffle(colors)
+function newGame(colorInfo,mkMap) -- Game
+  shuffle(colorInfo)
+  local colors = {}
+  local controller = {}
+  for i,c in ipairs(colorInfo) do
+    colors[i]           = c.color
+    controller[c.color] = c.controlledBy
+  end
 
   local game = {}
   local m = newMap()
@@ -7,6 +13,7 @@ function newGame(colors,mkMap) -- Game
   game.version = version
   game.map = m
   game.players = colors
+  game.controller = controller
   game.playerState = {}
   game.curPlayer = 0
   game.turn = 0
