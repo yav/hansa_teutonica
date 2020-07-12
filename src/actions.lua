@@ -230,14 +230,29 @@ function placeCompWorkers(g,p,e,todo,k)
     askWorkerTypeOrPass(g,p,"Place active?",s.active,placing(doPlaceActive))
 
   else
-    --XXX
-    say(playerColorBB(p) .. " should be allowed to move a worker but this is not yet done.")
-    k()
+    moveCompWorkers(g,p,e,todo,k)
   end
 end
 
 
-
+-- This happens in the rare case that all your workers are on the board
+function moveCompWorkers(g,p,e,todo,k)
+  local edge = getEdge(g.map,e)
+  local r = nil
+  if edge.region ~= g.map.defaultRegion then
+    r = {}
+    r[edge.region] = true
+  end
+  local spots = occupiedSpots(g,p,r)
+  if #spots == 0 then k(); return; end
+  askOccupiedSpotOrPass(g,p,"Move worker?",spots,function(from)
+    if not from then k(); return; end    -- pased
+    local w = from.worker
+    askFreeAdjacent(g,p,"Choose location",e,w,function(to)
+      doMoveWorker(g,from,to,||placeCompWorkers(g,p,e,todo-1,k))
+    end)
+  end)
+end
 
 function actReplaceOpponent(g,p,spots)
   say(playerColorBB(p) .. " chose to replace an opponent's worker.")
