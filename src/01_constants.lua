@@ -1,4 +1,4 @@
-local version = 3   -- just used to force reload sometimes
+local version = 4
 
 -- Board info
 local boardPieceZ = 1.5

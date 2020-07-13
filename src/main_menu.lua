@@ -50,6 +50,8 @@ function mainMenu()
     }
 
   spawnMenu(0,0,function(m)
+    local msg = string.format("Hansa Teutonica (version %d)",version)
+    spawnMenuItem(nil,m,-2,msg,nil)
     spawnMenuItem(nil,m,0,"Choose map:",nil)
 
     for i,o in ipairs(opts) do
