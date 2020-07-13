@@ -1,4 +1,4 @@
-local version = 4
+local version = 3
 
 -- Board info
 local boardPieceZ = 1.5
