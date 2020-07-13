@@ -481,7 +481,7 @@ function checkBuildBonusOffice(g,p,edge,n,opts,k)
   local ix = haveBounusToken(g,p,bonusExtra)
   if not ix then return end
 
-  local lab = bonusName(g,bonusExtra)
+  local lab = bonusName(g.map,bonusExtra)
 
   local node = g.map.nodes[n]
   if #node.offices ~= 0 and node.offices[1].worker == nil then return end
@@ -674,7 +674,7 @@ end
 function checkBonusAct(g,p,b,opts)
   local ix = haveBounusToken(g,p,b)
   if not ix then return end
-  local lab = bonusName(g,b)
+  local lab = bonusName(g.map,b)
 
   local function useBonus()
     local s = g.playerState[p]
@@ -702,7 +702,7 @@ end
 function doBonusRemove(g,p,ix,opts)
   local cs = occupiedSpots(g,nil,nil)
   if #cs == 0 then return end
-  local lab = bonusName(g,bonusMove)
+  local lab = bonusName(g.map,bonusMove)
 
   local n = 3
 
@@ -745,12 +745,12 @@ function doBonusRemove(g,p,ix,opts)
   push(opts, { text = lab, val = useBonus })
 end
 
-function doBonusMove(g,p,ix,ops)
+function doBonusMove(g,p,ix,opts)
   local cs = opponentSpots(g,p,false,false,nil)
   if #cs == 0 then return end
 
 
-  local lab = bonusName(g,b)
+  local lab = bonusName(g.map,bonusMove)
 
   local function useBonus()
     say(playerColorBB(p) .. " used " .. lab)
@@ -827,7 +827,7 @@ function checkBonusSwap(g,p,opts)
     end)
   end
 
-  push(opts, { text = bonusName(g,bonusSwap), val = useBonus })
+  push(opts, { text = bonusName(g.map,bonusSwap), val = useBonus })
 end
 
 
@@ -874,7 +874,7 @@ function checkBonusUpgradeSkill(g,p,opts)
     askText(g,p,"Upgrade",skills,|f|f())
   end
 
-  if #skills > 0 then push(opts, { text = bonusName(g,bonusUpgrade)
+  if #skills > 0 then push(opts, { text = bonusName(g.map,bonusUpgrade)
                                  , val = useBonus }) end
 end
 
