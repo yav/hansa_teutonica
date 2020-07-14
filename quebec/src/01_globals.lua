@@ -267,4 +267,39 @@ function ageName(n)
 end
 
 
+local finalAge = 4
+local hub = {}            -- maps building sites to actions
+local spotByColor = {}    -- all spots of a given color (for setup)
+local allLocs = {}
+
+local zoneLoc = { {12,-9}, {-23.5,-9}, {-23.5,17}, {12,17}, {12,5.5} }
+local zoneArrow = { {10,-7,135}, {-20,-7,-135},
+                    {-19.5,14,-45}, {10,14,45},
+                    {9,4.7,90} }
+
+
+local map_data = {
+  { { {1,7}, 1, "Archdiocese",         {{1,6}, {2,6} }},
+    { {4,4}, 2, "Protestant District", {{3,3}, {5,4}, {3,5}} },
+    { {8,4}, 2, "Irish District",      {{7,3}, {9,4}, {7,5}} },
+    { {6,8}, 3, "Jewish District",     {{5,8}, {5,7}, {6,7}} }
+  },
+  { { {8,8}, 1, "Seat of Government",       {{7,7}, {8,7}} },
+    { {5,3}, 2, "Municipal Administration", {{4,3}, {6,2}, {6,4}} },
+    { {3,7}, 2, "National Administration",  {{2,7}, {4,6}, {4,8}} },
+    { {1,3}, 3, "Millitary Administration", {{1,4}, {2,4}, {2,3}} }
+  },
+  { { {9,2}, 1, "Public Market",      {{8,3}, {9,3}} },
+    { {6,5}, 2, "Buisiness District", {{7,4}, {5,5}, {7,6}} },
+    { {2,5}, 2, "Rich District",      {{3,4}, {1,5}, {3,6}} },
+    { {4,1}, 3, "Port District",      {{4,2}, {5,2}, {5,1}} }
+  },
+  { { {2,1}, 1, "Social Club",            {{2,2}, {3,2}} },
+    { {7,2}, 2, "Entertainment District", {{6,1}, {8,2}, {6,3}} },
+    { {5,6}, 2, "Academic District",      {{4,5}, {6,6}, {4,7}} },
+    { {9,6}, 3, "Arts District",          {{8,6}, {8,5}, {9,5}} }
+  },
+}
+
+
 
