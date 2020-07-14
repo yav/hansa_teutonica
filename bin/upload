@@ -3,5 +3,11 @@
 HOST=127.0.0.1
 PORT=39999
 
-cat src/*.lua > script.lua
-cabal exec tts script.lua src/ui.xml | nc $HOST $PORT
+if [ $# -ne 1 ]; then
+  echo "USAGE: $0 DIR"
+  exit 1
+fi
+DIR=$1
+
+cat $DIR/src/*.lua > script.lua
+cabal exec tts script.lua "$DIR/src/ui.xml" | nc $HOST $PORT
