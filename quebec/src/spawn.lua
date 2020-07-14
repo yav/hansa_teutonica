@@ -86,41 +86,23 @@ function spawnBasics(k)
     image = board_url
   })
 
-  GUI.status = spawnObject({
-    type = "3DText",
-    rotation = { 90, 0, 0 },
-    position = { 20, 1.5, 17 }
-  })
-  GUI.status.setValue("Quebec")
+  sem.up()
+  GUI.status = spawnLabel(21,17,"Quebec",sem.down)
 
   sem.wait(k)
 end
 
+function setStatus(x)
+  GUI.status.editButton({ index = 0, label = x })
+end
+
 
 function spawnUndoButton(p,k)
-  spawnObject({
-    type = "BlockRectangle",
-    position = { 30.5, 4, 5 },
-    rotation = { 0,90,0 },
-    scale = { 1, 0.1, 1 },
-    callback_function = function(o)
-      o.setLock(true)
-      o.setColorTint(playerColor(p))
-      o.createButton({
-        font_size = 200,
-        label = "Start over",
-        click_function = "undoTurn",
-        rotation = {0,90,0},
-        color = playerColor(p),
-        font_color = textColor(p),
-        width = 1200,
-        height = 600,
-        position = { 0,1.1,0 },
-        tooltip = "Restart " .. playerColorBB(p) .. "'s turn"
-      })
-      GUI.undo = o
-      k()
-   end})
+  spawnMenu(21,5,function(menu)
+    spawnMenuItem(p,menu,0,"Start Over","undoTurn")
+    GUI.undo = menu
+    k()
+  end)
 end
 
 
@@ -291,38 +273,36 @@ function spawnMarker(p,k)
 end
 
 function spawnEvent(i,ev,base,marker,k)
-  local pos = {21.5,2, 0 - 7 * i}
 
-  local o = spawnObject({
-    type = "Custom_Token",
-    rotation = { 0, 180, 0 },
-    scale = {2,1,2},
-    position = pos,
-    callback_function = function(o)
-      o.setLock(true)
-      o.setName("Event")
 
-      local lab = ""
+  spawnMenu(21.5, -7*i, function(menu)
+    menu.setName("Event")
+    local lab = ""
       for i,t in ipairs(events[ev]) do
-         local sep = (i == 1) and "" or "\n"
-         lab = lab .. sep .. t
+        local sep = (i == 1) and "" or "\n"
+        lab = lab .. sep .. t
       end
-
-      o.createButton({
-        font_size = 100,
-        label = lab,
-        click_function = "nop",
-        font_color = {0,0,0},
-        width = 1,
-        height = 1,
-        position = { 0,1.1,0 },
-        tooltip = "Event"
-      })
+      local bg = {0,0,0}
+      menu.createButton(
+        { font_size      = 300
+        , font_color     = {1,1,1}
+        , hover_color    = bg
+        , press_color    = bg
+        , color          = bg
+        , label          = lab
+        , click_function = "nop"
+        , position       = { 0, 1.2, 0 }
+        , rotation       = { 0, 180, 0 }
+        , width          = 6000
+        , height         = 400 * #events[ev]
+        , tooltip        = "Event"
+        }
+      )
 
       if base then
-        GUI.baseEvent = o
+        GUI.baseEvent = menu
       else
-        GUI.event = o
+        GUI.event = menu
       end
 
       if marker then
@@ -330,11 +310,7 @@ function spawnEvent(i,ev,base,marker,k)
       else
         k()
       end
-    end
-  })
-  o.setCustomObject({
-    image = event_url
-  })
+    end)
 end
 
 
@@ -409,7 +385,7 @@ function spawnPlayers(gs,k)
   for i,p in ipairs(gs.players) do
     local ttsp = Player[p]
     ttsp.setHandTransform({
-      position = {-33 + (j + i) * 11, 4.5, -17 },
+      position = {-33 + (j + i) * 11, -1, -17 },
       scale = { 6, 4.3, 6 },
     })
     ttsp.setCameraMode("TopDown")
@@ -474,6 +450,7 @@ function spawnPlayer(gs,p,k)
     rotation = { 0, 180, 0 },
     scale = {0.3, 0.3, 0.3},
     callback_function = function(o)
+      o.setLock(true)
       o.setColorTint(playerColor(p))
       o.setName("Active worklers")
       todo.down()

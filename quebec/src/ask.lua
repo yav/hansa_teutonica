@@ -3,7 +3,7 @@
 
 
 -- Ask to choose among a bunch of text labels
-function askText(p, q, labs, k)
+function askTextMany(p, qs, labs, k)
   local funs = {}
   local menu
   local finished = false
@@ -23,16 +23,22 @@ function askText(p, q, labs, k)
     end
   end
 
-  menu = spawnMenu(21,15,function(menu)
-    if q then spawnMenuItem(p,menu,0,q,nil) end
+  menu = spawnMenu(21,14,function(menu)
+    for i,q in ipairs(qs) do
+      spawnMenuItem(p,menu,i-1,q,nil)
+    end
 
+    local n = #qs - 1
     for i,l in ipairs(labs) do
       funs[i] = DYN_GLOB(click(i))
-      spawnMenuItem(p,menu,i,l,funs[i])
+      spawnMenuItem(p,menu,n + i,l,funs[i])
     end
   end)
 end
 
+function askText(p,q,labs,k)
+  askTextMany(p,{q},labs,k)
+end
 
 
 
@@ -73,13 +79,7 @@ end
 
 function ask(p, q, locs, k)
 
-  local ql = spawnObject({
-    type = "3DText",
-    position = {19.5,2,15},
-    rotation = {90,0,0}
-  })
-  ql.setValue(q)
-
+  local ql = spawnLabel(21,14,q,nop)
 
   local markers = {}
 

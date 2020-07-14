@@ -18,7 +18,7 @@ function noGame()
 end
 
 function finishedGame(gs)
-  GUI.status.setValue("Game Over")
+  setStatus("Game Over")
   say("\nGame Over")
   local scores = {}
   for p,s in pairs(gs.playerState) do
@@ -28,16 +28,16 @@ function finishedGame(gs)
 
   local place = 0
   local prevScore = 1000000
-  local msg = "\n\n\n\nFinal Score:\n"
+  local msg = {"Final Score:"}
   for _,s in ipairs(scores) do
     if s.score < prevScore then place = place + 1 end
     local txt =  place .. ". " .. playerColorBB(s.player) .. ": " .. s.score .. " VP"
     say(txt)
-    msg = msg .. "\n" .. txt
+    push(msg,txt)
     prevScore = s.score
   end
 
-  askText(nil, msg, {}, ||0)
+  askTextMany(nil, msg, {}, ||0)
 
 end
 
@@ -61,9 +61,8 @@ end
 function finishGUI(gs, k)
   local q = actQ()
 
-  local title = GUI.status
   local header = ageName(gs.currentAge)
-  title.setValue(header)
+  setStatus(header)
 
   q.enQ(|| spawnAgeLabels(gs,q.next))
   q.enQ(|| spawnBuildingSites(gs,q.next))
@@ -83,8 +82,7 @@ function startAge(gs, k)
   local nm = ageName(gs.currentAge)
   say(nm)
 
-  local title = GUI.status
-  title.setValue(nm)
+  setStatus(nm)
 
   gs.leaders = {1,2,3,4,5}
   sem.up()
@@ -144,8 +142,7 @@ end
 
 
 function endAge(gs, k)
-  GUI.status.setValue(gs.currentAge .. ". Ending " ..
-                               zoneName[gs.currentAge] .. " Age")
+  setStatus(gs.currentAge .. ". Ending " .. zoneName[gs.currentAge] .. " Age")
   say("\nEnding " .. zoneName[gs.currentAge] .. " Age")
 
   -- Finish Yellow Architect
@@ -209,12 +206,12 @@ function reallyEndAge(gs,k)
       winners = gs.players
     end
 
-    local msg = zoneName[z] .. " Score\n\n\n\n"
+    local msg = {zoneName[z] .. " Score"}
     for p,vp in pairs(scores) do
-      msg = msg .. "\n" .. playerColorBB(p) .. ": " .. vp .. " VP"
+      push(msg, playerColorBB(p) .. ": " .. vp .. " VP")
     end
 
-    askText(gsCurPlayer(gs), msg, {"Continue"}, k)
+    askTextMany(gsCurPlayer(gs), msg, {"Continue"}, k)
   end
 
   local noCascade = {}
