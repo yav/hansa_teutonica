@@ -6,8 +6,8 @@
 function noGame()
   saveState = nil
   askText(nil, "Ready?", { "Start Without Events", "Start With Events" }, function(mode)
-    local ps = {"Green","White","Pink"} -- XXX: DEVELOP
-    ps = getSeatedPlayers() -- XXX: Develop
+    local ps = {"Green","White","Pink","Orange","Brown"} -- XXX: DEVELOP
+    -- ps = getSeatedPlayers() -- XXX: Develop
     if (#ps < 3) then
       say("The game requires at least 3 players.")
       noGame()

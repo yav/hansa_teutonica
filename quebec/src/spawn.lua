@@ -10,26 +10,9 @@ function playerLeaderLoc(p)
 end
 
 
-function playerColorBB(p)
-  local c = playerColor(p)
-  return string.format("[%02x%02x%02x]" .. p .. "[-]",
-    math.floor(c[1] * 255),
-    math.floor(c[2] * 255),
-    math.floor(c[3] * 255))
-end
-
-
-function playerColor(p)
-  if not p then return { 1, 1, 0 } end -- Yellow
-  if p == "White" then return { 0.9, 0.9, 0.9 } end -- White os broken
-  return stringColorToRGB(p)
-end
 
 function textColor(p)
-  local col = playerColor(p)
-  local fcol = {0,0,0}
-  if (col[1] + col[2] + col[3]) / 3 < 0.9 then fcol = { 1,1,1 } end
-  return fcol
+  return playerFontColor(p)
 end
 
 function playerZoneLoc(p)
@@ -269,7 +252,7 @@ function spawnArchitect(p,loc,k)
     callback_function = function(o)
       o.setName("Architect")
       o.setLock(true)
-      o.setColorTint(playerColor(p))
+      o.setColorTint(playerColor(p or "Yellow"))
       GUI.activeSites[loc] = { archObj = o, contributors = {} }
       k(o)
     end
@@ -565,7 +548,6 @@ end
 
 
 
-
 function labelledCube(p,loc,amt,k)
 
   spawnObject({
@@ -589,10 +571,5 @@ function labelledCube(p,loc,amt,k)
     end
   })
 end
-
-function nop(x) end
-
-
-
 
 

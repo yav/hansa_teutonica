@@ -2,40 +2,37 @@
 -- Interacting with the players
 
 
-
 -- Ask to choose among a bunch of text labels
 function askText(p, q, labs, k)
-  local x = 16
-  local y = 2
-  local z = 15
+  local funs = {}
+  local menu
+  local finished = false
 
-  local ls = {}
-  local objs = {}
-
-  for i,l in ipairs(labs) do
-    local zz = z - 2 * i
-    ls[i] = {x,zz-0.3,90 }
-    local t = spawnObject({
-      type = "3DText",
-      position = { x+2, y, zz },
-      rotation = { 90,0,0 }
-    })
-    t.setValue(l)
-    local b = t.getBounds().size.x / 100
-    t.setPosition { x + 2 + b/2, y, zz }
-    objs[i] = t
-  end
-
-  local function ans(i)
-    for _,o in ipairs(objs) do
-       o.destroy()
+  local function click(i)
+    return function (obj,c,alt)
+      if finished then return end
+      if false and p and c ~= p then
+        say(string.format("%s may not press %s's buttons."
+                         , playerColorBB(c), playerColorBB(p)))
+        return
+      end
+      finished = true
+      menu.destroy()
+      for _,f in ipairs(funs) do DEL_DYN(f) end
+      k(i)
     end
-    k(i)
   end
 
-  ask(p,q, ls,ans)
+  menu = spawnMenu(21,15,function(menu)
+    if q then spawnMenuItem(p,menu,0,q,nil) end
 
+    for i,l in ipairs(labs) do
+      funs[i] = DYN_GLOB(click(i))
+      spawnMenuItem(p,menu,i,l,funs[i])
+    end
+  end)
 end
+
 
 
 
@@ -99,7 +96,7 @@ function ask(p, q, locs, k)
   local function btn(i,m)
     _G["ask" .. i] = function (obj,c,alt)
        if finished then return end
-       if p and c ~= p then
+       if false and p and c ~= p then
           say(playerColorBB(c) .. " cannot press " .. playerColorBB(p) .. "'s buttons.")
           return --  XXX: disabled for development
        end
@@ -114,7 +111,7 @@ function ask(p, q, locs, k)
       height = 300,
       rotation = { 90, 90, 0},
       position = { 0, 0.05, -1 },
-      color = playerColor(p),
+      color = playerColor(p or "Yellow"),
       font_color = textColor(p),
       click_function = "ask" .. i
     })
