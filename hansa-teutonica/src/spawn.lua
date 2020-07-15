@@ -185,7 +185,7 @@ function spawnEdge(m,e,k)
     end
   end
 
-  if e.bonus and e.bonus < #bonus_token_url then
+  if e.bonus and e.bonus <= #bonus_token_url then
     sem.up()
     local loc = { e.x, boardPieceZ, e.y }
     ui.bonus = spawnBonus(m, e.bonus, loc, e.rotation, sem.down)
