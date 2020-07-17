@@ -115,6 +115,7 @@ function locMapIter(locMap,loc)
   local row
   if not loc then
     r,row = next(locMap,nil)
+    if not r then return nil end
   else
     r   = loc.row
     row = locMap[r]
@@ -138,59 +139,45 @@ end
 --------------------------------------------------------------------------------
 
 
-function findRegions(map)
-  local repFor = locMapEmpty()
+function findRegion(map,start)
+  local startTerrain = locMapLookup(map,start).terrain
+  local visited  = locMapEmpty()
+  local todo     = { start }
+  local lastTodo = #todo
+  local nextTodo = 1
 
-  local function find(l)
-    local rep = locMapLookup(repFor,l)
-    if not rep then
-      return l
-    else
-      local r1 = find(rep)
-      locMapInsert(repFor,l,r1)
-      return r1
-    end
-  end
+  while nextTodo <= lastTodo do
+    local loc = todo[nextTodo]
+    todo[nextTodo] = nil
+    nextTodo = nextTodo + 1
 
-  local function union(l1,l2)
-    local r1 = find(l1)
-    local r2 = find(l2)
-    if locationSame(r1,r2) then
-      return
-    else
-      locMapInsert(repFor,r1,r2)
-    end
-  end
-
-  for loc,spot in locsIn(map) do
-    if spot.terrain == land then
-      local function check(dir)
-        local other_loc  = neighbour(loc,dir)
-        local other_spot = locMapLookup(map,other_loc)
-        if other_spot ~= nil and other_spot.terrain == land then
-          union(loc,other_loc)
+    if not locMapLookup(visited,loc) then
+      local spot = locMapLookup(map,loc)
+      if spot and spot.terrain == startTerrain then
+        locMapInsert(visited,loc,true)
+        if spot.terrain ~= canal or
+           spot.bridge  == nil   or
+           locationSame(loc,start) then
+             for _,dir in ipairs({north,east,south,west}) do
+               lastTodo = lastTodo + 1
+               todo[lastTodo] = neighbour(loc,dir)
+             end
         end
       end
-      check(north)
-      check(east)
     end
   end
 
-  local regions = locMapEmpty()
-  for loc,spot in locsIn(map) do
-    if spot.terrain == land then
-      local rep = find(loc)
-      if not rep then
-        locMapInsert(regions,loc,{loc})
-      else
-        local members = locMapLookup(regions,rep)
-        if not members then members = {}; locMapInsert(regions,rep,members) end
-        members[#members + 1] = loc
+  if startTerrain == canal then
+    local bridges = locMapEmpty()
+    for l,_ in locsIn(visited) do
+      if not locationSame(l,start) and locMapLookup(map,l).bridge then
+        locMapInsert(bridges,l)
       end
     end
+    return bridges
   end
 
-  return regions
+  return visited
 end
 
 
