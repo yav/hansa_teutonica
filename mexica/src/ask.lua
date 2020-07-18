@@ -47,7 +47,7 @@ end
 function askMapLoc(p,q,spots,k)
   question({q},k,function(menu,n,click)
     for i,loc in ipairs(spots) do
-      local pos = gridToWorld(loc)
+      local pos = gridToWorld(loc,1.2)
       local fun = click(loc)
       local c = playerColor(p)
       menu.createButton(
@@ -56,7 +56,7 @@ function askMapLoc(p,q,spots,k)
          , color          = Color({r=c.r,g=c.g,b=c.b,a=0.8})
          , label          = "?"
          , click_function = fun
-         , position       = { menu_x-pos.x,1.2, pos.z - menu_y}
+         , position       = { menu_x-pos.x,piece_z, pos.z - menu_y}
          , rotation       = { 0, 180, 0 }
          , width          = 600
          , height         = 600
