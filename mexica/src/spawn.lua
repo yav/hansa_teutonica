@@ -7,7 +7,6 @@ function newGUI(k)
 
   local sem = newSem()
   sem.up(); spawnMap(sem.down)
-  sem.up(); spawn2x1( {0,1.2,0}, sem.down )
 
   sem.wait(k)
 end
@@ -21,6 +20,7 @@ function spawnMap(k)
     , position  = { board_x, 1, board_y }
     , rotation  = { 0, 180, 0 }
     , scale     = { scale, 1, scale }
+    , sound     = false
     , callback_function = function(o)
       o.setLock(true)
       o.grid_projection = true
@@ -34,14 +34,16 @@ function spawnMap(k)
   )
 end
 
-
 function spawn1x1 (loc,k)
   local scale = 1
   local o = spawnObject(
-    { type  = "Custom_Model"
-    , scale = { scale, 1, scale }
-    , position = loc
+    { type         = "Custom_Model"
+    , scale        = { scale, 1, scale }
+    , position     = loc
+    , snap_to_grid = false
+    , sound        = false
     , callback_function = function(o)
+        o.setLock(true)
         k(o)
       end
     }
@@ -58,10 +60,13 @@ end
 function spawn2x1 (loc,k)
   local scale = 1
   local o = spawnObject(
-    { type  = "Custom_Model"
-    , scale = { scale, 1, scale }
-    , position = loc
+    { type         = "Custom_Model"
+    , scale        = { scale, 1, scale }
+    , position     = loc
+    , snap_to_grid = true
+    , sound        = false
     , callback_function = function(o)
+        -- o.setLock(true)
         k(o)
       end
     }
@@ -75,7 +80,5 @@ function spawn2x1 (loc,k)
   return o
 end
 
-function toGrid(loc)
-end
 
 

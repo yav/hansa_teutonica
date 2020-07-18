@@ -1,10 +1,15 @@
+-- Currently spawned objects
 local GUI
 
+-- Location of the board
 local board_x = -4.7
 local board_y = 2
 
-local globMap
+local menu_x  = 23
+local menu_y  = 17
 
+
+--------------------------------------------------------------------------------
 
 -- Terrain types
 local land  = 1
