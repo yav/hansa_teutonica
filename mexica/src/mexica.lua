@@ -1,9 +1,4 @@
 
-
--- Terrain types
-local land  = 1
-local canal = 2
-
 function terLand()
   return { terrain = land, entity = nil }
 end
@@ -15,27 +10,9 @@ end
 
 
 
--- Directions
-local north = 1
-local east  = 2
-local south = 3
-local west  = 4
-
-local dirDX = { 0, 1, 0, -1 }
-local dirDY = { -1, 0, 1, 0 }
-
--- Bridge directions
-local north_south = 1
-local east_est    = 2
-
 
 --------------------------------------------------------------------------------
 -- Entities
-
-local leader    = 1
-local temple    = 2
-local district  = 3
-local palace    = 4
 
 function entLeader(owner)
   return { entity = leader, owner = owner }
@@ -73,6 +50,17 @@ function addEntity(map,loc,entity)
 end
 
 
+--------------------------------------------------------------------------------
+-- Players
+
+function newPlayer()
+  local p = { VP = 0, AP = 0, savedAP = 0, leader = nil, temples = {} }
+  p.temples[1] = 3
+  p.temples[2] = 3
+  p.temples[3] = 2
+  p.temples[4] = 1
+  return p
+end
 
 
 --------------------------------------------------------------------------------
