@@ -8,10 +8,28 @@ function newGame(ps)
 
   local map = newMap()
 
+  local allDistricts = { 3,3,4,4,5,5,6,6,7,8,9,10,11,12,13}
+  shuffle(allDistricts)
+  local districts = { {}, {} }
+  for i = 1,8 do
+    districts[1][i] = allDistricts[i]
+  end
+  for i = 9,15 do
+    districts[2][i-8] = allDistricts[i]
+  end
+  table.sort(districts[1])
+  table.sort(districts[2])
+
   return
     { players       = ps      -- in turn order
     , playerState   = playerState
     , currentPlayer = 1
+    , bridges       = 11
+    , saveAction    = 12
+    , canal1        = 6
+    , canal2        = 35
+    , districts     = districts
+    , age           = 1
     , map           = map
     , mapEdges      = findRegion(map,location(1,1))
     }
@@ -20,11 +38,11 @@ end
 
 --------------------------------------------------------------------------------
 function terLand()
-  return { terrain = land, entity = nil }
+  return { terrain = land, leader = nil, entity = nil }
 end
 
 function terCanal()
-  return { terrain = canal, entity = nil, bridge = nil }
+  return { terrain = canal, leader = nil, entity = nil }
 end
 --------------------------------------------------------------------------------
 
@@ -33,10 +51,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Entities
-
-function entLeader(owner)
-  return { entity = leader, owner = owner }
-end
 
 function entTemple(owner,level)
   return { entity = temple, owner = owner, level = level }
@@ -48,6 +62,10 @@ end
 
 function entPalace()
   return { entity = palace }
+end
+
+function entBridge(dir)
+  return { entity = bridge, direction = dir }
 end
 
 --------------------------------------------------------------------------------

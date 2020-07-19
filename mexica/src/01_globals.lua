@@ -4,7 +4,10 @@ local GUI
 -- Location of the board
 local board_x = -4.7
 local board_y = 2
-local piece_z = 1.2   -- piece that is pretty much on the board
+
+local piece_z        = 1.2 -- flat pieces on the board
+local piece_temple_z = 1.5 -- temples are fatter
+local piece_bridge_z = 1.7 -- for a leader on a bridge
 
 local menu_x  = 23
 local menu_y  = 17
@@ -33,11 +36,12 @@ local allDirs = { west, north, east, south }
 
 -- Bridge directions
 local north_south = 1
-local east_est    = 2
+local east_west   = 2
 
-local leader    = 1
+local bridge    = 1
 local temple    = 2
 local district  = 3
+local palace    = 4
 
 
 
