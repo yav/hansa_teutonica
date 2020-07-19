@@ -5,6 +5,14 @@ function locMapEmpty()
   return {}
 end
 
+
+function locMapIsEmpty(locMap)
+  for _,_ in locsIn(locMap) do
+    return false
+  end
+  return true
+end
+
 function locMapInsert(locMap,loc,val)
   local row = locMap[loc.row]
   if not row then row = {}; locMap[loc.row] = row end

@@ -15,9 +15,11 @@ local menu_y  = 17
 
 --------------------------------------------------------------------------------
 
--- Game state
-local setup = 1
-local playing = 2
+-- Game phases
+local setup     = 1
+local age1      = 2
+local age2      = 3
+local finished  = 4
 
 -- Terrain types
 local land  = 1

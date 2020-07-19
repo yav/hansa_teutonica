@@ -44,9 +44,14 @@ function askText(p,q,labs,k)
 end
 
 
-function askMapLoc(p,q,spots,k)
+function askMapLoc(p,q,spots,optionalTxt,k)
   question({q},k,function(menu,n,click)
-    for i,loc in ipairs(spots) do
+
+    if optionalTxt ~= nil then
+      spawnMenuItem(p,menu,n + 1,optionalTxt,click(nil))
+    end
+
+    for loc,_ in locsIn(spots) do
       local pos = gridToWorld(loc,1.2)
       local fun = click(loc)
       local c = playerColor(p)

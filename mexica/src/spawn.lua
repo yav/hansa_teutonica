@@ -3,7 +3,18 @@ function newGUI(g, k)
   for _,o in pairs(getAllObjects()) do
     o.destroy()
   end
-  GUI = {}
+  GUI =
+    { board   = nil
+    , map     = locMapEmpty()
+
+
+    -- counters
+    , canal1      = nil
+    , canal2      = nil
+    , bridges     = nil
+    , saveAction  = nil
+    , districts   = {}
+    }
 
   local sem = newSem()
   sem.up(); spawnMap(g, sem.down)
@@ -11,7 +22,7 @@ function newGUI(g, k)
   sem.up(); spawn2x1Counter(g.canal2, sem.down)
   sem.up(); spawnBridgeCounter(g.bridges, sem.down)
   sem.up(); spawnAPCounter(g.saveAction, sem.down)
-  sem.up(); spawnUnbuilt(g.districts[g.age],sem.down)
+  sem.up(); spawnUnbuilt(g,sem.down)
 
   sem.wait(k)
 end
@@ -96,7 +107,10 @@ function spawnLoc(g,loc,spot,k)
     q.enQ(||spawnLeader(leader, gridToWorld(loc,z), saveUI("leader")))
   end
 
-  q.enQ(k)
+  q.enQ(function()
+    locMapInsert(GUI.map,loc,ui)
+    k()
+  end)
 end
 
 
@@ -166,9 +180,11 @@ function spawnAPCounter(n,k)
   end)
 end
 
-function spawnUnbuilt(ds,k)
-  GUI.districts = {}
+function spawnUnbuilt(g,k)
   local sem = newSem()
+  local ds = g.phase == age1 and g.districts[1] or
+             g.phase == age2 and g.districts[2] or {}
+
   for i,n in pairs(ds) do
     local row = 15 + math.floor((i-1) / 4)
     local col = 20 + math.floor((i-1) % 4)
@@ -203,7 +219,7 @@ function spawnDistrict(loc,size,k)
           { label     = string.format("[FFFF00]%d[-]\n%d %d",p1,p2,p3)
           , font_size = 300
           , font_color= {1,1,1}
-          , color     = {0,0,0}
+          , color     = {0,0,0,0.8}
           , hover     = {0,0,0}
           , height    = 700
           , width     = 700
