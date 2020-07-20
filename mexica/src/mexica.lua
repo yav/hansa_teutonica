@@ -7,6 +7,15 @@ function newGame(ps)
   end
 
   local map = newMap()
+  local startLocs = { location(8,9)
+                    , location(9,8)
+                    , location(9,10)
+                    , location(10,9)
+                    }
+  locMapLookup(map,location(9,9)).entity = entPalace()
+  for _,l in ipairs(startLocs) do
+    locMapLookup(map,l).entity = entPalace()
+  end
 
   local allDistricts = { 3,3,4,4,5,5,6,6,7,8,9,10,11,12,13}
   shuffle(allDistricts)
@@ -25,7 +34,7 @@ function newGame(ps)
     , playerState   = playerState
     , currentPlayer = 1
 
-    , phase         = setup
+    , phase         = ag1
 
     , bridges       = 11
     , saveAction    = 12
@@ -35,6 +44,7 @@ function newGame(ps)
 
     , map           = map
     , mapEdges      = findRegion(map,location(1,1))
+    , mapStartLocs  = startLocs
     }
 end
 

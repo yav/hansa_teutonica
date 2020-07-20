@@ -5,9 +5,9 @@ local GUI
 local board_x = -4.7
 local board_y = 2
 
-local piece_z        = 1.2 -- flat pieces on the board
-local piece_temple_z = 1.5 -- temples are fatter
-local piece_bridge_z = 1.7 -- for a leader on a bridge
+local piece_z          = 1.2 -- flat pieces on the board
+local piece_temple_z   = 1.5 -- temples are fatter
+local piece_bridge_z   = 1.8 -- for a leader on a bridge
 
 local menu_x  = 23
 local menu_y  = 17
@@ -16,10 +16,9 @@ local menu_y  = 17
 --------------------------------------------------------------------------------
 
 -- Game phases
-local setup     = 1
-local age1      = 2
-local age2      = 3
-local finished  = 4
+local age1      = 1
+local age2      = 2
+local finished  = 3
 
 -- Terrain types
 local land  = 1

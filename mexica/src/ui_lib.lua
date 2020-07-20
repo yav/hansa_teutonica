@@ -24,6 +24,7 @@ function spawnMenu(x,y,k)
   return spawnObject(
     { type              = "BlockSquare"
     , position          = { x, 0, y }
+    , sound             = false
     , callback_function = function(o) o.setLock(true); k(o) end
     }
   )

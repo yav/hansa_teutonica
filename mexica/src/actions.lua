@@ -1,6 +1,7 @@
 
 
 function endTurn(g)
+  -- XXX: ask question if leftover AP
   local n = g.currentPlayer
   if n == #g.players then endRound(g); return end
   g.currentPlayer = n + 1
@@ -21,21 +22,48 @@ function startTurn(g)
   takeAction(g,p)
 end
 
---------------------------------------------------------------------------------
+
+function setupPlaceLeader(g,p)
+  local spots = locMapEmpty()
+  for _,l in ipairs(g.mapStartLocs) do
+    if locMapLookup(g.map,l).leader == nil then locMapInsert(spots,l,true) end
+  end
+  local q = string.format("Place %s leader",playerColorBB(p))
+  askMapLoc(p,q, spots, nil, function(loc)
+    doPlaceLeader(g,loc,p,||endTurn(g))
+  end)
+end
+
 
 function takeAction(g,p)
-  log("Take action")
+  local s = g.playerState[p]
+  if s.leader == nil then setupPlaceLeader(g,p); return end
+
   local opts = {}
-
   checkCanal(g,p,opts)
-
+  checkBuildBridge(g,p,opts)
+  -- XXX: move bridge
+  checkMove(g,p,opts)
+  -- XXX: move by boat
+  -- XXX: teleport
+  -- XXX: build temple
+  -- XXX: establish district
+  -- XXX: restore AP
   push(opts, { text = "End turn", val = ||endTurn(g) })
 
-  local s = g.playerState[p]
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
   askText(p,q,opts,|f|f())
 end
 
+
+--------------------------------------------------------------------------------
+
+function checkPlaceLeader(g,p,opts)
+  local s = g.playerState[p]
+  if s.leader ~= nil then return end    -- only at the start of the game
+
+  push(opts, { text = "Place leader", val = placeLeader })
+end
 
 
 function checkCanal(g,p,opts)
@@ -44,7 +72,7 @@ function checkCanal(g,p,opts)
   if onlyDouble and onlySingle then return end -- no more canals
 
   local s = g.playerState[p]
-  if s.AP == 0 then return end    -- we need an action point
+  if s.turnAP == 0 then return end    -- we need an action point
 
 
   local canalSpots = freeCanalSpots(g.map, onlyDouble)
@@ -88,5 +116,66 @@ function checkCanal(g,p,opts)
   end
 
 
-  push(opts, { text = "Build canal", val = buildCanal })
+  push(opts, { text = "Build canal (1 AP)", val = buildCanal })
+end
+
+
+function checkMove(g,p,opts)
+  local s = g.playerState[p]
+  if s.turnAP == 0 then return end
+
+  local loc  = s.leader
+  local spot = locMapLookup(g.map,loc)
+
+
+  local limit = s.turnAP
+  if limit > 4 then limit = 4 end -- at 5 we can teleport
+  local spots = moveOnFoot(g.map,loc,limit)
+  if locMapIsEmpty(spots) then return end
+
+  local function move()
+    askMapLoc(p,"New leader location?",spots,nil,function(to)
+      doMoveLeader(g,loc,to,function()
+        s.turnAP = s.turnAP - locMapLookup(spots,to)
+        takeAction(g,p)
+      end)
+    end)
+  end
+
+  push(opts, { text = "Move leader (1 AP/step)", val = move })
+end
+
+
+function checkBuildBridge(g,p,opts)
+  if g.bridges == 0 then return end
+
+  local s = g.playerState[p]
+  if s.turnAP == 0 then return end
+
+  local spots = bridgeSpots(g.map)
+  if locMapIsEmpty(spots) then return end
+
+  local function build()
+    local qs = locMapEmpty()
+    for l,_ in locsIn(spots) do
+      locMapInsert(qs,l,true)
+    end
+    askMapLoc(p,"Bridge location?",qs,nil,function(loc)
+      local dirs = locMapLookup(spots,loc)
+      local function doIt(dir)
+        doBuildBridge(g,loc,dir,function()
+          s.turnAP = s.turnAP - 1
+          takeAction(g,p)
+        end)
+      end
+
+      if #dirs == 1 then
+        doIt(dirs[1].val)
+      else
+        askText(p,"Bridge direction?",dirs,doIt)
+      end
+    end)
+  end
+
+  push(opts, { text = "Build bridge (1 AP)", val = build })
 end

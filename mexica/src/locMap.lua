@@ -2,21 +2,30 @@
 -- A map from locations to values
 
 function locMapEmpty()
-  return {}
+  return { }
 end
 
 
 function locMapIsEmpty(locMap)
-  for _,_ in locsIn(locMap) do
+  for _ in locsIn(locMap) do
     return false
   end
   return true
 end
 
 function locMapInsert(locMap,loc,val)
+  if val == nil then locMapDelete(locMap,loc); return end
+
   local row = locMap[loc.row]
   if not row then row = {}; locMap[loc.row] = row end
   row[loc.col] = val
+end
+
+function locMapDelete(locMap,loc)
+  local row = locMap[loc.row]
+  if row == nil then return end
+  row[loc.col] = nil
+  if next(row) == nil then locMap[loc.row] = nil end
 end
 
 function locMapLookup(locMap,loc)

@@ -75,5 +75,75 @@ function freeCanalSpots(map,double)
   return result
 end
 
+function canMoveOnFoot(map,to,dir)
+  local toSpot = locMapLookup(map,to)
+  if toSpot.leader ~= nil then return false
+  if toSpot.terrain == land then return toSpot.entity == nil or
+                                        toSpot.entity.entity == palace end
+  if toSpot.entity and toSpot.entity.entity == bridge then
+    if toSpot.entity.direction == east_west then
+      return dir == east or dir == west
+    else
+      return dir == north or dir == south
+    end
+  end
+  return false
+end
+
+function moveOnFoot(map,start,limit)
+  local visited = locMapEmpty()
+  local todo = { { here = start, dist = 0 } }
+  local nextTodo = 1
+  local nextAdd = 2
+
+  while nextTodo < nextAdd do
+
+    local this = todo[nextTodo]
+    nextTodo = nextTodo + 1
+    local loc = this.here
+    local d   = this.dist
+
+    local known = locMapLookup(visited,loc)
+    if known == nil then
+      locMapInsert(visited,loc,d)
+      for _,dir in ipairs(allDirs) do
+        local to = neighbour(loc,dir)
+        if d < limit and canMoveOnFoot(map,to,dir) then
+          todo[nextAdd] = { here = to, dist = d + 1 }
+          nextAdd = nextAdd + 1
+        end
+      end
+    end
+  end
+
+  locMapDelete(visited,start)
+  return visited
+
+end
+
+
+function bridgeSpots(map)
+  local bridges = locMapEmpty()
+
+  for l,spot in locsIn(map) do
+    if spot.terrain == canal and spot.entity == nil then
+      local function check(dir)
+        local other = locMapLookup(map,neighbour(l,dir))
+        return other and other.terrain == land
+      end
+      local opts = {}
+      if check(north) and check(south) then
+        push(opts, {val=north_south,text="Vertical"})
+      end
+      if check(east) and check(west) then
+        push(opts, {val=east_west,text="Horizontal"})
+      end
+      if #opts > 0 then locMapInsert(bridges,l,opts) end
+    end
+  end
+
+  return bridges
+end
+
 
 

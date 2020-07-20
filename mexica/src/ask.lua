@@ -51,7 +51,7 @@ function askMapLoc(p,q,spots,optionalTxt,k)
       spawnMenuItem(p,menu,n + 1,optionalTxt,click(nil))
     end
 
-    for loc,_ in locsIn(spots) do
+    for loc,v in locsIn(spots) do
       local pos = gridToWorld(loc,1.2)
       local fun = click(loc)
       local c = playerColor(p)
@@ -59,9 +59,9 @@ function askMapLoc(p,q,spots,optionalTxt,k)
          { font_size      = 300
          , font_color     = playerFontColor(p)
          , color          = Color({r=c.r,g=c.g,b=c.b,a=0.8})
-         , label          = "?"
+         , label          = (v == true) and "?" or (v .. "")
          , click_function = fun
-         , position       = { menu_x-pos.x,piece_z, pos.z - menu_y}
+         , position       = { menu_x-pos.x,piece_bridge_z, pos.z - menu_y}
          , rotation       = { 0, 180, 0 }
          , width          = 600
          , height         = 600
