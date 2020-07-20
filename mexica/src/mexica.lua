@@ -34,7 +34,7 @@ function newGame(ps)
     , playerState   = playerState
     , currentPlayer = 1
 
-    , phase         = ag1
+    , phase         = age1
 
     , bridges       = 11
     , saveAction    = 12
@@ -52,7 +52,12 @@ end
 
 --------------------------------------------------------------------------------
 function terLand()
-  return { terrain = land, leader = nil, entity = nil }
+  return { terrain = land
+         , leader = nil
+         , entity = nil
+         , bridgeFoundation = 0 -- how many bridges are we a foundation for
+         , inDistrict = false
+         }
 end
 
 function terCanal()

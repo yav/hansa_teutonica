@@ -19,7 +19,6 @@ function findRegion(map,start)
     local loc = todo[nextTodo]
     todo[nextTodo] = nil
     nextTodo = nextTodo + 1
-
     if not locMapLookup(visited,loc) then
       local spot = locMapLookup(map,loc)
       if spot and spot.terrain == startTerrain then
@@ -41,21 +40,20 @@ function findRegion(map,start)
 end
 
 
--- `palaceOK` says if we should count spots with palace on them.
--- Those are ok for movement but not for canal placement.
-function freeLandSpot(spot,palaceOK)
-  return
-    spot.terrain == land and
-    spot.leader == nil and
-    (spot.entity == nil or palaceOK and spot.entity.entity == palace)
+function freeCanalSpot(spot)
+  return spot.terrain == land and
+         spot.leader == nil and
+         spot.entity == nil and
+         not spot.inDistrict and
+         spot.bridgeFoundation == 0
 end
 
-function freeLandNeigbours(map,loc,palaceOK)
+function freeCanalNeihbours(map,loc)
   local result = locMapEmpty()
   for _,dir in ipairs(allDirs) do
     local candidate = neighbour(loc,dir)
     local spot = locMapLookup(map,candidate)
-    if spot and freeLandSpot(spot,palaceOK) then
+    if spot and freeCanalSpot(spot) then
       locMapInsert(result,candidate,true)
     end
   end
@@ -66,8 +64,8 @@ end
 function freeCanalSpots(map,double)
   local result = locMapEmpty()
   for loc,spot in locsIn(map) do
-    if freeLandSpot(spot,false) and
-      not (double and locMapIsEmpty(freeLandNeigbours(map,loc,false)))
+    if freeCanalSpot(spot) and
+      not (double and locMapIsEmpty(freeCanalNeihbours(map,loc)))
     then
       locMapInsert(result,loc,true)
     end
@@ -75,19 +73,33 @@ function freeCanalSpots(map,double)
   return result
 end
 
-function canMoveOnFoot(map,to,dir)
+function canMoveOnFoot(map,from,to,dir)
   local toSpot = locMapLookup(map,to)
-  if toSpot.leader ~= nil then return false
-  if toSpot.terrain == land then return toSpot.entity == nil or
-                                        toSpot.entity.entity == palace end
-  if toSpot.entity and toSpot.entity.entity == bridge then
-    if toSpot.entity.direction == east_west then
-      return dir == east or dir == west
+  if not canStepOn(toSpot) then return false end
+
+  local function checkBridge(spot)
+    -- not a bridge
+    if spot.entity == nil or spot.entity.entity ~= bridge then return true
+
+    -- a bridge
+    if spot.entity.direction == east_west then
+       return dir == east or dir == west
     else
-      return dir == north or dir == south
+       return dir == north or dir == south
     end
   end
-  return false
+
+  -- we can only enter/leave a bridge in 2 directions
+  return checkBridge(locMapLookup(map,from)) and checkBridge(toSpot)
+end
+
+function canStepOn(spot)
+  if spot.leader ~= nil then return false
+  if spot.terrain == land then
+    return spot.entity == nil or spot.entity.entity == palace
+  end
+
+  return spot.entity ~= nil and spot.entity.entity == bridge
 end
 
 function moveOnFoot(map,start,limit)
@@ -108,7 +120,7 @@ function moveOnFoot(map,start,limit)
       locMapInsert(visited,loc,d)
       for _,dir in ipairs(allDirs) do
         local to = neighbour(loc,dir)
-        if d < limit and canMoveOnFoot(map,to,dir) then
+        if d < limit and canMoveOnFoot(map,loc,to,dir) then
           todo[nextAdd] = { here = to, dist = d + 1 }
           nextAdd = nextAdd + 1
         end
@@ -146,4 +158,59 @@ function bridgeSpots(map)
 end
 
 
+
+function boatConnection(map,start)
+  local result = locMapEmpty()
+  for l,_ in locsIn(findRegion(map,start)) do
+    if not locationSame(l,start) then
+      local spot = locMapLookup(map,l)
+      if spot.entity and spot.entity.entity == bridge then
+        locMapInsert(result,l,true)
+      end
+    end
+  end
+  return result
+end
+
+
+function moveByBoat(map,start,limit)
+  local result = locMapEmpty()
+  local visited = locMapEmpty()
+  local todo = { { here = start, dist = 0 } }
+  local nextTodo = 1
+  local nextAdd = 2
+
+  while nextTodo < nextAdd do
+
+    local this = todo[nextTodo]
+    nextTodo = nextTodo + 1
+    local loc = this.here
+    local d   = this.dist
+
+    if locMapLookup(visited,loc) == nil then
+      locMapInsert(visited,loc,true)
+      if not locationSame(loc,start) and
+        locMapLookup(map,loc).leader == nil then
+        locMapInsert(result,loc,d)
+      end
+
+      if d < limit then
+        for to,_ in locsIn(boatConnection(map,loc)) do
+          todo[nextAdd] = { here = to, dist = d + 1 }
+          nextAdd = nextAdd + 1
+        end
+      end
+    end
+  end
+
+  return result
+end
+
+function teleportSpots(map)
+  local result = locMapEmpty()
+  for l,spot in locsIn(map) do
+    if canStepOn(spot) then locMapInsert(result,l,true) end
+  end
+  return result
+end
 

@@ -7,6 +7,7 @@ function newGUI(g, k)
     { board   = nil
     , map     = locMapEmpty()
 
+    , player  = {}
 
     -- counters
     , canal1      = nil
@@ -18,6 +19,7 @@ function newGUI(g, k)
 
   local sem = newSem()
   sem.up(); spawnMap(g, sem.down)
+  sem.up(); spawnPlayers(g, sem.down)
   sem.up(); spawn1x1Counter(g.canal1, sem.down)
   sem.up(); spawn2x1Counter(g.canal2, sem.down)
   sem.up(); spawnBridgeCounter(g.bridges, sem.down)
@@ -109,6 +111,71 @@ function spawnLoc(g,loc,spot,k)
 
   q.enQ(function()
     locMapInsert(GUI.map,loc,ui)
+    k()
+  end)
+end
+
+
+function spawnPlayers(g,k)
+  local sem = newSem()
+  for _,p in ipairs(g.players) do
+    sem.up()
+    spawnPlayer(g,p,sem.down)
+  end
+  sem.wait(k)
+end
+
+function playerLabel(o,x,y,msg)
+  local bg = {0,0,0, 0.8}
+  local fg = {1,1,1}
+  o.createButton(
+    { label       = ""
+    , color       = bg
+    , hover_color = bg
+    , press_color = bg
+    , font_color  = fg
+    , rotation    = { 0, 180, 0 }
+    , position    = { x, piece_z, y }
+    , font_size   = 300
+    , width       = 800
+    , height      = 700
+    , tooltip     = msg
+    , click_function  = "nop"
+    }
+  )
+end
+
+function editPlayerLabel(p,i,n)
+  local headings = { "VP", "AP", "T1", "T2", "T3", "T4" }
+  GUI.player[p].editButton({ index = i
+                           , label = string.format("%s\n%d",
+                                      playerColorNote(p,headings[i+1]),n) })
+end
+
+function editPlayerVP(p,n)       editPlayerLabel(p,0,n) end
+function editPlayerAP(p,n)       editPlayerLabel(p,1,n) end
+function editPlayerTemple(p,l,n) editPlayerLabel(p,1+l,n) end
+
+function spawnPlayer(g,p,k)
+  local s = g.playerState[p]
+  local x = -38 + s.turnOrder * 13
+  local y = -15.5
+
+  local ui = {}
+  ui.temples = {}
+  spawnMenu(x,y,function(o)
+    playerLabel(o,0,0,"Victory Points")
+    playerLabel(o,0,-2,"Saved Action Points")
+    for i = 1,4 do
+      local dy = math.floor((i-1) / 2)
+      local dx = math.floor((i-1) % 2)
+      playerLabel(o,-2 - dx*2,-2*dy, string.format("Level %d Temples",i))
+    end
+    GUI.player[p] = o
+
+    editPlayerVP(p,s.VP)
+    editPlayerAP(p,s.savedAP)
+    for i = 1,4 do editPlayerTemple(p,i,s.temples[i]) end
     k()
   end)
 end

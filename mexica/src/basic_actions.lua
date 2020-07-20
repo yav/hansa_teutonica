@@ -53,6 +53,17 @@ end
 
 function doBuildBridge(g,loc,dir,k)
   locMapLookup(g.map,loc).entity = entBridge(dir)
+  local function markFoundation(d)
+    local spot = locMapLookup(g.map,neighbour(loc,d))
+    spot.bridgeFoundation = spot.bridgeFoundation + 1
+  end
+  if dir == east_west then
+    markFoundation(east)
+    markFoundation(west)
+  else
+    markFoundation(north)
+    markFoundation(south)
+  end
   g.bridges = g.bridges - 1
   spawnBridge(gridToWorld(loc,piece_z),dir,function(o)
     locMapLookup(GUI.map,loc).entity = o
@@ -60,4 +71,17 @@ function doBuildBridge(g,loc,dir,k)
   end)
 end
 
+
+function doBuildTemple(g,p,loc,level,k)
+  local s = g.playerState[p]
+  local n = s.temples[level]
+  s.temples[level] = n - 1
+  locMapLookup(g.map,loc).entity = entTemple(p,level)
+
+  spawnTemple(p, gridToWorld(loc,piece_z),level,function(o)
+    editPlayerTemple(p,level,s.temples[level])
+    locMapLookup(GUI.map,loc).entity = o
+    k()
+  end)
+end
 

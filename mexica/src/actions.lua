@@ -44,12 +44,12 @@ function takeAction(g,p)
   checkBuildBridge(g,p,opts)
   -- XXX: move bridge
   checkMove(g,p,opts)
-  -- XXX: move by boat
-  -- XXX: teleport
+  checkBoat(g,p,opts)
+  checkTeleport(g,p,opts)
   -- XXX: build temple
   -- XXX: establish district
   -- XXX: restore AP
-  push(opts, { text = "End turn", val = ||endTurn(g) })
+  push(opts, { text = "End Turn", val = ||endTurn(g) })
 
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
   askText(p,q,opts,|f|f())
@@ -89,7 +89,7 @@ function checkCanal(g,p,opts)
 
     if not onlySingle then
       q.enQ(function()
-        local spots = freeLandNeigbours(g.map,spot1,false)
+        local spots = freeCanalNeihbours(g.map,spot1)
         if locMapIsEmpty(spots) then q.next(); return end
         local optional = onlyDouble and nil or "Pass"
         askMapLoc(p,"Second location?",spots,optional,function(loc)
@@ -116,7 +116,7 @@ function checkCanal(g,p,opts)
   end
 
 
-  push(opts, { text = "Build canal (1 AP)", val = buildCanal })
+  push(opts, { text = "Build Canal (1 AP)", val = buildCanal })
 end
 
 
@@ -137,12 +137,58 @@ function checkMove(g,p,opts)
     askMapLoc(p,"New leader location?",spots,nil,function(to)
       doMoveLeader(g,loc,to,function()
         s.turnAP = s.turnAP - locMapLookup(spots,to)
+        say(string.format("%s travelled on foot", playerColorBB(p)))
         takeAction(g,p)
       end)
     end)
   end
 
-  push(opts, { text = "Move leader (1 AP/step)", val = move })
+  push(opts, { text = "Travel on Foot", val = move })
+end
+
+function checkBoat(g,p,opts)
+  local s = g.playerState[p]
+  if s.turnAP == 0 then return end
+
+  local loc  = s.leader
+  local spot = locMapLookup(g.map,loc)
+  if spot.entity == nil or spot.entity.entity ~= bridge then return end
+
+  local limit = s.turnAP
+  if limit > 4 then limit = 4 end -- at 5 we can teleport
+  local spots = moveByBoat(g.map,loc,limit)
+  if locMapIsEmpty(spots) then return end
+
+  local function move()
+    askMapLoc(p,"New leader location?",spots,nil,function(to)
+      doMoveLeader(g,loc,to,function()
+        s.turnAP = s.turnAP - locMapLookup(spots,to)
+        say(string.format("%s travelled by boat", playerColorBB(p)))
+        takeAction(g,p)
+      end)
+    end)
+  end
+
+  push(opts, { text = "Travel by Boat", val = move })
+
+end
+
+function checkTeleport(g,p,opts)
+  local s = g.playerState[p]
+  if s.turnAP < 5 then return end
+  local spots = teleportSpots(g.map)
+  if locMapIsEmpty(spots) then return end
+  local function move()
+    askMapLoc(p,"New leader location?",spots,nil,function(to)
+      doMoveLeader(g,s.leader,to,function()
+        s.turnAP = s.turnAP - 5
+        say(string.format("%s teleported", playerColorBB(p)))
+        takeAction(g,p)
+      end)
+    end)
+  end
+
+  push(opts, { text = "Teleport (5 AP)", val = move })
 end
 
 
@@ -165,6 +211,8 @@ function checkBuildBridge(g,p,opts)
       local function doIt(dir)
         doBuildBridge(g,loc,dir,function()
           s.turnAP = s.turnAP - 1
+          say(string.format("%s built a bridge on %d,%d",
+                          playerColorBB(p), loc.col, loc.row ))
           takeAction(g,p)
         end)
       end
