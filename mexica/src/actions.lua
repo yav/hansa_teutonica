@@ -59,7 +59,6 @@ function endRound(g)
     for _,n in ipairs(s.temples) do allTemples = allTemples + n end
     if allTemples == 0 then endCondition = endCondition + 1; break end
   end
-  endCondition = 2 -- XXX: TESTING
   if endCondition == 2 then endAge(g) else startRound(g) end
 end
 
