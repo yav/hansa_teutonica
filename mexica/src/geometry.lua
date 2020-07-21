@@ -158,6 +158,19 @@ function bridgeSpots(map)
 end
 
 
+function moveBridgeSpots(map)
+  local bridges = locMapEmpty()
+  for l,spot in locsIn(map) do
+    if spot.leader == nil and
+       spot.entity ~= nil and
+       spot.entity.entity == bridge then
+      locMapInsert(bridges,l,true)
+    end
+  end
+  return bridges
+end
+
+
 
 function boatConnection(map,start)
   local result = locMapEmpty()
@@ -223,4 +236,22 @@ function templeSpots(map,start)
     end
   end
   return result
+end
+
+
+function unclaimedDistricts(map)
+  local found = {}
+  local visited = locMapEmpty()
+
+  for l,spot in locsIn(map) do
+    if spot.terrain == land and
+       not spot.inDistrict and
+       not locMapLookup(visited,l) then
+      local r = findRegion(map,l)
+      push(found,r)
+      for x,_ in locsIn(r) do locMapInsert(visited,x,true) end
+    end
+  end
+
+  return found
 end

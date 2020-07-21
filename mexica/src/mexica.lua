@@ -37,7 +37,7 @@ function newGame(ps)
     , playerState   = playerState
     , currentPlayer = 1
 
-    , phase         = age1
+    , phase         = setup
 
     , bridges       = 11
     , saveAction    = 12
@@ -45,6 +45,7 @@ function newGame(ps)
     , canal2        = 35
     , districts     = districts
     , districtsNext = districtsNext
+    , established   = {}
 
     , map           = map
     , mapEdges      = findRegion(map,location(1,1))
@@ -122,9 +123,7 @@ function newPlayer(turnOrder,color)
     , savedAP = 0
     , leader = nil
     , temples = { 3, 3, 2, 1 }
-
     , turnAP = 0
-    , turnSavedAP = 0   -- how many times we save AP this turn
     }
 end
 

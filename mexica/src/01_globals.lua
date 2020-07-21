@@ -16,9 +16,12 @@ local menu_y  = 17
 --------------------------------------------------------------------------------
 
 -- Game phases
-local age1      = 1
-local age2      = 2
-local finished  = 3
+local setup     = 1
+local age1      = 2
+local age2      = 3
+local finished  = 4
+
+local phaseNames = { "Setup", "Early Period", "Late Period", "Game Over" }
 
 -- Terrain types
 local land  = 1

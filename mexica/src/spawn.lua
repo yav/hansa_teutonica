@@ -19,6 +19,7 @@ function newGUI(g, k)
 
   local sem = newSem()
   sem.up(); spawnMap(g, sem.down)
+  sem.up(); spawnPhase(g, sem.down)
   sem.up(); spawnPlayers(g, sem.down)
   sem.up(); spawn1x1Counter(g.canal1, sem.down)
   sem.up(); spawn2x1Counter(g.canal2, sem.down)
@@ -50,6 +51,18 @@ function spawnBoard(k)
     { image = map_url
     }
   )
+end
+
+function spawnPhase(g,k)
+  local loc = gridToWorld(location(14,22),piece_z)
+  GUI.phase = spawnLabel(loc[1]-1,loc[3],"",function()
+    editPhase(g.phase)
+    k()
+  end)
+end
+
+function editPhase(x)
+  GUI.phase.editButton({index=0,label=phaseNames[x]})
 end
 
 function spawnMap(g, k)

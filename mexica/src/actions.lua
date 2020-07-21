@@ -1,16 +1,70 @@
 
 
-function endTurn(g)
-  -- XXX: auto save up to 2 AP
-  -- XXX: ask question if leftover AP
-  local n = g.currentPlayer
-  if n == #g.players then endRound(g); return end
-  g.currentPlayer = n + 1
-  startTurn(g)
+function endTurn(g,p)
+
+  local s = g.playerState[p]
+  local save = 0
+
+  local function doEnd()
+    doSaveAP(g,p,save)
+    local n = g.currentPlayer
+    if n == #g.players then endRound(g); return end
+    g.currentPlayer = n + 1
+    startTurn(g)
+  end
+
+  if s.turnAP > 0 then
+    save = s.turnAP
+    if save > 2 then save = 2 end
+    if save > g.saveAction then save = g.saveAction end
+    local opts = { { text = string.format("End turn, saving %d AP",save)
+                   , val  = doEnd
+                   }
+                 , { text = "Take More Actions"
+                   , val  = ||takeAction(g,p)
+                   }
+                 }
+    askText(p,string.format("%d AP Remaing",s.turnAP),opts,|f|f())
+  else
+    doEnd()
+  end
+
+end
+
+
+function endAge(g)
+  for _,spots in ipairs(g.established) do
+    doScoreDistrict(g,spots)
+  end
+  if g.phase == age2 then
+    for _,spots in ipairs(unclaimedDistricts(g.map)) do
+      doScoreDistrict(g,spots)
+    end
+  end
+  for p,s in pairs(g.playerState) do
+    for _,l in ipairs(g.mapStartLocs) do
+      if locationSame(s.leader,l) then doScoreVP(g,p,5) end
+    end
+  end
+
+  if g.phase == age2 then doEndGame(g); return end
+  doEndAge(g,||startRound(g))
 end
 
 function endRound(g)
-  -- XXX: check for scoring/end game
+  local endCondition = 0
+  if next(g.districts) == nil then endCondition = endCondition + 1 end
+  for p,s in pairs(g.playerState) do
+    local allTemples = 0
+    for _,n in ipairs(s.temples) do allTemples = allTemples + n end
+    if allTemples == 0 then endCondition = endCondition + 1; break end
+  end
+  endCondition = 2 -- XXX: TESTING
+  if endCondition == 2 then endAge(g) else startRound(g) end
+end
+
+function startRound(g)
+  if g.phase == setup then g.phase = age1; editPhase(g.phase) end
   g.currentPlayer = 1
   startTurn(g)
 end
@@ -18,7 +72,7 @@ end
 function startTurn(g)
   local p = g.players[g.currentPlayer]
   local s = g.playerState[p]
-  s.turnAP      = 6
+  s.turnAP      = g.phase == setup and 0 or 6
   s.turnSavedAP = 0
   takeAction(g,p)
 end
@@ -31,7 +85,7 @@ function setupPlaceLeader(g,p)
   end
   local q = string.format("Place %s leader",playerColorBB(p))
   askMapLoc(p,q, spots, nil, function(loc)
-    doPlaceLeader(g,loc,p,||endTurn(g))
+    doPlaceLeader(g,loc,p,||endTurn(g,p))
   end)
 end
 
@@ -42,10 +96,14 @@ function takeAction(g,p)
 
   local opts = {}
 
+  local apOpts = {}
+  checkRestoreAP(g,p,apOpts)
+  push(opts, { name = nil, choices = apOpts })
+
   local buildOpts = {}
   checkCanal(g,p,buildOpts)
   checkBuildBridge(g,p,buildOpts)
-  -- XXX: move bridge
+  checkMoveBridge(g,p,buildOpts)
   checkDistrict(g,p,buildOpts)
   checkBuildTemple(g,p,buildOpts)
   push(opts, { name = "Build", choices = buildOpts })
@@ -56,13 +114,8 @@ function takeAction(g,p)
   checkTeleport(g,p,moveOpts)
   push(opts, { name = "Move", choices = moveOpts })
 
-  local otherOpts = {}
-  -- XXX: restore AP
-  push(opts, { name = "Other", choices = otherOpts })
-
-
   push(opts, { name = nil
-             , choices = { { text = "End Turn", val = ||endTurn(g) } }
+             , choices = { { text = "End Turn", val = ||endTurn(g,p) } }
              })
 
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
@@ -206,8 +259,11 @@ function checkTeleport(g,p,opts)
 end
 
 
+
+
+
 function checkBuildBridge(g,p,opts)
-  if g.bridges == 0 then return end
+  if g.bridges <= 0 then return end
 
   local s = g.playerState[p]
   if s.turnAP == 0 then return end
@@ -318,6 +374,58 @@ function checkDistrict(g,p,opts)
   end
 
   push(opts, { text = "Distrcit (0 AP)", val = establish })
+end
+
+function checkMoveBridge(g,p,opts)
+  if g.bridges > 0 then return end
+  local s = g.playerState[p]
+  if s.turnAP < 1 then return end
+
+  local spots = moveBridgeSpots(g.map)
+  if locMapIsEmpty(spots) then return end
+
+  local tgtSpots = bridgeSpots(g.map)
+  if locMapIsEmpty(tgtSpots) then return end
+
+  local function move()
+    askMapLoc(p,"Choose Bridge",spots,nil,function(from)
+      local tgts = locMapEmpty()
+      for l,_ in locsIn(tgtSpots) do locMapInsert(tgts,l,true) end
+      askMapLoc(p,"New Bridge Location",tgts,nil,function(to)
+        local dirs = locMapLookup(tgtSpots,to)
+        local function doIt(dir)
+          doMoveBridge(g,from,to,dir,function()
+            s.turnAP = s.turnAP - 1
+            local msg = string.format( "%s moved a bridge from %s to %s"
+                                     , playerColorBB(p)
+                                     , locName(from), locName(to))
+            say(msg)
+            takeAction(g,p)
+          end)
+        end
+        if #dirs == 1 then
+          doIt(dirs[1].val)
+        else
+          askText(p,"Bridge direction?",dirs,doIt)
+        end
+
+      end)
+    end)
+  end
+
+  push(opts, { text = "Move Bridge (1 AP)", val = move })
+end
+
+function checkRestoreAP(g,p,opts)
+  local s = g.playerState[p]
+  if s.savedAP <= 0 then return end
+
+  local function restore()
+    doRestoreAP(g,p)
+    takeAction(g,p)
+  end
+
+  push(opts, { text = "Restore 1 AP", val = restore })
 end
 
 
