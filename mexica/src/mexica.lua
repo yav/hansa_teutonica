@@ -19,15 +19,18 @@ function newGame(ps)
 
   local allDistricts = { 3,3,4,4,5,5,6,6,7,8,9,10,11,12,13}
   shuffle(allDistricts)
-  local districts = { {}, {} }
+
+  local districts = {}
   for i = 1,8 do
-    districts[1][i] = allDistricts[i]
+    districts[i] = allDistricts[i]
   end
+
+  local districtsNext = {}
   for i = 9,15 do
-    districts[2][i-8] = allDistricts[i]
+    districtsNext[i-8] = allDistricts[i]
   end
-  table.sort(districts[1])
-  table.sort(districts[2])
+  table.sort(districts)
+  table.sort(districtsNext)
 
   return
     { players       = ps      -- in turn order
@@ -41,6 +44,7 @@ function newGame(ps)
     , canal1        = 6
     , canal2        = 35
     , districts     = districts
+    , districtsNext = districtsNext
 
     , map           = map
     , mapEdges      = findRegion(map,location(1,1))

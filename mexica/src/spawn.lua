@@ -169,7 +169,7 @@ function spawnPlayer(g,p,k)
     for i = 1,4 do
       local dy = math.floor((i-1) / 2)
       local dx = math.floor((i-1) % 2)
-      playerLabel(o,-2 - dx*2,-2*dy, string.format("Level %d Temples",i))
+      playerLabel(o,-3 - dx*2,-2*dy, string.format("Level %d Temples",i))
     end
     GUI.player[p] = o
 
@@ -249,10 +249,8 @@ end
 
 function spawnUnbuilt(g,k)
   local sem = newSem()
-  local ds = g.phase == age1 and g.districts[1] or
-             g.phase == age2 and g.districts[2] or {}
 
-  for i,n in pairs(ds) do
+  for i,n in pairs(g.districts) do
     local row = 15 + math.floor((i-1) / 4)
     local col = 20 + math.floor((i-1) % 4)
     sem.up()

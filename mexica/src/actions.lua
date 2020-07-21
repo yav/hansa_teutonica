@@ -1,6 +1,7 @@
 
 
 function endTurn(g)
+  -- XXX: auto save up to 2 AP
   -- XXX: ask question if leftover AP
   local n = g.currentPlayer
   if n == #g.players then endRound(g); return end
@@ -40,19 +41,32 @@ function takeAction(g,p)
   if s.leader == nil then setupPlaceLeader(g,p); return end
 
   local opts = {}
-  checkCanal(g,p,opts)
-  checkBuildBridge(g,p,opts)
+
+  local buildOpts = {}
+  checkCanal(g,p,buildOpts)
+  checkBuildBridge(g,p,buildOpts)
   -- XXX: move bridge
-  checkMove(g,p,opts)
-  checkBoat(g,p,opts)
-  checkTeleport(g,p,opts)
-  -- XXX: build temple
-  -- XXX: establish district
+  checkDistrict(g,p,buildOpts)
+  checkBuildTemple(g,p,buildOpts)
+  push(opts, { name = "Build", choices = buildOpts })
+
+  local moveOpts = {}
+  checkMove(g,p,moveOpts)
+  checkBoat(g,p,moveOpts)
+  checkTeleport(g,p,moveOpts)
+  push(opts, { name = "Move", choices = moveOpts })
+
+  local otherOpts = {}
   -- XXX: restore AP
-  push(opts, { text = "End Turn", val = ||endTurn(g) })
+  push(opts, { name = "Other", choices = otherOpts })
+
+
+  push(opts, { name = nil
+             , choices = { { text = "End Turn", val = ||endTurn(g) } }
+             })
 
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
-  askText(p,q,opts,|f|f())
+  askTextMulti(p,q,opts,|f|f())
 end
 
 
@@ -104,19 +118,19 @@ function checkCanal(g,p,opts)
       local extra = ""
       if spot2 then
         doBuildCanal2x1(g)
-        extra = string.format("and %d,%d",spot2.col,spot2.row)
+        extra = string.format("and %s",locName(spot2))
       else
         doBuildCanal1x1(g)
       end
-      say(string.format("%s built a canal on %d,%d %s"
-                       , playerColorBB(p), spot1.col, spot1.row, extra))
+      say(string.format("%s built a canal on %s %s"
+                       , playerColorBB(p), locName(spot1), extra))
       s.turnAP = s.turnAP - 1
       takeAction(g,p)
     end)
   end
 
 
-  push(opts, { text = "Build Canal (1 AP)", val = buildCanal })
+  push(opts, { text = "Canal (1 AP)", val = buildCanal })
 end
 
 
@@ -143,7 +157,7 @@ function checkMove(g,p,opts)
     end)
   end
 
-  push(opts, { text = "Travel on Foot", val = move })
+  push(opts, { text = "On Foot (1 AP/step)", val = move })
 end
 
 function checkBoat(g,p,opts)
@@ -169,7 +183,7 @@ function checkBoat(g,p,opts)
     end)
   end
 
-  push(opts, { text = "Travel by Boat", val = move })
+  push(opts, { text = "By Boat (1 AP/bridge)", val = move })
 
 end
 
@@ -182,13 +196,13 @@ function checkTeleport(g,p,opts)
     askMapLoc(p,"New leader location?",spots,nil,function(to)
       doMoveLeader(g,s.leader,to,function()
         s.turnAP = s.turnAP - 5
-        say(string.format("%s teleported", playerColorBB(p)))
+        say(string.format("%s travelled by air", playerColorBB(p)))
         takeAction(g,p)
       end)
     end)
   end
 
-  push(opts, { text = "Teleport (5 AP)", val = move })
+  push(opts, { text = "By Air (5 AP)", val = move })
 end
 
 
@@ -211,8 +225,8 @@ function checkBuildBridge(g,p,opts)
       local function doIt(dir)
         doBuildBridge(g,loc,dir,function()
           s.turnAP = s.turnAP - 1
-          say(string.format("%s built a bridge on %d,%d",
-                          playerColorBB(p), loc.col, loc.row ))
+          say(string.format("%s built a bridge on %s",
+                          playerColorBB(p), locName(loc)))
           takeAction(g,p)
         end)
       end
@@ -225,5 +239,88 @@ function checkBuildBridge(g,p,opts)
     end)
   end
 
-  push(opts, { text = "Build bridge (1 AP)", val = build })
+  push(opts, { text = "Bridge (1 AP)", val = build })
+end
+
+function checkBuildTemple(g,p,opts)
+  local s = g.playerState[p]
+
+  -- not in a district
+  if locMapLookup(g.map, s.leader).terrain == canal then return end
+  local spots = templeSpots(g.map, s.leader)
+  if locMapIsEmpty(spots) then return end  -- district is full
+
+  local function build(level)
+    askMapLoc(p,"Temple location?",spots,nil,function(loc)
+      doBuildTemple(g,p,loc,level,function()
+        s.turnAP = s.turnAP - level
+        say(string.format( "%s built a level %d temple on %s"
+                         , playerColorBB(p),level,locName(loc)
+                         ))
+        takeAction(g,p)
+      end)
+    end)
+  end
+
+  if s.turnAP < 1 then return end
+  if s.temples[1] > 0 then
+    push(opts, { text = "Level 1 Temple (1 AP)", val = ||build(1) })
+  end
+
+  if s.turnAP < 2 then return end
+  if s.temples[2] > 0 then
+    push(opts, { text = "Level 2 Temple (2 AP)", val = ||build(2) })
+  end
+
+  if s.turnAP < 3 then return end
+  if s.temples[3] > 0 then
+    push(opts, { text = "Level 3 Temple (3 AP)", val = ||build(3) })
+  end
+
+  if s.turnAP < 4 then return end
+  if s.temples[4] > 0 then
+    push(opts, { text = "Level 4 Temple (3 AP)", val = ||build(4) })
+  end
+end
+
+function checkDistrict(g,p,opts)
+  local s = g.playerState[p]
+
+  if locMapLookup(g.map, s.leader).terrain == canal then return end
+  local spots = findRegion(g.map, s.leader)
+  local size = 0
+  local tokSpot = locMapEmpty()
+  for l,_ in locsIn(spots) do
+    size = size + 1
+    local spot = locMapLookup(g.map,l)
+    if spot.entity == nil and spot.leader == nil then
+      locMapInsert(tokSpot,l,true)
+    end
+  end
+  if locMapIsEmpty(tokSpot) then return end -- no space for district token
+
+  local district = 0
+  for i,d in pairs(g.districts) do
+    if d == size then district = i; break end
+  end
+  if district == 0 then return end    -- no matching token
+
+
+  local function establish()
+    askMapLoc(p,"District Marker?",tokSpot,nil,function(loc)
+      doEstablish(g,p,loc,district,spots,function()
+        local msg = string.format("%s established a size %d district on %s"
+                                 , playerColorBB(p), size, locName(loc))
+        say(msg)
+        takeAction(g,p)
+      end)
+    end)
+  end
+
+  push(opts, { text = "Distrcit (0 AP)", val = establish })
+end
+
+
+function locName(loc)
+  return string.format("%d,%d",loc.col,loc.row)
 end

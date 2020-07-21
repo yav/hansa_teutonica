@@ -1,4 +1,4 @@
-function question(qs,answer,menuOpts)
+function question(q,answer,menuOpts)
   local finished = false
   local menu     = nil
   local funs     = {}
@@ -21,34 +21,48 @@ function question(qs,answer,menuOpts)
   end
 
   menu = spawnMenu(menu_x,menu_y,function(menu)
-    for i,q in ipairs(qs) do
-      spawnMenuItem(p,menu,i-1,q,nil)
-      menuOpts(menu,#qs-1,click)
-    end
+    spawnMenuItem(p,menu,0,q,nil)
+    menuOpts(menu,click)
   end)
 end
 
-
-
--- Ask to choose among a bunch of text labels
-function askTextMany(p, qs, labs, k)
-  question(qs,k,function(menu,n,click)
-    for i,l in ipairs(labs) do
-      spawnMenuItem(p,menu,n + i,l.text,click(l.val))
-    end
-  end)
-end
 
 function askText(p,q,labs,k)
-  askTextMany(p,q and {q} or {},labs,k)
+  question(q,k,function(menu,click)
+    for i,l in ipairs(labs) do
+      spawnMenuItem(p,menu,i,l.text,click(l.val))
+    end
+  end)
+end
+
+function askTextMulti(p,q,menus,k)
+  question(q,k,function(menu,click)
+    local i = 1
+
+    for _,opts in ipairs(menus) do
+      local lab  = opts.name
+      local ents = opts.choices
+      if #ents > 0 then
+        i = i + 1
+        if lab ~= nil then
+          spawnMenuItem(p,menu,i,lab,nil)
+          i = i + 1
+        end
+        for _,l in ipairs(ents) do
+          spawnMenuItem(p,menu,i,l.text,click(l.val))
+          i = i + 1
+        end
+      end
+    end
+  end)
 end
 
 
 function askMapLoc(p,q,spots,optionalTxt,k)
-  question({q},k,function(menu,n,click)
+  question(q,k,function(menu,click)
 
     if optionalTxt ~= nil then
-      spawnMenuItem(p,menu,n + 1,optionalTxt,click(nil))
+      spawnMenuItem(p,menu,1,optionalTxt,click(nil))
     end
 
     for loc,v in locsIn(spots) do

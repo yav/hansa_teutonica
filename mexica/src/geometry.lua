@@ -214,3 +214,13 @@ function teleportSpots(map)
   return result
 end
 
+function templeSpots(map,start)
+  local result  = locMapEmpty()
+  for l,_ in locsIn(findRegion(map,start)) do
+    local spot = locMapLookup(map,l)
+    if spot.leader == nil and spot.entity == leader then
+      locMapInsert(result,l,true)
+    end
+  end
+  return result
+end

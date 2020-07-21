@@ -85,3 +85,36 @@ function doBuildTemple(g,p,loc,level,k)
   end)
 end
 
+function doScoreVP(g,p,n)
+  local s = g.playerState[p]
+  s.VP = s.VP + n
+  editPlayerVP(p,s.VP)
+end
+
+function doEstablish(g,p,loc,i,spots,k)
+  local district  = g.districts[i]
+  local founderVP = math.ceil(district / 2)
+  local otherVP   = math.ceil(founderVP / 2)
+
+  for l,_ in locsIn(spots) do
+    local spot = locMapLookup(g.map,l)
+    spot.inDistrict = true
+    local q = spot.leader
+    if q ~= nil then
+      doScoreVP(g,q, q == p and founderVP or otherVP)
+    end
+    if locationSame(l,loc) then
+      spot.entity = entDistrict(district)
+    end
+  end
+
+  g.districts[i] = nil
+
+  local ui = GUI.districts[i]
+  GUI.districts[i] = nil
+  locMapLookup(GUI.map,loc).entity = ui
+  ui.setPositionSmooth(gridToWorld(loc,0),false,false)
+
+  Wait.condition(k,||ui.resting)
+end
+
