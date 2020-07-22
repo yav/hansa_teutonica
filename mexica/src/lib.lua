@@ -9,6 +9,14 @@ function push(arr,el)
   return n
 end
 
+function pop(arr)
+  local n = #arr
+  if #arr == 0 then return nil end
+  local x = arr[n]
+  arr[n] = nil
+  return x
+end
+
 
 function newSem()
   local todo = 0

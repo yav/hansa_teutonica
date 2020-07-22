@@ -1,3 +1,11 @@
+-- Save games and undo
+local versonMaj  = 2
+local versonMin  = 1
+local saved_game = nil
+local undo_stack = {}
+local undoing    = false
+
+
 -- Currently spawned objects
 local GUI
 
@@ -11,6 +19,9 @@ local piece_bridge_z   = 1.8 -- for a leader on a bridge
 
 local menu_x  = 23
 local menu_y  = 17
+
+local undo_x  = 23
+local undo_y  = -7
 
 
 --------------------------------------------------------------------------------

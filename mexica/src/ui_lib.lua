@@ -61,10 +61,12 @@ end
 
 function spawnLabel(x,y,l,k)
   return spawnMenu(x,y,function(menu)
-    spawnMenuItem(p,menu,0,l,nil)
+    spawnMenuItem(nil,menu,0,l,nil)
     k(menu)
   end)
 end
+
+
 
 
 function say(x)

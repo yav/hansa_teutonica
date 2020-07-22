@@ -26,8 +26,26 @@ function newGUI(g, k)
   sem.up(); spawnBridgeCounter(g.bridges, sem.down)
   sem.up(); spawnAPCounter(g.saveAction, sem.down)
   sem.up(); spawnUnbuilt(g,sem.down)
+  sem.up(); spawnUndo(sem.down)
 
   sem.wait(k)
+end
+
+function spawnUndo(k)
+  spawnMenu(undo_x,undo_y,function(menu)
+    GUI.undo = menu
+    spawnMenuItem(nil,menu,0,"Undo","undo")
+    if #undo_stack == 0 then disableUndo() end
+    k()
+  end)
+end
+
+function disableUndo()
+  GUI.undo.editButton({index=0,font_color={0.5,0.5,0.5},hover_color={0,0,0}})
+end
+
+function enableUndo()
+  GUI.undo.editButton({index=0,font_color={1,1,1},hover_color={0.5,0.5,0.5}})
 end
 
 function spawnBoard(k)

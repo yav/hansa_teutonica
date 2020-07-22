@@ -1,5 +1,12 @@
 
-function newGame(ps)
+function newGame(ctrl)
+  local ps = {}
+  local i = 1
+  for p,_ in pairs(ctrl) do
+    ps[i] = p
+    i = i + 1
+  end
+
   shuffle(ps)
   local playerState = {}
   for i,p in ipairs(ps) do
@@ -33,7 +40,9 @@ function newGame(ps)
   table.sort(districtsNext)
 
   return
-    { players       = ps      -- in turn order
+    { version       = versonMaj
+    , players       = ps      -- in turn order
+    , controlledBy  = ctrl
     , playerState   = playerState
     , currentPlayer = 1
 

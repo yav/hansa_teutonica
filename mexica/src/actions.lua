@@ -24,7 +24,7 @@ function endTurn(g,p)
                    , val  = ||takeAction(g,p)
                    }
                  }
-    askText(p,string.format("%d AP Remaing",s.turnAP),opts,|f|f())
+    askText(g,p,string.format("%d AP Remaing",s.turnAP),opts,|f|f())
   else
     doEnd()
   end
@@ -69,8 +69,10 @@ function startRound(g)
 end
 
 function startTurn(g)
-  local p = g.players[g.currentPlayer]
-  local s = g.playerState[p]
+  doSave(g)
+
+  local p       = g.players[g.currentPlayer]
+  local s       = g.playerState[p]
   s.turnAP      = g.phase == setup and 0 or 6
   s.turnSavedAP = 0
   takeAction(g,p)
@@ -83,13 +85,15 @@ function setupPlaceLeader(g,p)
     if locMapLookup(g.map,l).leader == nil then locMapInsert(spots,l,true) end
   end
   local q = string.format("Place %s leader",playerColorBB(p))
-  askMapLoc(p,q, spots, nil, function(loc)
+  askMapLoc(g,p,q, spots, nil, function(loc)
     doPlaceLeader(g,loc,p,||endTurn(g,p))
   end)
 end
 
 
 function takeAction(g,p)
+  local json = JSON.encode({g,p})
+
   local s = g.playerState[p]
   if s.leader == nil then setupPlaceLeader(g,p); return end
 
@@ -118,7 +122,8 @@ function takeAction(g,p)
              })
 
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
-  askTextMulti(p,q,opts,|f|f())
+
+  askTextMulti(g,p,q,opts,function(f) pushUndo(json); f() end)
 end
 
 
@@ -148,7 +153,7 @@ function checkCanal(g,p,opts)
     local q = actQ()
     local spot1
     local spot2
-    q.enQ(||askMapLoc(p,"Canal location",canalSpots,nil,function(x)
+    q.enQ(||askMapLoc(g,p,"Canal location",canalSpots,nil,function(x)
       spot1 = x
       doPlaceCanal(g,spot1,q.next)
     end))
@@ -158,7 +163,7 @@ function checkCanal(g,p,opts)
         local spots = freeCanalNeihbours(g.map,spot1)
         if locMapIsEmpty(spots) then q.next(); return end
         local optional = onlyDouble and nil or "Pass"
-        askMapLoc(p,"Second location?",spots,optional,function(loc)
+        askMapLoc(g,p,"Second location?",spots,optional,function(loc)
           if not loc then q.next(); return end
           spot2 = loc
           doPlaceCanal(g,spot2,q.next)
@@ -200,7 +205,7 @@ function checkMove(g,p,opts)
   if locMapIsEmpty(spots) then return end
 
   local function move()
-    askMapLoc(p,"New leader location?",spots,nil,function(to)
+    askMapLoc(g,p,"New leader location?",spots,nil,function(to)
       doMoveLeader(g,loc,to,function()
         s.turnAP = s.turnAP - locMapLookup(spots,to)
         say(string.format("%s travelled on foot", playerColorBB(p)))
@@ -226,7 +231,7 @@ function checkBoat(g,p,opts)
   if locMapIsEmpty(spots) then return end
 
   local function move()
-    askMapLoc(p,"New leader location?",spots,nil,function(to)
+    askMapLoc(g,p,"New leader location?",spots,nil,function(to)
       doMoveLeader(g,loc,to,function()
         s.turnAP = s.turnAP - locMapLookup(spots,to)
         say(string.format("%s travelled by boat", playerColorBB(p)))
@@ -245,7 +250,7 @@ function checkTeleport(g,p,opts)
   local spots = teleportSpots(g.map)
   if locMapIsEmpty(spots) then return end
   local function move()
-    askMapLoc(p,"New leader location?",spots,nil,function(to)
+    askMapLoc(g,p,"New leader location?",spots,nil,function(to)
       doMoveLeader(g,s.leader,to,function()
         s.turnAP = s.turnAP - 5
         say(string.format("%s travelled by air", playerColorBB(p)))
@@ -275,7 +280,7 @@ function checkBuildBridge(g,p,opts)
     for l,_ in locsIn(spots) do
       locMapInsert(qs,l,true)
     end
-    askMapLoc(p,"Bridge location?",qs,nil,function(loc)
+    askMapLoc(g,p,"Bridge location?",qs,nil,function(loc)
       local dirs = locMapLookup(spots,loc)
       local function doIt(dir)
         doBuildBridge(g,loc,dir,function()
@@ -289,7 +294,7 @@ function checkBuildBridge(g,p,opts)
       if #dirs == 1 then
         doIt(dirs[1].val)
       else
-        askText(p,"Bridge direction?",dirs,doIt)
+        askText(g,p,"Bridge direction?",dirs,doIt)
       end
     end)
   end
@@ -306,7 +311,7 @@ function checkBuildTemple(g,p,opts)
   if locMapIsEmpty(spots) then return end  -- district is full
 
   local function build(level)
-    askMapLoc(p,"Temple location?",spots,nil,function(loc)
+    askMapLoc(g,p,"Temple location?",spots,nil,function(loc)
       doBuildTemple(g,p,loc,level,function()
         s.turnAP = s.turnAP - level
         say(string.format( "%s built a level %d temple on %s"
@@ -362,7 +367,7 @@ function checkDistrict(g,p,opts)
 
 
   local function establish()
-    askMapLoc(p,"District Marker?",tokSpot,nil,function(loc)
+    askMapLoc(g,p,"District Marker?",tokSpot,nil,function(loc)
       doEstablish(g,p,loc,district,spots,function()
         local msg = string.format("%s established a size %d district on %s"
                                  , playerColorBB(p), size, locName(loc))
@@ -387,10 +392,10 @@ function checkMoveBridge(g,p,opts)
   if locMapIsEmpty(tgtSpots) then return end
 
   local function move()
-    askMapLoc(p,"Choose Bridge",spots,nil,function(from)
+    askMapLoc(g,p,"Choose Bridge",spots,nil,function(from)
       local tgts = locMapEmpty()
       for l,_ in locsIn(tgtSpots) do locMapInsert(tgts,l,true) end
-      askMapLoc(p,"New Bridge Location",tgts,nil,function(to)
+      askMapLoc(g,p,"New Bridge Location",tgts,nil,function(to)
         local dirs = locMapLookup(tgtSpots,to)
         local function doIt(dir)
           doMoveBridge(g,from,to,dir,function()
@@ -405,7 +410,7 @@ function checkMoveBridge(g,p,opts)
         if #dirs == 1 then
           doIt(dirs[1].val)
         else
-          askText(p,"Bridge direction?",dirs,doIt)
+          askText(g,p,"Bridge direction?",dirs,doIt)
         end
 
       end)

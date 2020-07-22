@@ -1,4 +1,4 @@
-function question(q,answer,menuOpts)
+function question(g,p,q,answer,menuOpts)
   local finished = false
   local menu     = nil
   local funs     = {}
@@ -6,7 +6,7 @@ function question(q,answer,menuOpts)
   local function click(i)
     local f = DYN_GLOB(function (obj,c,alt)
       if finished then return end
-      if false and p and c ~= p then    -- XXX: `false` for testing
+      if p and c ~= g.controlledBy[p] then
         say(string.format("%s may not press %s's buttons."
                          , playerColorBB(c), playerColorBB(p)))
         return
@@ -27,16 +27,16 @@ function question(q,answer,menuOpts)
 end
 
 
-function askText(p,q,labs,k)
-  question(q,k,function(menu,click)
+function askText(g,p,q,labs,k)
+  question(g,p,q,k,function(menu,click)
     for i,l in ipairs(labs) do
       spawnMenuItem(p,menu,i,l.text,click(l.val))
     end
   end)
 end
 
-function askTextMulti(p,q,menus,k)
-  question(q,k,function(menu,click)
+function askTextMulti(g,p,q,menus,k)
+  question(g,p,q,k,function(menu,click)
     local i = 1
 
     for _,opts in ipairs(menus) do
@@ -58,8 +58,8 @@ function askTextMulti(p,q,menus,k)
 end
 
 
-function askMapLoc(p,q,spots,optionalTxt,k)
-  question(q,k,function(menu,click)
+function askMapLoc(g,p,q,spots,optionalTxt,k)
+  question(g,p,q,k,function(menu,click)
 
     if optionalTxt ~= nil then
       spawnMenuItem(p,menu,1,optionalTxt,click(nil))
