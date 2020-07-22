@@ -151,7 +151,7 @@ function originalMap23(map)
   office(trader,4)
 
   node("Kampen",-15.23,4.19)
-  office(merchant,2)
+  office(trader,2)
   office(trader,4)
 
   node("Emden",-7.90,7.93)
