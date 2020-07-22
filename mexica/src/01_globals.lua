@@ -1,9 +1,10 @@
 -- Save games and undo
-local versonMaj  = 2
+local versonMaj  = 3
 local versonMin  = 1
 local saved_game = nil
 local undo_stack = {}
 local undoing    = false
+local start_menu = nil -- are we in the start menu
 
 
 -- Currently spawned objects
@@ -22,6 +23,9 @@ local menu_y  = 17
 
 local undo_x  = 23
 local undo_y  = -7
+
+local start_menu_x = -1
+local start_menu_y =  5
 
 
 --------------------------------------------------------------------------------
