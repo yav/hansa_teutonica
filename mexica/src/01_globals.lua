@@ -22,7 +22,7 @@ local menu_x  = 23
 local menu_y  = 17
 
 local undo_x  = 23
-local undo_y  = -7
+local undo_y  = -9
 
 local start_menu_x = -1
 local start_menu_y =  5
