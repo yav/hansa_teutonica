@@ -239,4 +239,10 @@ function doEndGame(g)
   editPhase(g.phase)
 end
 
+function doRemoveDistricts(g,ds)
+  for _,i in ipairs(ds) do
+    g.districts[i] = nil
+    GUI.districts[i].destroy()
+  end
+end
 

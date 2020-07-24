@@ -108,9 +108,12 @@ function takeAction(g,p)
   checkCanal(g,p,buildOpts)
   checkBuildBridge(g,p,buildOpts)
   checkMoveBridge(g,p,buildOpts)
-  checkDistrict(g,p,buildOpts)
-  checkBuildTemple(g,p,buildOpts)
-  push(opts, { name = "Build", choices = buildOpts })
+  push(opts, { name = "Build Anywere", choices = buildOpts })
+
+  local buildLeader = {}
+  checkBuildTemple(g,p,buildLeader)
+  checkDistrict(g,p,buildLeader)
+  push(opts, { name = "Build With Leader", choices = buildLeader })
 
   local moveOpts = {}
   checkMove(g,p,moveOpts)
@@ -118,9 +121,10 @@ function takeAction(g,p)
   checkTeleport(g,p,moveOpts)
   push(opts, { name = "Move", choices = moveOpts })
 
-  push(opts, { name = nil
-             , choices = { { text = "End Turn", val = ||endTurn(g,p) } }
-             })
+  local special = {}
+  checkEliminateTile(g,p,special)
+  push(special, { text = "End Turn", val = ||endTurn(g,p) })
+  push(opts, { name = nil, choices = special })
 
   local q = string.format("%s has %d AP",playerColorBB(p),s.turnAP)
 
@@ -325,22 +329,22 @@ function checkBuildTemple(g,p,opts)
 
   if s.turnAP < 1 then return end
   if s.temples[1] > 0 then
-    push(opts, { text = "Level 1 Temple (1 AP)", val = ||build(1) })
+    push(opts, { text = "Temple 1 (1 AP)", val = ||build(1) })
   end
 
   if s.turnAP < 2 then return end
   if s.temples[2] > 0 then
-    push(opts, { text = "Level 2 Temple (2 AP)", val = ||build(2) })
+    push(opts, { text = "Temple 2 (2 AP)", val = ||build(2) })
   end
 
   if s.turnAP < 3 then return end
   if s.temples[3] > 0 then
-    push(opts, { text = "Level 3 Temple (3 AP)", val = ||build(3) })
+    push(opts, { text = "Temple 3 (3 AP)", val = ||build(3) })
   end
 
   if s.turnAP < 4 then return end
   if s.temples[4] > 0 then
-    push(opts, { text = "Level 4 Temple (3 AP)", val = ||build(4) })
+    push(opts, { text = "Temple 4 (4 AP)", val = ||build(4) })
   end
 end
 
@@ -436,4 +440,51 @@ end
 
 function locName(loc)
   return string.format("%d,%d",loc.col,loc.row)
+end
+
+
+function checkEliminateTile(g,p,opts)
+  if g.phase ~= age2 then return end
+
+  local function eliminate(sz,si)
+    local q = actQ()
+    local agree = true
+    for _,p1 in ipairs(g.players) do
+      if p ~= p1 then
+        log(p1)
+        q.enQ(function()
+          if not agree then q.next(); return end
+          local yesNo = { { text = "Yes", val = true }
+                        , { text = "No",  val = false }
+                        }
+          askText(g,p1,"Remove districts of size " .. sz, yesNo
+                 , function (ans) agree = ans; q.next() end
+                 )
+        end)
+      end
+    end
+    q.enQ(function()
+      if agree then doRemoveDistricts(g,si) end
+      takeAction(g,p)
+    end)
+  end
+
+  local sizes = {}
+  local menu = {}
+  for i,d in pairs(g.districts) do
+    local si = sizes[d]
+    if si == nil then
+      si = {}
+      sizes[d] = si
+      push(menu, { text = "Size " .. d, val = ||eliminate(d,si) })
+    end
+    push(si,i)
+  end
+
+  local function doEliminate()
+    askText(g, p, "Choose imposible size",menu,|f|f())
+  end
+
+  if #menu == 0 then return end
+  push(opts, { text = "Eliminate Districts", val = doEliminate })
 end
