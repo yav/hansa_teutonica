@@ -33,6 +33,7 @@ end
 
 
 function endAge(g)
+  say("End of Age")
   for _,spots in ipairs(g.established) do
     doScoreDistrict(g,spots)
   end
