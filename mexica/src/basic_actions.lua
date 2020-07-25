@@ -147,7 +147,7 @@ function doEstablish(g,p,loc,i,spots,k)
   end
 
   g.districts[i] = nil
-  push(g.established(spots))
+  push(g.established,spots)
 
   local ui = GUI.districts[i]
   GUI.districts[i] = nil
