@@ -225,6 +225,7 @@ function doScoreDistrict(g,spots)
     else
       if i <= 3 then
         doScoreVP(g,ord.player,award)
+        curScore = ord.influence
         prevAward = award
       else
         prevAward = 0
