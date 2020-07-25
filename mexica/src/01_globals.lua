@@ -1,6 +1,6 @@
 -- Save games and undo
 local versonMaj  = 3
-local versonMin  = 1
+local versonMin  = 2
 local saved_game = nil
 local undo_stack = {}
 local undoing    = false
