@@ -65,7 +65,7 @@ function doBuildBridge(g,loc,dir,k)
     markFoundation(south)
   end
   g.bridges = g.bridges - 1
-  spawnBridge(gridToWorld(loc,piece_z),dir,function(o)
+  spawnBridge(gridToWorld(loc,piece_bridge_base_z),dir,function(o)
     locMapLookup(GUI.map,loc).entity = o
     k()
   end)

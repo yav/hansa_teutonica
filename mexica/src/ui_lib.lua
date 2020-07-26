@@ -1,6 +1,6 @@
 function playerColor(p)
   if not p then return Color(0.5,0.5,0.5) end
-  if p == "White" then return Color(0.9, 0.9, 0.9) end -- White is broken
+  if p == "White" then return Color(0.7, 0.7, 0.7) end -- White is broken
   return stringColorToRGB(p)
 end
 

@@ -15,7 +15,7 @@ local board_x = -4.7
 local board_y = 2
 
 local piece_z          = 1.2 -- flat pieces on the board
-local piece_temple_z   = 1.5 -- temples are fatter
+local piece_temple_z   = 1.2 -- temples are fatter
 local piece_bridge_z   = 1.8 -- for a leader on a bridge
 
 local menu_x  = 23

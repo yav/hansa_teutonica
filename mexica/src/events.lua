@@ -21,10 +21,6 @@ function doSave(g)
 end
 
 function resumeGame(g)
-  Grid.type = 1
-  Grid.opacity = 0.4
-  Grid.snapping = 3
-  Grid.show_lines = true
   newGUI(g,||startTurn(g))
 end
 
