@@ -55,6 +55,7 @@ function spawnBoard(k)
   GUI.board = spawnObject(
     { type      = "Custom_Tile"
     , position  = { board_x, 1, board_y }
+    , snap_to_grid = false
     , rotation  = { 0, 180, 0 }
     , scale     = { scale, 1, scale }
     , sound     = false
@@ -94,10 +95,16 @@ function spawnMap(g, k)
   sem.wait(k)
 end
 
+function leader_z(g,loc)
+  local ent = locMapLookup(g.map,loc).entity
+  if not ent then return piece_z end
+  if ent.entity == bridge then return piece_bridge_z end
+  if ent.entity == palace then return piece_palace_z end
+  return piece_z
+end
 
 function spawnLoc(g,loc,spot,k)
   local q  = actQ()
-  local z  = piece_z
   local ui = {}
   local function saveUI(x) return function(y)
       ui[x] = y
@@ -119,10 +126,9 @@ function spawnLoc(g,loc,spot,k)
                          , ent.direction
                          , saveUI("entity")
                          ))
-      z = 1.7
     elseif ent.entity == temple then
       q.enQ(||spawnTemple( ent.owner
-                         , gridToWorld(loc,piece_temple_z)
+                         , gridToWorld(loc,piece_z)
                          , ent.level
                          , saveUI("entity")
                          ))
@@ -131,13 +137,18 @@ function spawnLoc(g,loc,spot,k)
                            , ent.size
                            , saveUI("entity")
                            ))
+    elseif ent.entity == palace then
+      q.enQ(||spawnPalace( gridToWorld(loc,piece_z)
+                         , saveUI("palace")
+                         ))
     end
 
   end
 
   local leader = spot.leader
   if leader then
-    q.enQ(||spawnLeader(leader, gridToWorld(loc,z), saveUI("leader")))
+    q.enQ(||spawnLeader(leader, gridToWorld(loc,leader_z(g,loc))
+         , saveUI("leader")))
   end
 
   q.enQ(function()
@@ -178,37 +189,63 @@ end
 
 function editPlayerLabel(p,i,n)
   local headings = { "VP", "AP", "T1", "T2", "T3", "T4" }
-  GUI.player[p].editButton({ index = i
-                           , label = string.format("%s\n%d",
-                                      playerColorNote(p,headings[i+1]),n) })
+  GUI.player[p].menu.editButton({ index = i
+                                , label = string.format("%s\n%d",
+                                          playerColorNote(p,headings[i+1]),n) })
 end
 
 function editPlayerVP(p,n)       editPlayerLabel(p,0,n) end
 function editPlayerAP(p,n)       editPlayerLabel(p,1,n) end
-function editPlayerTemple(p,l,n) editPlayerLabel(p,1+l,n) end
 
-function spawnPlayer(g,p,k)
+
+function playerAreaLoc(g,p)
   local s = g.playerState[p]
   local x = -38 + s.turnOrder * 13
   local y = -15.5
+  return x,y
+end
+
+function spawnPlayerCounterTemple(p,x,y,lvl,n,k)
+  local ts  = GUI.player[p].temples[lvl]
+  local loc = { x + 2 + n * 1.2, piece_z, y - 3.8 + lvl * 1.2 }
+  spawnTemple(p,loc,lvl,function(o)
+    local sc = 0.5
+    o.setScale({sc,sc,sc})
+    ts[n] = o
+    k()
+  end)
+end
+
+function spawnPlayer(g,p,k)
+  local s   = g.playerState[p]
+  local x,y = playerAreaLoc(g,p)
 
   local ui = {}
   ui.temples = {}
+  GUI.player[p] = ui
+
+  local sem = newSem()
+
+  sem.up()
   spawnMenu(x,y,function(o)
     playerLabel(o,0,0,"Victory Points")
     playerLabel(o,0,-2,"Saved Action Points")
-    for i = 1,4 do
-      local dy = math.floor((i-1) / 2)
-      local dx = math.floor((i-1) % 2)
-      playerLabel(o,-3 - dx*2,-2*dy, string.format("Level %d Temples",i))
-    end
-    GUI.player[p] = o
+    ui.menu = o
 
     editPlayerVP(p,s.VP)
     editPlayerAP(p,s.savedAP)
-    for i = 1,4 do editPlayerTemple(p,i,s.temples[i]) end
-    k()
+    sem.down()
   end)
+
+  for lvl = 1,4 do
+    ui.temples[lvl] = {}
+    for n = 1,s.temples[lvl] do
+      sem.up()
+      spawnPlayerCounterTemple(p,x,y,lvl,n,sem.down)
+    end
+  end
+
+  sem.wait(k)
 end
 
 
@@ -433,11 +470,37 @@ function spawn1x1 (loc,k)
     , diffuse  = water_diff_url
     , normal   = water_bump_url
     , material = 4
+    , specular_sharpness = 4.5
     , freshnel_strengt = 0.5
     }
   )
   return o
 end
+
+function spawnPalace (loc,k)
+  local o = spawnObject(
+    { type         = "Custom_Model"
+    , position     = loc
+    , sound        = false
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setName("Canal")
+        k(o)
+      end
+    }
+  )
+  o.setCustomObject(
+    { mesh     = model_1x1_url
+    , diffuse  = palace_diff_url
+    , normal   = palace_bump_url
+    , material = 1
+    , freshnel_strengt = 0.75
+    }
+  )
+  return o
+end
+
+
 
 function spawn2x1 (loc,k)
   local scale = 1
@@ -456,7 +519,9 @@ function spawn2x1 (loc,k)
     { mesh     = model_2x1_url
     , diffuse  = water_diff_url
     , normal   = water_bump_url
-    , material = 2
+    , specular_sharpness = 4.5
+    , freshnel_strengt = 0.5
+    , material = 4
     }
   )
   return o

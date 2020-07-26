@@ -11,12 +11,13 @@ local start_menu = nil -- are we in the start menu
 local GUI
 
 -- Location of the board
-local board_x = -4.7
+local board_x = -5
 local board_y = 2
 
-local piece_z          = 1.2 -- flat pieces on the board
-local piece_temple_z   = 1.2 -- temples are fatter
-local piece_bridge_z   = 1.8 -- for a leader on a bridge
+local piece_z             = 1.2 -- flat pieces on the board
+local piece_bridge_base_z = 1.5 -- for a bridge on top of a water tile
+local piece_bridge_z      = 1.8 -- for a leader on a bridge
+local piece_palace_z      = 1.3 -- for a leader on the palace
 
 local menu_x  = 23
 local menu_y  = 17

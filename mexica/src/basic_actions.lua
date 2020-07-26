@@ -3,7 +3,7 @@ function doPlaceLeader(g,loc,owner,k)
   local s = g.playerState[owner]
   s.leader = loc
   locMapLookup(g.map,loc).leader = owner
-  spawnLeader(owner, gridToWorld(loc,piece_z),function(o)
+  spawnLeader(owner, gridToWorld(loc,leader_z(g,loc)),function(o)
     locMapLookup(GUI.map,loc).leader = o
     k()
   end)
@@ -24,10 +24,7 @@ function doMoveLeader(g,from,to,k)
   uiFrom.leader   = nil
   uiTo.leader     = ui
 
-  local z = piece_z
-  if spotTo.entity and
-     spotTo.entity.entity == bridge then z = piece_bridge_z end
-  ui.setPositionSmooth(gridToWorld(to,z), false, false)
+  ui.setPositionSmooth(gridToWorld(to,leader_z(g,to)), false, false)
   Wait.condition(k, ||ui.resting)
 end
 
@@ -65,6 +62,7 @@ function doBuildBridge(g,loc,dir,k)
     markFoundation(south)
   end
   g.bridges = g.bridges - 1
+  counterChange(GUI.bridges,g.bridges)
   spawnBridge(gridToWorld(loc,piece_bridge_base_z),dir,function(o)
     locMapLookup(GUI.map,loc).entity = o
     k()
@@ -115,11 +113,13 @@ function doBuildTemple(g,p,loc,level,k)
   s.temples[level] = n - 1
   locMapLookup(g.map,loc).entity = entTemple(p,level)
 
-  spawnTemple(p, gridToWorld(loc,piece_z),level,function(o)
-    editPlayerTemple(p,level,s.temples[level])
-    locMapLookup(GUI.map,loc).entity = o
-    k()
-  end)
+  local o = pop(GUI.player[p].temples[level])
+  locMapLookup(GUI.map,loc).entity = o
+
+  local tgt = gridToWorld(loc,o.getPosition()[2])
+  o.setPositionSmooth(tgt,false,false)
+  o.setScale({1,1,1})
+  Wait.condition(k,||o.resting)
 end
 
 function doScoreVP(g,p,n)
@@ -181,10 +181,16 @@ function doEndAge(g,k)
   g.districtsNext = nil
 
   local newTs = {3,2,2,2}
+  local sem = newSem()
   for p,s in pairs(g.playerState) do
+    local x,y = playerAreaLoc(g,p)
     for i = 1,4 do
+      local startTs = s.temples[i]
       s.temples[i] = s.temples[i] + newTs[i]
-      editPlayerTemple(p,i,s.temples[i])
+      for n = 1,newTs[i] do
+        sem.up()
+        spawnPlayerCounterTemple(p,x,y,i,startTs + n,sem.down)
+      end
     end
   end
 
