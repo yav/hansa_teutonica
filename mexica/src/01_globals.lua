@@ -16,7 +16,7 @@ local board_y = 2
 
 local piece_z             = 1.2 -- flat pieces on the board
 local piece_bridge_base_z = 1.5 -- for a bridge on top of a water tile
-local piece_bridge_z      = 1.8 -- for a leader on a bridge
+local piece_bridge_z      = 2.1 -- for a leader on a bridge
 local piece_palace_z      = 1.3 -- for a leader on the palace
 
 local menu_x  = 23

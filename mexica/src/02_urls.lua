@@ -14,7 +14,7 @@ local bridge_diff_url = "http://cloud-3.steamusercontent.com/ugc/147319211120613
 local bridge_bump_url = "http://cloud-3.steamusercontent.com/ugc/1473192111206133469/995F9FA6310163E716700024AB4F7B8492BBDEBA/"
 
 
-
+local leader_url = "http://cloud-3.steamusercontent.com/ugc/1473192111207178737/68524F0DD0D6610ADB50565A4BF22580EE08B977/"
 
 local temple_bump_url = "http://cloud-3.steamusercontent.com/ugc/1473191937124564894/D0BA3A1491FD2B381E37EBB90CBFB24B4B031B3C/"
 local temple_diff_url = "http://cloud-3.steamusercontent.com/ugc/1473191937124564266/DBE32C021105F933CA60B72FEDCAB4DBDC3028B8/"

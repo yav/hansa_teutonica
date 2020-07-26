@@ -368,17 +368,22 @@ function spawnDistrict(loc,size,k)
 end
 
 function spawnLeader(p, loc, k)
-  spawnObject(
-    { type          = "PlayerPawn"
-    , position      = loc
-    , sound         = false
+  local o = spawnObject(
+    { type         = "Custom_Model"
+    , position     = loc
+    , rotation     = {0,180,0}
+    , sound        = false
     , callback_function = function(o)
         o.setLock(true)
         o.setColorTint(playerColor(p))
-        local lab = string.format("%s leader", playerColorBB(p))
-        o.setName(lab)
+        o.setName(string.format("%s leader", playerColorBB(p)))
         k(o)
       end
+    }
+  )
+  o.setCustomObject(
+    { mesh     = leader_url
+    , material = 1
     }
   )
 end
