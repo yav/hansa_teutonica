@@ -87,7 +87,7 @@ function updateStartMenu()
     end
 
     if c == cc then return "Player " .. sq end
-    return sq .. playerColorNote(cc,"*")
+    return sq .. " controlled by " .. playerColorNote(cc,"■")
   end
 
   for i,c in ipairs(start_menu.colors) do
