@@ -358,8 +358,11 @@ function checkDistrict(g,p,opts)
   for l,_ in locsIn(spots) do
     size = size + 1
     local spot = locMapLookup(g.map,l)
-    if spot.entity == nil and spot.leader == nil then
+    local ent = spot.entity
+    if ent == nil and spot.leader == nil then
       locMapInsert(tokSpot,l,true)
+    elseif ent ~= nil and ent.entity == district then
+      return -- already established
     end
   end
   if locMapIsEmpty(tokSpot) then return end -- no space for district token
