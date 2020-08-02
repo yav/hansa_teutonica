@@ -15,8 +15,11 @@ function newGUI(g)
     --     spawnDisc("Red",gridToWorld(l,disc_z),||nil)
     -- end
 
-    for l,_ in locsIn(neighbours(g.map,location(0,0))) do
-      spawnDisc("Red",gridToWorld(l,disc_z),||nil)
+    for l,s in locsIn(g.map.locations) do
+      local c = "Green"
+      if s.terrain == terrainMountains then c ="Red" end
+      if s.terrain == terrainCity      then c = "White" end
+      spawnDisc(c,gridToWorld(l,disc_z),||nil)
     end
   end)
 

@@ -4,7 +4,7 @@ HOST=127.0.0.1
 PORT_IN=39998
 
 for (( i = 0; i < $1; ++i)); do
-  nc -l -p $PORT_IN  $HOST | cabal exec tts
+  nc -l $HOST $PORT_IN | cabal exec tts
 done
 
 

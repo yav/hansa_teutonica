@@ -65,16 +65,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
 function newSpot(terrain)
   return
     { terrain       = terrain
