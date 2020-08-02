@@ -35,9 +35,13 @@ end
 local terrainCity       = 1
 local terrainPlains     = 2
 local terrainMountains  = 3
+local terrainSuburb     = 4   -- for multi-hex cities
 
 -- Bonuses
 local bonusEveryBuilt   = 1
 local bonusOnlyFirst    = 2
 
+-- Used to restrict railorads
+local startingCity      = 1 -- at most 2 per railroad
+local parisEntry        = 2 -- at most 1 per railroad
 

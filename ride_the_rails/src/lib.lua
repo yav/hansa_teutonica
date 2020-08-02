@@ -18,6 +18,9 @@ function pop(arr)
 end
 
 
+
+
+
 function newSem()
   local todo = 0
   return {

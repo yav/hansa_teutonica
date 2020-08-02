@@ -6,10 +6,18 @@ function location(row,col)
   return { row = row, col = col }
 end
 
+function formatLocation(l)
+  return string.format("%s,%s",l.col,l.row)
+end
+
+function sameLocation(x,y)
+  return x.row == y.row and x.col == y.col
+end
+
+
 function locMapEmpty()
   return { }
 end
-
 
 function locMapIsEmpty(locMap)
   for _ in locsIn(locMap) do

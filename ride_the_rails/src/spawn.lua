@@ -1,4 +1,4 @@
-function newGUI()
+function newGUI(g)
 
   for _,o in pairs(getAllObjects()) do
     o.destroy()
@@ -11,10 +11,11 @@ function newGUI()
   local q = actQ()
   q.enQ(||spawnMap(q.next))
   q.enQ(function()
-    for i,d in ipairs(allDirections) do
-      local l = location(dirDRow[d], dirDCol[d])
-      -- spawnTrain("Orange",gridToWorld(l,train_z),||nil)
-      -- spawnMeeple(gridToWorld(l,meeple_z),||nil)
+    -- for l,_ in locsIn(g.map.locations) do
+    --     spawnDisc("Red",gridToWorld(l,disc_z),||nil)
+    -- end
+
+    for l,_ in locsIn(neighbours(g.map,location(0,0))) do
       spawnDisc("Red",gridToWorld(l,disc_z),||nil)
     end
   end)
@@ -130,9 +131,9 @@ function gridToWorld(loc,z)
   local side = 1
   local w    = 2   * side * math.cos(math.pi/6)
   local h    = 1.5 * side
-  local r,c = loc.row, loc.col
-  local x = (c + r/2) * w
-  local y = r * h
+  local r,c  = loc.row, loc.col
+  local x    = (c + r/2) * w
+  local y    = r * h
   return { x, z, y }
 end
 

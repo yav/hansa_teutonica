@@ -1,16 +1,17 @@
 
 
 function newGame(ctrl,map)
-  local players = {}
+  local players   = {}
+  local turnOrder = {}
   for player,ctrlBy in pairs(ctrl) do
     push(players,player)
+    push(turnOrder,player)
   end
-
-  shuffle(players)
+  shuffle(turnOrder)
 
   local playerState = {}
-  for turnOrder,player in ipairs(players) do
-    playerState[turnOrder] = newPlayer(turnOrder,player)
+  for i,player in ipairs(players) do
+    playerState[i] = newPlayer(i,player)
   end
 
   local supply = {}
@@ -20,13 +21,16 @@ function newGame(ctrl,map)
 
 
   return
-    { players      = players
-    , controlledBy = ctrl
-    , playerState  = playerState
+    { players       = players
+    , controlledBy  = ctrl
+    , playerState   = playerState
 
-    , currentPlayer = 0
-    , round         = 0
-    , phase         = nil
+    , routes        = {}
+
+    , turnOrder     = turnOrder
+    , currentPlayer = 1                 -- index in turn order
+    , round         = 1
+    , phase         = phaseTakeShare
 
     , supply        = supply
 
@@ -36,7 +40,7 @@ function newGame(ctrl,map)
 end
 
 
-function newPlayer(turnOrder,color)
+function newPlayer(id,color)
   local shares = {}
   for _,name in ipairs(companyName) do
     shares[name] = 0
@@ -44,7 +48,7 @@ function newPlayer(turnOrder,color)
 
   return
     { color       = color
-    , turnOrder   = turnOrder
+    , id          = id
 
     , shares      = shares
     , money       = 0
