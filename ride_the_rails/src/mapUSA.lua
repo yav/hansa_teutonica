@@ -2,9 +2,69 @@
 
 function mapUSA()
   local map = newMap()
-  local function mapLoc(r,c,t)
-     locMapInsert(map.locations,location(r,c),newSpot(t))
+
+  local function blackCity(r,c)
+    local spot = newSpot(terrainCity)
+    spot.trainLimit = 2
+    spot.mayStart["Black"] = true
+    spot.passengers = 1
+    locMapInsert(map.locations,location(r,c),spot)
   end
+
+  local function mapLoc(r,c,t)
+    if t == terrainCity then blackCity(r,c); return end
+    local spot = newSpot(t)
+    spot.trainLimit = 2
+    locMapInsert(map.locations,location(r,c),spot)
+  end
+
+  local function eastCity(r,c)
+    local spot = newSpot(terrainCity)
+    spot.trainLimit = 1
+    spot.railroadLimit = startingCity
+    for _,c in ipairs({"Blue","Red","Orange","Black"}) do
+      spot.mayStart[c] = true
+    end
+    spot.passengers = 1
+    locMapInsert(map.locations,location(r,c),spot)
+  end
+
+  local function westCity(r,c)
+    local spot = newSpot(terrainCity)
+    spot.trainLimit = 2
+    for _,c in ipairs({"Purple","Black"}) do
+      spot.mayStart[c] = true
+    end
+    spot.passengers = 1
+    locMapInsert(map.locations,location(r,c),spot)
+  end
+
+  local function chicago(r,c)
+    local spot = newSpot(terrainCity)
+    spot.trainLimit = 6
+    for _,c in ipairs({"Orange","Yellow","Black"}) do
+      spot.mayStart[c] = true
+    end
+    spot.bonusType  = bonusRecurring
+    spot.bonus      = 2
+    spot.passengers = 1
+    locMapInsert(map.locations,location(r,c),spot)
+  end
+
+  local function bonusBlackCity(r,c)
+    local spot = newSpot(terrainCity)
+    spot.trainLimit = 2
+    spot.mayStart["Black"] = true
+    spot.passengers = 1
+    spot.bonusType  = bonusOnlyFirst
+    spot.bonus      = 5
+    locMapInsert(map.locations,location(r,c),spot)
+  end
+
+
+
+
+
 
   mapLoc(7, 9, terrainMountains)
   mapLoc(5, 9, terrainMountains)
@@ -55,13 +115,13 @@ function mapUSA()
   mapLoc(0, -8, terrainMountains)
   mapLoc(-1, -8, terrainMountains)
   mapLoc(-2, -8, terrainMountains)
-  mapLoc(1, -15, terrainCity)
-  mapLoc(8, -19, terrainCity)
-  mapLoc(10, -20, terrainCity)
+  westCity(1, -15)
+  westCity(8, -19)
+  westCity(10, -20)
   mapLoc(10, -17, terrainCity)
   mapLoc(6, -15, terrainCity)
   mapLoc(3, -15, terrainCity)
-  mapLoc(-2, -11, terrainCity)
+  westCity(-2, -11)
   mapLoc(0, -10, terrainCity)
   mapLoc(4, -11, terrainCity)
   mapLoc(6, -12, terrainCity)
@@ -71,17 +131,17 @@ function mapUSA()
   mapLoc(10, -6, terrainCity)
   mapLoc(7, -8, terrainCity)
   mapLoc(5, -8, terrainCity)
-  mapLoc(2, -7, terrainCity)
+  bonusBlackCity(2, -7, terrainCity)
   mapLoc(-1, -6, terrainCity)
   mapLoc(-3, -7, terrainCity)
   mapLoc(-4, -3, terrainCity)
   mapLoc(-7, 2, terrainCity)
   mapLoc(-5, 3, terrainCity)
-  mapLoc(-3, 0, terrainCity)
+  bonusBlackCity(-3, 0, terrainCity)
   mapLoc(0, -2, terrainCity)
-  mapLoc(2, -2, terrainCity)
+  bonusBlackCity(2, -2, terrainCity)
   mapLoc(5, -4, terrainCity)
-  mapLoc(8, -3, terrainCity)
+  bonusBlackCity(8, -3)
   mapLoc(9, 0, terrainCity)
   mapLoc(7, 0, terrainCity)
   mapLoc(5, -1, terrainCity)
@@ -90,19 +150,19 @@ function mapUSA()
   mapLoc(-5, 6, terrainCity)
   mapLoc(-6, 10, terrainCity)
   mapLoc(-8, 12, terrainCity)
-  mapLoc(-4, 10, terrainCity)
+  eastCity(-4, 10)
   mapLoc(-2, 7, terrainCity)
   mapLoc(0, 4, terrainCity)
   mapLoc(2, 5, terrainCity)
-  mapLoc(5, 2, terrainCity)
+  chicago(5, 2)
   mapLoc(6, 4, terrainCity)
   mapLoc(6, 6, terrainCity)
   mapLoc(3, 7, terrainCity)
-  mapLoc(-2, 10, terrainCity)
-  mapLoc(-1, 11, terrainCity)
-  mapLoc(1, 10, terrainCity)
-  mapLoc(3, 10, terrainCity)
-  mapLoc(4, 11, terrainCity)
+  eastCity(-2, 10)
+  eastCity(-1, 11)
+  eastCity(1, 10)
+  eastCity(3, 10)
+  eastCity(4, 11)
   mapLoc(6, 9, terrainCity)
   mapLoc(6, 11, terrainCity)
   mapLoc(8, 11, terrainCity)

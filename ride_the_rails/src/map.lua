@@ -1,6 +1,9 @@
 function newMap()
   return
     { locations = locMapEmpty()
+
+    , routes = {} -- maps companies to the set of locations with their trains
+
     , disconnected = locMapEmpty()
       -- maps a location to the neighbours that are disconnected from it. 
       -- since walls are generally two way, each wall should appear twice
@@ -73,12 +76,20 @@ function newSpot(terrain)
     , railroadLimit = nil     -- type of city, used to restrict 
 
     , mayStart      = {}      -- who may start here
-    , passangers    = 0       -- how many passengers are hre
+    , passenger     = 0       -- how many passengers are hre
     , autoSapwn     = false   -- should we add a passenger if empty
 
     , bonus         = 0
     , bonusType     = nil
     }
+end
+
+function hasSpace(spot)
+  local count = 0
+  for _ in pairs(spot.trains) do
+    count = count + 1
+  end
+  return count < spot.trainLimit
 end
 
 

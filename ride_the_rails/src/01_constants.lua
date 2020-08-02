@@ -1,9 +1,17 @@
 -- GUI
 local GUI
-local board_z  = 1
-local train_z  = 2
-local meeple_z = 1.2
-local disc_z   = 1.2
+local menu_x          = 24
+local menu_y          = -3
+local board_z         = 1
+local train_z         = 2
+local meeple_z        = 1.2
+local disc_z          = 1.2
+local txt_question_z  = 1.2
+local map_question_z  = 1.5
+
+-- Answer types
+local ans_location    = 1
+local ans_menu        = 2
 
 -- Directions
 local north_west    = 1
@@ -38,7 +46,7 @@ local terrainMountains  = 3
 local terrainSuburb     = 4   -- for multi-hex cities
 
 -- Bonuses
-local bonusEveryBuilt   = 1
+local bonusRecurring    = 1
 local bonusOnlyFirst    = 2
 
 -- Used to restrict railorads

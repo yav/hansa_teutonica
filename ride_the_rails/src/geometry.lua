@@ -84,3 +84,15 @@ function getConnectedCities(map,start)
   return result
 end
 
+
+
+function startingLocations(map,company)
+  local opts = locMapEmpty()
+  for l,spot in locsIn(map.locations) do
+    if spot.mayStart[company] and hasSpace(spot) then
+      locMapInsert(opts,l,true)
+    end
+  end
+  -- XXX: plus westmost for yellow
+  return opts
+end

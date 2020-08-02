@@ -1,4 +1,4 @@
-function newGUI(g)
+function newGUI(g,k)
 
   for _,o in pairs(getAllObjects()) do
     o.destroy()
@@ -6,27 +6,81 @@ function newGUI(g)
 
   GUI =
     { board = nil
+    , map   = locMapEmpty()
     }
 
-  local q = actQ()
-  q.enQ(||spawnMap(q.next))
-  q.enQ(function()
-    -- for l,_ in locsIn(g.map.locations) do
-    --     spawnDisc("Red",gridToWorld(l,disc_z),||nil)
-    -- end
-
-    for l,s in locsIn(g.map.locations) do
-      local c = "Green"
-      if s.terrain == terrainMountains then c ="Red" end
-      if s.terrain == terrainCity      then c = "White" end
-      spawnDisc(c,gridToWorld(l,disc_z),||nil)
+  local sem = newSem()
+  sem.up(); spawnBoard(sem.down)
+  for l,spot in locsIn(g.map.locations) do
+    local ui = { trains = {}, passenger = nil }
+    locMapInsert(GUI.map, l, ui)
+    if spot.passenger > 0 then
+      sem.up(); spawnPassengerAt(l,sem.down)
     end
-  end)
+    local q = actQ()
+    sem.up()
+    for c,_ in pairs(spot.trains) do
+      q.enQ(||spawnTrainAt(l,c,q.next))
+    end
+    q.enQ(sem.down)
+  end
 
+  sem.wait(k)
+end
+
+function gridToWorld(loc,z)
+  local side = 1
+  local w    = 2   * side * math.cos(math.pi/6)
+  local h    = 1.5 * side
+  local r,c  = loc.row, loc.col
+  local x    = (c + r/2) * w
+  local y    = r * h
+  return Vector(x,z,y)
 end
 
 
-function spawnMap(k)
+
+--------------------------------------------------------------------------------
+
+
+function spawnPassengerAt(loc,k)
+  local pos = gridToWorld(loc,meeple_z)
+  pos.z = pos.z + 0.7
+  spawnMeeple(pos,function(o)
+    locMapLookup(GUI.map,loc).passenger = 0
+    k(o)
+  end)
+end
+
+
+
+
+function spawnTrainAt(loc,company,k)
+  local pos    = gridToWorld(loc,train_z)
+  spawnTrain(company,pos,function(o)
+    local ui     = locMapLookup(GUI.map,loc)
+    local others = ui.trains
+    push(others,o)
+    local sc = 1.1 - 0.12 * #others
+    local basex = 0
+    if #others > 3 then basex = -0.25 end
+    for i,t in ipairs(others) do
+      t.setScale({sc,sc,sc})
+      local x = basex + pos.x + 1.7 * sc * math.floor((i-1) / 3)
+      local z = pos.z - 0.5 * sc * ((i - 1) % 3)
+      t.setPosition(Vector(x, pos.y, z))
+    end
+    k(o)
+  end)
+end
+
+
+
+
+--------------------------------------------------------------------------------
+-- Just the shapes
+
+function spawnBoard(k)
   o = spawnObject(
     { type      = "Custom_Tile"
     , sound     = false
@@ -48,7 +102,6 @@ function spawnMap(k)
 
   return o
 end
-
 
 function spawnTrain(companyName, loc, k)
   local s = 0.75
@@ -124,21 +177,5 @@ function spawnDisc(p, loc, k)
 
   return o
 end
-
-
-
-
-
-
-function gridToWorld(loc,z)
-  local side = 1
-  local w    = 2   * side * math.cos(math.pi/6)
-  local h    = 1.5 * side
-  local r,c  = loc.row, loc.col
-  local x    = (c + r/2) * w
-  local y    = r * h
-  return { x, z, y }
-end
-
 
 

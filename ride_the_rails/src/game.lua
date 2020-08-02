@@ -25,8 +25,6 @@ function newGame(ctrl,map)
     , controlledBy  = ctrl
     , playerState   = playerState
 
-    , routes        = {}
-
     , turnOrder     = turnOrder
     , currentPlayer = 1                 -- index in turn order
     , round         = 1
