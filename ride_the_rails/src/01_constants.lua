@@ -1,13 +1,14 @@
 -- GUI
 local GUI
-local menu_x          = 24
-local menu_y          = -3
-local board_z         = 1
-local train_z         = 2
-local meeple_z        = 1.2
-local disc_z          = 1.2
-local txt_question_z  = 1.2
-local map_question_z  = 1.5
+local menu_x              = 24
+local menu_y              = -3
+local board_z             = 1
+local train_z             = 2
+local meeple_z            = 1.2
+local disc_z              = 1.2
+local txt_question_z      = 1.2
+local map_question_z      = 1.5
+local map_question_hi_z   = 2.5
 
 -- Answer types
 local ans_location    = 1
@@ -52,4 +53,6 @@ local bonusOnlyFirst    = 2
 -- Used to restrict railorads
 local startingCity      = 1 -- at most 2 per railroad
 local parisEntry        = 2 -- at most 1 per railroad
+local railroadLimit     = { 2, 1 }
+
 

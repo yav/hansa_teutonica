@@ -76,7 +76,7 @@ function newSpot(terrain)
     , railroadLimit = nil     -- type of city, used to restrict 
 
     , mayStart      = {}      -- who may start here
-    , passenger     = 0       -- how many passengers are hre
+    , passenger     = false   -- is there a passenger ehre
     , autoSapwn     = false   -- should we add a passenger if empty
 
     , bonus         = 0
@@ -84,12 +84,16 @@ function newSpot(terrain)
     }
 end
 
-function hasSpace(spot)
+function trainNum(spot)
   local count = 0
   for _ in pairs(spot.trains) do
     count = count + 1
   end
-  return count < spot.trainLimit
+  return count
+end
+
+function hasSpace(spot)
+  return trainNum(spot) < spot.trainLimit
 end
 
 

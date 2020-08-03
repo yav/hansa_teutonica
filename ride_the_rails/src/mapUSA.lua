@@ -7,7 +7,7 @@ function mapUSA()
     local spot = newSpot(terrainCity)
     spot.trainLimit = 2
     spot.mayStart["Black"] = true
-    spot.passengers = 1
+    spot.passenger = true
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -25,7 +25,7 @@ function mapUSA()
     for _,c in ipairs({"Blue","Red","Orange","Black"}) do
       spot.mayStart[c] = true
     end
-    spot.passengers = 1
+    spot.passenger = true
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -35,7 +35,7 @@ function mapUSA()
     for _,c in ipairs({"Purple","Black"}) do
       spot.mayStart[c] = true
     end
-    spot.passengers = 1
+    spot.passenger = true
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -47,7 +47,7 @@ function mapUSA()
     end
     spot.bonusType  = bonusRecurring
     spot.bonus      = 2
-    spot.passengers = 1
+    spot.passenger  = true
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -55,7 +55,7 @@ function mapUSA()
     local spot = newSpot(terrainCity)
     spot.trainLimit = 2
     spot.mayStart["Black"] = true
-    spot.passengers = 1
+    spot.passenger  = true
     spot.bonusType  = bonusOnlyFirst
     spot.bonus      = 5
     locMapInsert(map.locations,location(r,c),spot)

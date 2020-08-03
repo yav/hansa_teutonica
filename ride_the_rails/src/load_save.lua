@@ -9,14 +9,11 @@ end
 
 
 function test(g,co)
-  local txtOpts = { { text = "Blue", val = "Blue" }
-                  , { text = "Red", val = "Red" }
+  local txtOpts = { { text = "Blue",   val = "Blue" }
+                  , { text = "Red",    val = "Red" }
+                  , { text = "Yellow", val = "Yellow" }
                   }
-  local mapOpts = g.map.routes[co]
-  if mapOpts == nil
-    then mapOpts = startingLocations(g.map,co)
-    else mapOpts = regionNeighbours(g.map,mapOpts)
-  end
+  local mapOpts = buildLocations(g.map,co,true)
 
   askMapLoc(g,"White","Which one",mapOpts,txtOpts,function(ans)
     if ans.tag == ans_location then

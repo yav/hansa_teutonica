@@ -14,7 +14,7 @@ function newGUI(g,k)
   for l,spot in locsIn(g.map.locations) do
     local ui = { trains = {}, passenger = nil }
     locMapInsert(GUI.map, l, ui)
-    if spot.passenger > 0 then
+    if spot.passenger then
       sem.up(); spawnPassengerAt(l,sem.down)
     end
     local q = actQ()
@@ -47,7 +47,7 @@ function spawnPassengerAt(loc,k)
   local pos = gridToWorld(loc,meeple_z)
   pos.z = pos.z + 0.7
   spawnMeeple(pos,function(o)
-    locMapLookup(GUI.map,loc).passenger = 0
+    locMapLookup(GUI.map,loc).passenger = o
     k(o)
   end)
 end

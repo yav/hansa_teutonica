@@ -43,7 +43,12 @@ function askMapLoc(g,p,q,spots,txt,k)
     end
 
     for loc,v in locsIn(spots) do
-      local pos = gridToWorld(loc,map_question_z)
+      local spot = locMapLookup(g.map.locations,loc)
+      local hi   = map_question_z
+      if spot and (spot.passenger or trainNum(spot) > 0) then
+        hi = map_question_hi_z
+      end
+      local pos = gridToWorld(loc,hi)
       local fun = click({ tag = ans_location, location = loc })
       local c = playerColor(p)
       menu.createButton(
@@ -52,7 +57,6 @@ function askMapLoc(g,p,q,spots,txt,k)
          , color          = Color({r=c.r,g=c.g,b=c.b,a=0.8})
          , label          = (v == true) and "?" or (v .. "")
          , click_function = fun
-          -- height maybe should depend on content?
          , position       = { menu_x - pos.x, pos.y, pos.z - menu_y }
          , rotation       = { 0, 180, 0 }
          , width          = 600

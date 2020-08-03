@@ -86,6 +86,24 @@ end
 
 
 
+-- XXX: Not sure how we should consider full western-most cities.
+function addWestMostCities(map,opts)
+  local locs = {}
+  local i = 1
+  for l,spot in locsIn(map.locations) do
+    if spot.terrain == terrainCity and trainNum(spot) > 0 then
+      locs[i] = { loc = l, spot = spot, west = gridToWorld(l,0).x }
+      i = i + 1
+    end
+  end
+  table.sort(locs, |a,b| a.west < b.west)
+  for i,g in ipairs(locs) do
+    if i > 3 then return end
+    if hasSpace(g.spot) then locMapInsert(opts,g.loc,true) end
+  end
+end
+
+
 function startingLocations(map,company)
   local opts = locMapEmpty()
   for l,spot in locsIn(map.locations) do
@@ -93,6 +111,38 @@ function startingLocations(map,company)
       locMapInsert(opts,l,true)
     end
   end
-  -- XXX: plus westmost for yellow
+
+  if company == "Yellow" then addWestMostCities(map,opts) end
+
   return opts
 end
+
+function buildLocations(map,company,mountainOk)
+  local route = map.routes[company]
+  if route == nil then return startingLocations(map,company) end
+
+  local opts = locMapEmpty()
+  for l,_ in locsIn(regionNeighbours(map,route)) do
+    local spot = locMapLookup(map.locations, l)
+    if spot and
+       hasSpace(spot) and
+       spot.trains[company] == nil and
+       (mountainOk or spot.terrain ~= terrainMountains) then
+      local ok = true
+      local lim = spot.railroadLimit
+      if lim ~= nil then
+        local avail = railroadLimit[lim]
+        for l,_ in locsIn(route) do
+          if locMapLookup(map.locations,l).railroadLimit == lim then
+            avail = avail - 1
+          end
+        end
+        ok = avail > 0
+      end
+      if ok then locMapInsert(opts,l,true) end
+    end
+  end
+  return opts
+end
+
+
