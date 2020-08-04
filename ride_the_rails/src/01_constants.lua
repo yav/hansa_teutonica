@@ -2,6 +2,12 @@
 local GUI
 local menu_x              = 24
 local menu_y              = -3
+local turn_order_x        = 22
+local turn_order_y        = -1
+local player_x            = -25
+local player_y            = 24
+local supply_x            = 29
+local supply_y            = 7
 local board_z             = 1
 local train_z             = 2
 local meeple_z            = 1.2
@@ -35,6 +41,8 @@ local pahseName = { "Take a Share", "Build Railroad Tracks", "Ride the Rails" }
 
 -- Companies
 local companyName = { "Blue", "Red", "Orange", "Yellow", "Purple", "Black" }
+local companyRoundStart = { Blue = 1, Red = 1, Orange = 2
+                          , Yellow = 3, Purple = 4, Black = 5 }
 
 function companyColor(name)
   return Color.fromString(name)

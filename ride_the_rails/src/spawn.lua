@@ -5,8 +5,10 @@ function newGUI(g,k)
   end
 
   GUI =
-    { board = nil
-    , map   = locMapEmpty()
+    { turnOrder = {}
+    , players   = {}
+    , trains    = {}
+    , map       = locMapEmpty()
     }
 
   local sem = newSem()
@@ -24,6 +26,13 @@ function newGUI(g,k)
     end
     q.enQ(sem.down)
   end
+  sem.up(); spawnTurnOrder(g,sem.down)
+
+  for _,p in ipairs(g.playerState) do
+    sem.up(); spawnPlayer(p,sem.down)
+  end
+
+  sem.up(); spawnTrainSupply(g,sem.down)
 
   sem.wait(k)
 end
@@ -41,6 +50,119 @@ end
 
 
 --------------------------------------------------------------------------------
+
+
+function spawnTurnOrder(g,k)
+  local sem = newSem()
+  for i,p in ipairs(g.turnOrder) do
+    local loc = Vector(turn_order_x + 1.2 * (i-1), disc_z, turn_order_y)
+    sem.up(); spawnDisc(p,loc,function(o)
+      GUI.turnOrder[i] = o
+      sem.down()
+    end)
+  end
+  sem.wait(k)
+end
+
+function spawnPlayer(s,k)
+
+  local p = s.color
+  local x = player_x + 10 * (s.id - 1)
+  local y = player_y
+  local ui = {}
+  GUI.players[p] = ui
+
+  local sem = newSem()
+  sem.up()
+  spawnMenu(x,y,function(o)
+    local bg = playerColor(p)
+    local fg = playerFontColor(p)
+    ui.money = o
+    o.createButton(
+      { label           = ""
+      , color           = bg
+      , hover_color     = bg
+      , press_color     = bg
+      , font_color      = fg
+      , rotation        = { 0, 180, 0 }
+      , position        = { 0, txt_question_z, 0 }
+      , font_size       = 300
+      , width           = 800
+      , height          = 700
+      , tooltip         = playerColorBB(p) .. " money"
+      , click_function  = "nop"
+      })
+    editMoney(p,s.money)
+    sem.down()
+  end)
+
+  local trains = {}
+  local tx = x
+  for co,n in pairs(s.shares) do
+    local ty = y - 2
+    local this = {}
+    for i = 1,n do
+      sem.up()
+      local loc = Vector(tx,train_z,ty-i+1)
+      spawnTrain(co,loc,function(o)
+        this[i] = o
+        sem.down()
+      end)
+    end
+    trains[co] = this
+    if n > 0 then tx = tx + 1.5 end
+  end
+  ui.trains = trains
+
+  sem.wait(k)
+end
+
+function editMoney(p,x)
+  GUI.players[p].money.editButton({ index = 0, label = string.format("$%d",x) })
+end
+
+
+function spawnTrainSupply(g,k)
+  local trains = {}
+  GUI.trains = trains
+  local sem = newSem()
+  local i = 0
+  for co,n in pairs(g.supply) do
+    local color = companyColor(co)
+    local me    = colorNote(color,co)
+    sem.up()
+    local loc = Vector(supply_x, train_z, supply_y - i)
+    spawnTrain(co,loc,function(o)
+      o.setName(string.format("%s from round %d", me, companyRoundStart[co]))
+      trains[co] = o
+      local fg = Color(1,1,1)
+      local bg = Color(0,0,0)
+      o.createButton(
+        { label           = ""
+        , color           = bg
+        , hover_color     = bg
+        , press_color     = bg
+        , font_color      = fg
+        , rotation        = { 0, 180, 0 }
+        , position        = { 3, 0, 0 }
+        , font_size       = 300
+        , width           = 800
+        , height          = 700
+        , tooltip         = "Remaining " .. me .. " trains"
+        , click_function  = "nop"
+        })
+      editTrainSupply(co,n)
+      sem.down()
+    end)
+    i = i + 1
+  end
+  sem.wait(k)
+end
+
+function editTrainSupply(co,n)
+  GUI.trains[co].editButton({index=0,label=n .. ""})
+end
+
 
 
 function spawnPassengerAt(loc,k)
@@ -129,7 +251,7 @@ end
 
 
 function spawnDisc(p, loc, k)
-  local s = 1
+  local s = 0.5
   local o = spawnObject(
     { type         = "Custom_Model"
     , position     = loc

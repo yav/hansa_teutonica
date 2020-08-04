@@ -1,6 +1,10 @@
 function onLoad(state)
   local ctrl = {}
-  ctrl["White"] = "White"
+  ctrl["Purple"]  = "White"
+  ctrl["Pink"]    = "White"
+  ctrl["Brown"]   = "White"
+  ctrl["White"]   = "White"
+  ctrl["Green"]   = "White"
   local map = mapUSA()
 
   local g = newGame(ctrl,map)
