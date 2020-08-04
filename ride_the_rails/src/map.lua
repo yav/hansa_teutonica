@@ -68,7 +68,7 @@ end
 
 
 
-function newSpot(terrain)
+function newSpot(terrain,url)
   return
     { terrain       = terrain
     , trains        = {}      -- who has a train here
@@ -81,6 +81,8 @@ function newSpot(terrain)
 
     , bonus         = 0
     , bonusType     = nil
+
+    , url
     }
 end
 

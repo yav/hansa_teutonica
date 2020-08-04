@@ -8,6 +8,7 @@ function mapUSA()
     spot.trainLimit = 2
     spot.mayStart["Black"] = true
     spot.passenger = true
+    spot.url = black_city_url
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -15,6 +16,9 @@ function mapUSA()
     if t == terrainCity then blackCity(r,c); return end
     local spot = newSpot(t)
     spot.trainLimit = 2
+    if t == terrainPlains then spot.url = plains_url
+    elseif t == terrainMountains then spot.url = mountains_url
+    end
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -26,6 +30,7 @@ function mapUSA()
       spot.mayStart[c] = true
     end
     spot.passenger = true
+    spot.url = east_city_url
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -36,6 +41,7 @@ function mapUSA()
       spot.mayStart[c] = true
     end
     spot.passenger = true
+    spot.url = west_city_url
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -48,6 +54,7 @@ function mapUSA()
     spot.bonusType  = bonusRecurring
     spot.bonus      = 2
     spot.passenger  = true
+    spot.url        = big_city_url
     locMapInsert(map.locations,location(r,c),spot)
   end
 
@@ -58,6 +65,7 @@ function mapUSA()
     spot.passenger  = true
     spot.bonusType  = bonusOnlyFirst
     spot.bonus      = 5
+    spot.url        = black_bonus_city_url
     locMapInsert(map.locations,location(r,c),spot)
   end
 

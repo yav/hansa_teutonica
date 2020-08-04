@@ -10,8 +10,8 @@ function newGUI(g,k)
     }
 
   local sem = newSem()
-  sem.up(); spawnBoard(sem.down)
   for l,spot in locsIn(g.map.locations) do
+    sem.up(); spawnHex(spot,gridToWorld(l,board_z),sem.down)
     local ui = { trains = {}, passenger = nil }
     locMapInsert(GUI.map, l, ui)
     if spot.passenger then
@@ -53,8 +53,6 @@ function spawnPassengerAt(loc,k)
 end
 
 
-
-
 function spawnTrainAt(loc,company,k)
   local pos    = gridToWorld(loc,train_z)
   spawnTrain(company,pos,function(o)
@@ -79,29 +77,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Just the shapes
-
-function spawnBoard(k)
-  o = spawnObject(
-    { type      = "Custom_Tile"
-    , sound     = false
-    , position  = { 0.25, board_z, 0.5 }
-    , scale     = { 17.7, 1, 17.7 }
-    , rotation  = { 0, 180, 0 }
-    , callback_function = function(o)
-        o.setLock(true)
-        GUI.board = o
-        k()
-      end
-    }
-  )
-
-  o.setCustomObject(
-    { image = board_url
-    }
-  )
-
-  return o
-end
 
 function spawnTrain(companyName, loc, k)
   local s = 0.75
@@ -178,4 +153,39 @@ function spawnDisc(p, loc, k)
   return o
 end
 
+function spawnHex(spot, loc, k)
+  local s = 0.5
+  if spot.url == nil then k() end
+  local o = spawnObject(
+    { type         = "Custom_Token"
+    , position     = loc
+    , rotation     = { 0, 180, 0 }
+    , scale        = {s,s,s}
+    , sound        = false
+    , callback_function = function(o)
+        o.setLock(true)
+        local lab = "Plains"
+        if spot.terrain == terrainCity then
+          lab = "City"
+          if spot.bonus > 0 then
+            lab = string.format("%s %s$%d"
+                               , lab
+                               , spot.bonusType == bonusRecurring and "∞ " or ""
+                               , spot.bonus )
+          end
+        elseif spot.terrain == terrainMountains then lab = "Mountains"
+        end
+       o.setName(lab)
+        k(o)
+      end
+    }
+  )
+  local url
+  o.setCustomObject(
+    { image = spot.url
+    }
+  )
+
+  return o
+end
 
