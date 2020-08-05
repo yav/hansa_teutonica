@@ -1,5 +1,4 @@
 
-
 function newGame(ctrl,map)
   local players   = {}
   local turnOrder = {}
@@ -33,6 +32,15 @@ function newGame(ctrl,map)
     , supply        = supply
 
     , map           = map
+
+
+      -- for build phase
+    , turnBuildAP          = 0      -- remaining locomotives to place in phase 2
+    , turnBuiltInMountains = false  -- have we built in mountains yet
+
+      -- for transpotation phase
+    , traveller         = nil
+    , travellerVisited  = locMapEmpty()
     }
 
 end
@@ -51,8 +59,6 @@ function newPlayer(id,color)
     , shares      = shares
     , money       = 0
 
-    , turnBuildAP          = 0      -- remaining locomotives to place in phase 2
-    , turnBuiltInMountains = false  -- have we built in mountains yet
     }
 end
 

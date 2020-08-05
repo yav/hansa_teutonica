@@ -9,6 +9,7 @@ function onLoad(state)
 
   local g = newGame(ctrl,map)
   newGUI(g,||testInvest(g))
+  -- newGUI(g,||testPlacingTrains(g,"Red"))
 end
 
 function testInvest(g)
@@ -20,7 +21,7 @@ function testInvest(g)
 
   local p = "Pink"
   askMapLoc(g,p,"Which one",mapOpts,txtOpts,function(ans)
-    doInvest(g,p,ans.value,||testInvest(g))
+    doInvest(g,ans.value,||testInvest(g))
   end)
 end
 
@@ -35,12 +36,14 @@ function testPlacingTrains(g,co)
 
   askMapLoc(g,"White","Which one",mapOpts,txtOpts,function(ans)
     if ans.tag == ans_location then
-      doAddTrain(g,ans.location,co,||test(g,co))
+      doAddTrain(g,ans.location,co,||testPlacingTrains(g,co))
     else
-      test(g,ans.value)
+      testPlacingTrains(g,ans.value)
     end
   end)
 end
+
+
 
 
 

@@ -11,6 +11,7 @@ local supply_y            = 7
 local board_z             = 1
 local train_z             = 1.5
 local meeple_z            = 1.1
+local traveller_z         = 2.5
 local disc_z              = 1.2
 local txt_question_z      = 1.2
 local map_question_z      = 1.5

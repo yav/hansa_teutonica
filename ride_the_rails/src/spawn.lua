@@ -9,6 +9,7 @@ function newGUI(g,k)
     , players   = {}
     , trains    = {}
     , map       = locMapEmpty()
+    , traveller = nil
     }
 
   local sem = newSem()
