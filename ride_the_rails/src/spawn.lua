@@ -28,8 +28,8 @@ function newGUI(g,k)
   end
   sem.up(); spawnTurnOrder(g,sem.down)
 
-  for _,p in ipairs(g.playerState) do
-    sem.up(); spawnPlayer(p,sem.down)
+  for p,s in pairs(g.playerState) do
+    sem.up(); spawnPlayer(s,sem.down)
   end
 
   sem.up(); spawnTrainSupply(g,sem.down)
@@ -64,11 +64,17 @@ function spawnTurnOrder(g,k)
   sem.wait(k)
 end
 
+
+function playerZone(s)
+  local x = player_x + 10 * (s.id - 1)
+  local y = player_y
+  return x,y
+end
+
 function spawnPlayer(s,k)
 
   local p = s.color
-  local x = player_x + 10 * (s.id - 1)
-  local y = player_y
+  local x,y = playerZone(s)
   local ui = {}
   GUI.players[p] = ui
 
@@ -96,30 +102,39 @@ function spawnPlayer(s,k)
     sem.down()
   end)
 
-  local trains = {}
-  local tx = x
+  ui.trains = {}
   for co,n in pairs(s.shares) do
-    local ty = y - 2
-    local this = {}
+    ui.trains[co] = {}
     for i = 1,n do
       sem.up()
-      local loc = Vector(tx,train_z,ty-i+1)
-      spawnTrain(co,loc,function(o)
-        this[i] = o
-        sem.down()
-      end)
+      spawnShare(s,co,i,sem.down)
     end
-    trains[co] = this
-    if n > 0 then tx = tx + 1.5 end
   end
-  ui.trains = trains
-
   sem.wait(k)
 end
+
+
+
 
 function editMoney(p,x)
   GUI.players[p].money.editButton({ index = 0, label = string.format("$%d",x) })
 end
+
+function spawnShare(s,company,n,k)
+  local x,y = playerZone(s)
+  local cix
+  for i,c in ipairs(companyName) do
+    if company == c then cix = i; break end
+  end
+  local loc = Vector(x + (cix-1) * 1.5, train_z, y - 1 - n)
+  spawnTrain(company,loc,function(o)
+    GUI.players[s.color].trains[company][cix] = o
+    k()
+  end)
+end
+
+
+
 
 
 function spawnTrainSupply(g,k)
@@ -164,7 +179,6 @@ function editTrainSupply(co,n)
 end
 
 
-
 function spawnPassengerAt(loc,k)
   local pos = gridToWorld(loc,meeple_z)
   pos.z = pos.z + 0.7
@@ -176,7 +190,7 @@ end
 
 
 function spawnTrainAt(loc,company,k)
-  local pos    = gridToWorld(loc,train_z)
+  local pos    = gridToWorld(loc,train_z + 0.2)
   spawnTrain(company,pos,function(o)
     local ui     = locMapLookup(GUI.map,loc)
     local others = ui.trains

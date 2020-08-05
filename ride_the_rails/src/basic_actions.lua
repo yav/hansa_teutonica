@@ -12,3 +12,15 @@ function doAddTrain(g,loc,company,k)
   editTrainSupply(company,g.supply[company])
 end
 
+
+function doInvest(g,p,company,k)
+  local s           = g.playerState[p]
+  local shares      = s.shares
+  g.supply[company] = g.supply[company] - 1
+  shares[company]   = shares[company] + 1
+
+  editTrainSupply(company,g.supply[company])
+  spawnShare(s,company,shares[company],k)
+end
+
+

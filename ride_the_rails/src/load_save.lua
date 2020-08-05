@@ -8,11 +8,25 @@ function onLoad(state)
   local map = mapUSA()
 
   local g = newGame(ctrl,map)
-  newGUI(g,||test(g,"Red"))
+  newGUI(g,||testInvest(g))
+end
+
+function testInvest(g)
+  local txtOpts = { { text = "Blue",   val = "Blue" }
+                  , { text = "Red",    val = "Red" }
+                  , { text = "Yellow", val = "Yellow" }
+                  }
+  local mapOpts = {}
+
+  local p = "Pink"
+  askMapLoc(g,p,"Which one",mapOpts,txtOpts,function(ans)
+    doInvest(g,p,ans.value,||testInvest(g))
+  end)
 end
 
 
-function test(g,co)
+
+function testPlacingTrains(g,co)
   local txtOpts = { { text = "Blue",   val = "Blue" }
                   , { text = "Red",    val = "Red" }
                   , { text = "Yellow", val = "Yellow" }

@@ -11,7 +11,7 @@ function newGame(ctrl,map)
 
   local playerState = {}
   for i,player in ipairs(players) do
-    playerState[i] = newPlayer(i,player)
+    playerState[player] = newPlayer(i,player)
   end
 
   local supply = {}
@@ -39,7 +39,7 @@ end
 
 
 function newPlayer(id,color)
-  local shares = {}
+  local shares = { }
   for _,name in ipairs(companyName) do
     shares[name] = 0
   end
