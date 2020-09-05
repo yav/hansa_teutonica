@@ -19,8 +19,7 @@ function britaniaMap23(map)
 
   -- Regions
   local england = 1
-  local scotland = 2
-  local wales = 3
+  local wales = 2
   map.regions = { england, wales }
   map.regionNames = { "England", "Wales" }
   map.defaultRegion = england

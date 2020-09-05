@@ -890,7 +890,7 @@ function foreignOptions(m)
   for _,r in ipairs(m.regions) do
     if r ~= m.defaultRegion then
       local nm = m.regionNames[r]
-      if not lab then lab = nm else lab = lab .. "/" .. nm end
+      if lab == "" then lab = nm else lab = lab .. "/" .. nm end
     end
   end
   return lab
