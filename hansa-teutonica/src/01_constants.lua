@@ -1,5 +1,5 @@
 local version = 3       -- bump this to invalidate saves
-local version_min = 1   -- bump this for fixes that don't affect saves
+local version_min = 2   -- bump this for fixes that don't affect saves
 
 -- Board info
 local boardPieceZ = 1.5
