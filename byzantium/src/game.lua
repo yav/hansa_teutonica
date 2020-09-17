@@ -43,7 +43,6 @@ function newMap()
   addCity(map,"Dyrrachium",2,byzantium)
   addCity(map,"Thessalonica",3,byzantium).bulgarStart = true
   addRoute(map,"Dyrrachium","Thessalonica",road)
-  add
 end
 
 function addRoute(map,from,to,terrain)
@@ -74,15 +73,16 @@ end
 
 --------------------------------------------------------------------------------
 function newFaction()
-  { mainArmy = 0
-  , eliteArmy = 0
-  , eliteBonus = false  -- emperor/caliph
-  , movement = 0
-  , levy = 0
-  , treasury = 0
-  , vp = 0
-  , fieldArmy = nil     -- location of field army
-  }
+  return
+    { mainArmy = 0
+    , eliteArmy = 0
+    , eliteBonus = false  -- emperor/caliph
+    , movement = 0
+    , levy = 0
+    , treasury = 0
+    , vp = 0
+    , fieldArmy = nil     -- location of field army
+    }
 end
 
 
@@ -94,7 +94,7 @@ function newPlayer()
   a.movement = 5
   a.treasury = 5
   a.vp = 10
-  factions[arab] = a
+  factions[arabs] = a
 
   local b = newFaction()
   b.mainArmy = 3
@@ -109,7 +109,7 @@ function newPlayer()
     { casualty = 12
     , available = 9
     , fortifications = 2
-    , passed = false
+    , passed = 0  -- 0 means no; a +ve number indicates in what order we passed
     , factions = factions
     }
 end
