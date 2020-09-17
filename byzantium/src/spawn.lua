@@ -10,8 +10,13 @@ function newGUI(g,k)
   local sem = newSem()
 
   sem.up(); spawnBoard(sem.down)
+  sem.up(); spawnBlocker(-15.7,-12.5,18,10,sem.down)
+  sem.up(); spawnBlocker(24,4.3,15,23.5,sem.down)
   -- sem.up(); spawnDisc({1,0,0,{00,1.2,0},sem.down)
-  sem.up(); spawnPlayer(0,0,newPlayer(),sem.down)
+  sem.up(); spawnPlayer(newPlayer("Red",1),sem.down)
+  sem.up(); spawnPlayer(newPlayer("Green",2),sem.down)
+  sem.up(); spawnPlayer(newPlayer("Yellow",3),sem.down)
+  sem.up(); spawnPlayer(newPlayer("Blue",4),sem.down)
 
   sem.wait(k)
 end
@@ -19,7 +24,7 @@ end
 function spawnBoard(k)
   GUI.board = spawnObject({
     type = "Custom_Tile",
-    position = { -2.5, 1, 0 },
+    position = { 0, 0, 0 },
     rotation = { 0, 180, 0 },
     scale = { 18, 1, 18 },
     callback_function = function(o)
@@ -55,14 +60,32 @@ end
 
 
 
-function spawnPlayer(x,y,pstate,k)
+function spawnPlayer(pstate,k)
+  local o = pstate.order
+  local dx = ({0,1,1,0})[o]
+  local dy = ({0,0,1,1})[o]
+  local x = -23.5 + dx * 10
+  local y = -9 + dy *-5
+
   local h = 1
+  local w = 1
   local sem = newSem()
   sem.up(); spawnFaction(x,y,byzantium_fg_color,byzantium_bg_color,
                                           pstate.factions[byzantium],sem.down)
   y = y - h
   sem.up(); spawnFaction(x,y,arabs_fg_color, arabs_bg_color,
                                           pstate.factions[arabs],sem.down)
+  y = y - h
+  local p  = pstate.color
+  local fg = playerFontColor(p)
+  local bg = playerColor(p)
+  local function info(tip,msg)
+    sem.up()
+    spawnBox(x,y,fg,bg,tip,msg,sem.down)
+  end
+  info("Available",pstate.available); x = x + w
+  info("Casualty",pstate.casualty);   x = x + 2 + 1.5*w
+  info("Fortifications",pstate.fortifications)
 
   sem.wait(k)
 end
@@ -97,7 +120,7 @@ function spawnBox(x,y,fg,bg,tip,msg,k)
       , color          = bg
       , label          = msg
       , click_function = "nop"
-      , position       = { 0, 1.2, 0 }
+      , position       = { 0, 5, 0 }
       , rotation       = { 0, 180, 0 }
       , width          = 500
       , height         = 500
@@ -106,4 +129,21 @@ function spawnBox(x,y,fg,bg,tip,msg,k)
     )
   end)
 end
+
+
+function spawnBlocker(x,y,w,h,k)
+  return spawnObject(
+    { type              = "BlockSquare"
+    , position          = { x, 0.2, y }
+    , scale             = { w, 0.2, h }
+    , sound             = false
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint(Color(0,0,0))
+        k(o)
+      end
+    }
+  )
+end
+
 

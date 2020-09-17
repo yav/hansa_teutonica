@@ -1,6 +1,6 @@
 function playerColor(p)
   if not p then return Color(0.5,0.5,0.5) end
-  if p == "White" then return Color(0.7, 0.7, 0.7) end -- White is broken
+  if p == "White" then return Color(0.9, 0.9, 0.9) end -- White is broken
   return stringColorToRGB(p)
 end
 
@@ -24,8 +24,13 @@ function spawnMenu(x,y,k)
   return spawnObject(
     { type              = "BlockSquare"
     , position          = { x, 0, y }
+    , scale             = { 1, 0.1, 1 }
     , sound             = false
-    , callback_function = function(o) o.setLock(true); k(o) end
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint(Color(0,0,0,0))
+        k(o)
+      end
     }
   )
 end

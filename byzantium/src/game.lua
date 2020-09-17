@@ -86,7 +86,7 @@ function newFaction()
 end
 
 
-function newPlayer()
+function newPlayer(color,order)
   local factions = {}
 
   local a = newFaction()
@@ -111,6 +111,8 @@ function newPlayer()
     , fortifications = 2
     , passed = 0  -- 0 means no; a +ve number indicates in what order we passed
     , factions = factions
+    , color = color
+    , order = order   -- order around table
     }
 end
 
