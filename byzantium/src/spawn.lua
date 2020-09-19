@@ -10,19 +10,18 @@ function newGUI(g,k)
   local sem = newSem()
 
   sem.up(); spawnBoard(sem.down)
-  sem.up(); spawnBlocker(-15.7,-12.5,18,10,sem.down)
-  sem.up(); spawnBlocker(24,4.3,15,23.5,sem.down)
-  sem.up(); spawnPlayer(newPlayer("Red",1),sem.down)
-  sem.up(); spawnPlayer(newPlayer("Green",2),sem.down)
-  sem.up(); spawnPlayer(newPlayer("Yellow",3),sem.down)
-  sem.up(); spawnPlayer(newPlayer("Blue",4),sem.down)
-
+  sem.up(); spawnPlayers(g,sem.down)
   sem.up(); spawnCities(g,sem.down)
 
   sem.wait(k)
 end
 
+
+
+--------------------------------------------------------------------------------
 function spawnBoard(k)
+  local sem = newSem()
+  sem.up()
   GUI.board = spawnObject({
     type = "Custom_Tile",
     position = { 0, 0, 0 },
@@ -30,17 +29,49 @@ function spawnBoard(k)
     scale = { 18, 1, 18 },
     callback_function = function(o)
       o.setLock(true)
-      k()
+      sem.down()
     end
   })
   GUI.board.setCustomObject({
     image = board_url
   })
 
+  sem.up(); spawnBlocker(-15.7,-12.5,18,10,sem.down)
+  sem.up(); spawnBlocker(24,4.3,15,23.5,sem.down)
+  sem.wait(k)
 end
 
+function spawnBlocker(x,y,w,h,k)
+  return spawnObject(
+    { type              = "BlockSquare"
+    , position          = { x, 0.2, y }
+    , scale             = { w, 0.2, h }
+    , sound             = false
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint(Color(0,0,0))
+        k(o)
+      end
+    }
+  )
+end
+--------------------------------------------------------------------------------
 
 
+
+
+
+
+
+--------------------------------------------------------------------------------
+function spawnPlayers(g,k)
+  local sem = newSem()
+  for _,pstate in pairs(g.playerState) do
+    sem.up()
+    spawnPlayer(pstate,sem.down)
+  end
+  sem.wait(k)
+end
 
 function spawnPlayer(pstate,k)
   local o = pstate.order
@@ -109,27 +140,15 @@ function spawnBox(x,y,fg,bg,tip,msg,k)
       , tooltip        = tip
       }
     )
+    k(menu)
   end)
 end
+--------------------------------------------------------------------------------
 
-
-function spawnBlocker(x,y,w,h,k)
-  return spawnObject(
-    { type              = "BlockSquare"
-    , position          = { x, 0.2, y }
-    , scale             = { w, 0.2, h }
-    , sound             = false
-    , callback_function = function(o)
-        o.setLock(true)
-        o.setColorTint(Color(0,0,0))
-        k(o)
-      end
-    }
-  )
-end
 
 
 function spawnCities(g,k)
+  GUI.cities = {}
   local sem = newSem()
   for name,city in pairs(g.map.cities) do
     sem.up()
@@ -146,6 +165,24 @@ function spawnCity(name,city,k)
   local function spawned(o)
     o.setLock(true)
     o.setName(name)
+    local fact = city.faction
+    local descr = "Faction: " .. faction_name[fact]
+    if city.controlledBy ~= nil then
+      descr = descr .. "\nControlled by "
+                                .. playerColorBB(city.controlledBy) .. "."
+    end
+    descr = descr .. "\nStrength: " .. city.strength
+    if city.fortified then
+      descr = descr .. "\nFortified: +1 during siege."
+    end
+
+    if city.constantinople then
+      descr = descr .. "\nThis city may not be claimed."
+      descr = descr .. "\nSacking this city ends the game."
+    end
+
+    o.setDescription(descr)
+
     o.setColorTint(faction_bg_color[city.faction])
     local fg = nil
     local bg = nil
@@ -179,6 +216,7 @@ function spawnCity(name,city,k)
       , height         = scaled(500)
       }
     )
+    GUI.cities[name] = o
     k(o)
   end
 
@@ -207,4 +245,13 @@ function spawnCity(name,city,k)
     })
   end
 end
+
+
+function redrawCity(g,name,k)
+  local o = GUI.cities[name]
+  o.destroy()
+  spawnCity(name,g.map.cities[name],k)
+end
+
+
 

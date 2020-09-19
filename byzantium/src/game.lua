@@ -3,8 +3,8 @@ function newGame(ps)
   shuffle(ps)
 
   pstates = {}
-  for _,p in ipairs(ps) do
-    pstates[p] = newPlayer()
+  for i,p in ipairs(ps) do
+    pstates[p] = newPlayer(p,i)
   end
 
   return

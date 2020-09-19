@@ -4,6 +4,13 @@ local arabs     = 2
 local bulgars   = 3
 local persians  = 4
 
+local faction_name =
+  { "Byzantium"
+  , "Arabs"
+  , "Bulgars"
+  , "Persia"
+  }
+
 local faction_fg_color =
   { Color(0.9, 0.9, 0.9)
   , Color(0,0,0)

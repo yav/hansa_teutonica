@@ -9,16 +9,21 @@ function playerFontColor(p)
 end
 
 function playerColorNote(p,txt)
-  local c = playerColor(p)
+  return colorNote(playerColor(p),txt)
+end
+
+function playerColorBB(p)
+  return playerColorNote(p,p or "")
+end
+
+function colorNote(c,txt)
   return string.format("[%02x%02x%02x]" .. txt .. "[-]",
     math.floor(c[1] * 255),
     math.floor(c[2] * 255),
     math.floor(c[3] * 255))
 end
 
-function playerColorBB(p)
-  return playerColorNote(p,p or "")
-end
+
 
 function spawnMenu(x,y,k)
   return spawnObject(
