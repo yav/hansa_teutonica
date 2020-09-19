@@ -1,4 +1,3 @@
-local GUI
 
 function newGUI(g,k)
   for _,o in pairs(getAllObjects()) do
@@ -187,20 +186,25 @@ end
 
 --------------------------------------------------------------------------------
 function spawnPlayers(g,k)
+  GUI.players = {}
+
   local sem = newSem()
   for _,pstate in pairs(g.playerState) do
     sem.up()
-    spawnPlayer(pstate,sem.down)
+    spawnPlayer(g,pstate,sem.down)
   end
   sem.wait(k)
 end
 
-function spawnPlayer(pstate,k)
+function spawnPlayer(g,pstate,k)
+  local ui = {}
+  GUI.players[pstate.color] = ui
+
   local o = pstate.order
   local dx = ({0,1,1,0})[o]
   local dy = ({0,0,1,1})[o]
   local x = -23.5 + dx * 10
-  local y = -8 + dy *-5
+  local y = -8 - dy * 5
 
   local h = 1
   local w = 1
@@ -210,32 +214,45 @@ function spawnPlayer(pstate,k)
     spawnBox(x,y,Color(0.5,0.5,0.5),Color(0,0,0),tip,msg,sem.down)
   end
   local x0 = x
-  label("Elite Army","E"); x = x + w
-  label("Main Arymy","A"); x = x + w
-  label("Levy","L"); x = x + w
-  label("Movement","M"); x = x + 1.5 * w
-  label("Treasury","$"); x = x + 1.5 * w
-  label("VP","VP"); x = x + 1.5 * w
+  label("Elite Army","E");  x = x + w
+  label("Main Army","A");   x = x + w
+  label("Levy","L");        x = x + w
+  label("Movement","M");    x = x + 1.5 * w
+  label("Treasury","$");    x = x + 1.5 * w
+  label("VP","VP");         x = x + 1.5 * w
 
-  x = x0
+  x = x0; y = y - h
+
+  local factions = {}
+  ui.factions = factions
+  sem.up()
+  factions[byzantium] =
+    spawnFaction(x,y,byzantium, pstate.factions[byzantium],sem.down)
+
   y = y - h
-  sem.up(); spawnFaction(x,y,byzantium, pstate.factions[byzantium],sem.down)
-  y = y - h
-  sem.up(); spawnFaction(x,y,arabs, pstate.factions[arabs],sem.down)
+  sem.up()
+  factions[arabs] = spawnFaction(x,y,arabs, pstate.factions[arabs],sem.down)
+
+  x = x0 + 0.5 * w
   y = y - h
   local p  = pstate.color
   local fg = playerFontColor(p)
   local bg = playerColor(p)
-  local function info(tip,msg)
+  local function info(id,tip,msg)
     sem.up()
-    spawnBox(x,y,fg,bg,tip,msg,sem.down)
+    spawnBox(x,y,fg,bg,tip,msg,function(o)
+      ui[id] = o
+      sem.down()
+    end)
   end
-  info("Available",pstate.available); x = x + w
-  info("Casualty",pstate.casualty);   x = x + 2 + 1.5*w
-  info("Fortifications",pstate.fortifications)
+
+  -- ids should match the fields in the model
+  info("available",      "Available",      pstate.available); x = x + w
+  info("casualty",       "Casualty",       pstate.casualty);  x = x + 3.5 * w
+  info("fortifications", "Fortifications", pstate.fortifications)
 
   y = y - h
-  x = x0
+  x = x0 + 0.5 * w
   label("Available","[00FF00]✓[-]"); x = x + w
   label("Casualty", "[FF0000]✗[-]"); x = x + 3.5 * w
   label("Fortifications", "F")
@@ -248,20 +265,35 @@ function spawnFaction(x,y,name,f,k)
   local fg  = faction_fg_color[name]
   local bg  = faction_bg_color[name]
   local w   = 1
+
+  local ui  = {}
+
   local sem = newSem()
-  local function info(tip,msg)
+  local function info(id,tip)
     sem.up()
-    spawnBox(x,y,fg,bg,tip,msg,sem.down)
+    spawnBox(x,y,fg,bg,tip,factionValueLabel(id,f),function(o)
+      ui[id] = o
+      sem.down()
+    end)
   end
 
   local x0 = x
-  info("Elite Army ($3)",f.eliteArmy); x = x + w
-  info("Main Army ($1)",f.mainArmy); x = x + w
-  info("Levy ($2)",f.levy); x = x + w
-  info("Movement ($1)",f.movement); x = x + 1.5 * w
-  info("Treasury", f.treasury); x = x + 1.5 * w
-  info("VP", f.vp)
+  -- ids should match the names in the model
+  info("eliteArmy", "Elite Army ($3)"); x = x + w
+  info("mainArmy",  "Main Army ($1)");  x = x + w
+  info("levy",      "Levy ($2)");       x = x + w
+  info("movement",  "Movement ($1)");   x = x + 1.5 * w
+  info("treasury",  "Treasury");        x = x + 1.5 * w
+  info("vp",        "VP")
   sem.wait(k)
+
+  return ui
+end
+
+function factionValueLabel(stat,f)
+  local lab = f[stat]
+  if stat == "eliteArmy" and f.royalty then lab = lab .. "+1" end
+  return lab
 end
 
 
@@ -284,6 +316,10 @@ function spawnBox(x,y,fg,bg,tip,msg,k)
     )
     k(menu)
   end)
+end
+
+function editBox(obj,val)
+  obj.editButton({ index = 0, label = val })
 end
 --------------------------------------------------------------------------------
 

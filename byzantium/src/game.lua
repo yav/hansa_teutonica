@@ -76,6 +76,7 @@ function newFaction()
     , treasury = 0
     , vp = 0
     , fieldArmy = nil     -- location of field army
+    , royalty = false
     }
 end
 

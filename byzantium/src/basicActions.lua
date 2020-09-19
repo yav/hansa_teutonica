@@ -1,23 +1,41 @@
 
-function useAvailableWorker(game,player)
+function changePlayerStat(stat)
+  return
+    function(game,player,diff)
+      local pstate      = getPlayerState(game,player)
+      local a           = pstate[stat] + diff
+      pstate[stat]      = a
+
+      editBox(GUI.players[player][stat], a)
+    end
 end
 
-function useCasualtyWorker(game,player,faction)
+function changeFactionStat(stat)
+  return
+    function(game,player,faction,diff)
+      local pstate      = getPlayerState(game,player)
+      local f           = pstate.factions[faction]
+      local a           = f[stat] + diff
+      f[stat]           = a
+
+      editBox(GUI.players[player].factions[faction][stat],
+                                                factionValueLabel(stat,f))
+    end
 end
 
-function useEliteArmyWorker(game,player,faction)
+changeAvailableWorkers = changePlayerStat("available")
+changeCasualties       = changePlayerStat("casualty")
+changeFortifications   = changePlayerStat("fortifications")
+
+changeEliteArmy        = changeFactionStat("eliteArmy")
+changeMainArmy         = changeFactionStat("mainArmy")
+changeLevy             = changeFactionStat("levy")
+changeMovement         = changeFactionStat("movement")
+changeTreasury         = changeFactionStat("treasury")
+changeVP               = changeFactionStat("vp")
+
+function changeRoyalty(game,player,faction,val)
+  getPlayerState(game,player).factions[faction].royalty = val
+  changeEliteArmy(game,player,faction,0)
 end
 
-function useMainArmyWorker(game,player,faction)
-end
-
-function useMovementWorker(game,player,faction)
-end
-
-function useLevyWorker(game,player,faction)
-end
-
--- Gain control of a city, assuming that payment has been already made
-function doGainControl(game,player,city)
-  
-end
