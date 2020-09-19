@@ -60,7 +60,7 @@ function spawnMenuItem(p,menu,ix,lab,f)
     , color          = bg
     , label          = msg
     , click_function = f or "nop"
-    , position       = { 0, 1.2, -ix }
+    , position       = { 0, 3.2, -ix }
     , rotation       = { 0, 180, 0 }
     , width          = 4000
     , height         = 400

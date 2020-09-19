@@ -170,7 +170,7 @@ function spawnBlocker(x,y,w,h,k)
     , sound             = false
     , callback_function = function(o)
         o.setLock(true)
-        o.setColorTint(Color(0,0,0))
+        o.setColorTint(Color(0.2,0.2,0.2))
         k(o)
       end
     }

@@ -1,17 +1,24 @@
 
-function newGame(ps)
-  shuffle(ps)
+function newGame(controlledBy)
+  local ps = {}
+  local i = 1
+  for p,_ in pairs(controlledBy) do
+    ps[i] = p
+    i = i + 1
+  end
 
+  shuffle(ps)
   pstates = {}
-  for i,p in ipairs(ps) do
+  for i,p in pairs(ps) do
     pstates[p] = newPlayer(p,i)
   end
 
   return
-    { map         = newMap()
-    , finished    = false
-    , bulgarArmy  = 7
-    , playerState = pstates
+    { controlledBy  = controlledBy
+    , map           = newMap()
+    , finished      = false
+    , bulgarArmy    = 7
+    , playerState   = pstates
 
     -- player order
     , players     = ps
