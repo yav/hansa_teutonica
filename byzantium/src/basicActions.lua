@@ -39,3 +39,25 @@ function changeRoyalty(game,player,faction,val)
   changeEliteArmy(game,player,faction,0)
 end
 
+
+-- we don't compute the faction from the city, as if the army is
+-- attacking then these will no match.
+function doPlaceArmy(g,player,faction,city,k)
+  getPlayerState(g,player).factions[faction].fieldArmy = city
+  spawnArmy(g,player,city,function(o)
+    GUI.players[player].factions[faction].fieldArmy = o
+    k(o)
+  end)
+end
+
+function doMoveArmy(g,player,faction,city)
+  local fstate = getPlayerState(g,player).factions[faction]
+  local curCity = fstate.fieldArmy
+  fstate.fieldArmy = city
+
+  local newLoc = armyPos(g,player,city)
+  local o = GUI.players[player].factions[faction].fieldArmy
+  o.setPositionSmooth(newLoc,false,false)
+end
+
+

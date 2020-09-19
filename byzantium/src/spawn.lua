@@ -189,16 +189,17 @@ function spawnPlayers(g,k)
   GUI.players = {}
 
   local sem = newSem()
-  for _,pstate in pairs(g.playerState) do
+  for _,player in ipairs(g.players) do
     sem.up()
-    spawnPlayer(g,pstate,sem.down)
+    spawnPlayer(g,player,sem.down)
   end
   sem.wait(k)
 end
 
-function spawnPlayer(g,pstate,k)
+function spawnPlayer(g,player,k)
+  local pstate = getPlayerState(g,player)
   local ui = {}
-  GUI.players[pstate.color] = ui
+  GUI.players[player] = ui
 
   local o = pstate.order
   local dx = ({0,1,1,0})[o]
@@ -226,12 +227,11 @@ function spawnPlayer(g,pstate,k)
   local factions = {}
   ui.factions = factions
   sem.up()
-  factions[byzantium] =
-    spawnFaction(x,y,byzantium, pstate.factions[byzantium],sem.down)
+  factions[byzantium] = spawnFaction(g,player,byzantium, x, y, sem.down)
 
   y = y - h
   sem.up()
-  factions[arabs] = spawnFaction(x,y,arabs, pstate.factions[arabs],sem.down)
+  factions[arabs] = spawnFaction(g,player,arabs, x, y, sem.down)
 
   x = x0 + 0.5 * w
   y = y - h
@@ -261,12 +261,15 @@ function spawnPlayer(g,pstate,k)
 end
 
 
-function spawnFaction(x,y,name,f,k)
-  local fg  = faction_fg_color[name]
-  local bg  = faction_bg_color[name]
+function spawnFaction(g,player,faction,x,y,k)
+  local fg  = faction_fg_color[faction]
+  local bg  = faction_bg_color[faction]
   local w   = 1
 
   local ui  = {}
+
+  local pstate = getPlayerState(g,player)
+  local f      = pstate.factions[faction]
 
   local sem = newSem()
   local function info(id,tip)
@@ -285,8 +288,17 @@ function spawnFaction(x,y,name,f,k)
   info("movement",  "Movement ($1)");   x = x + 1.5 * w
   info("treasury",  "Treasury");        x = x + 1.5 * w
   info("vp",        "VP")
-  sem.wait(k)
 
+  ui.fieldArmy = nil
+  if f.fieldArmy ~= nil then
+    sem.up()
+    spawnArmy(g,player,f.fieldArmy,function(o)
+      ui.fieldArmy = o
+      sem.down()
+    end)
+  end
+
+  sem.wait(k)
   return ui
 end
 
@@ -321,6 +333,32 @@ end
 function editBox(obj,val)
   obj.editButton({ index = 0, label = val })
 end
+
+
+
+
+--------------------------------------------------------------------------------
+
+function spawnArmy(g,player,city,k)
+  spawnObject(
+    { type      = "PlayerPawn"
+    , position  = armyPos(g,player,city)
+    , sound     = false
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint(playerColor(player))
+        k(o)
+      end
+    })
+end
+
+function armyPos(g,player,city)
+  local n     = getPlayerState(g,player).order
+  local angle = -math.pi * (1 - n / 6)
+  local pos   = GUI.cities[city].getPosition()
+  return { pos.x + 1.2 * math.cos(angle), 0.2, pos.z + 1.2 * math.sin(angle) }
+end
+
 --------------------------------------------------------------------------------
 
 
@@ -428,9 +466,8 @@ end
 
 
 function redrawCity(g,name,k)
-  local o = GUI.cities[name]
-  o.destroy()
-  spawnCity(name,g.map.cities[name],k)
+  GUI.cities[name].destroy()
+  spawnCity(name,g.map.cities[name], k)
 end
 --------------------------------------------------------------------------------
 

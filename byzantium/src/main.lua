@@ -6,13 +6,13 @@ end
 
 
 function test(g)
-  g.map.cities["Tabuk"].controlledBy = "Red"
-  g.map.cities["Tabuk"].fortified = true
-  changeAvailableWorkers(g,"Blue",-5)
-  changeEliteArmy(g,"Red",arabs,17)
-  changeRoyalty(g,"Red",byzantium,true)
-  changeRoyalty(g,"Red",arabs,true)
-  redrawCity(g,"Tabuk",||1)
+  local q = actQ()
+  q.enQ(||doPlaceArmy(g,"Red",byzantium,"Damascus",q.next))
+  q.enQ(||doPlaceArmy(g,"Green",byzantium,"Palmyra",q.next))
+  q.enQ(function()
+    doMoveArmy(g,"Red",byzantium,"Palmyra")
+    doMoveArmy(g,"Green",byzantium,"Damascus")
+  end)
 end
 
 
