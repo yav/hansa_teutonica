@@ -40,26 +40,6 @@ function spawnBoard(k)
 end
 
 
-function spawnDisc(color,loc,k)
-  local s = 0.75
-  local o = spawnObject({
-    type = "Custom_Model",
-    scale = { s,s,s },
-    position = loc,
-    sound = false,
-    callback_function = function(o)
-      o.setColorTint(color)
-      o.setLock(true)
-      k(o)
-    end
-  })
-  o.setCustomObject({
-    mesh = disc_url,
-    material = 1
-  })
-  return o
-end
-
 
 
 function spawnPlayer(pstate,k)
@@ -161,9 +141,70 @@ end
 -- XXX: Constantinople square
 function spawnCity(name,city,k)
   local loc = { city.x, 0.2, city.y }
-  spawnDisc(faction_bg_color[city.faction],loc,function(o)
+  local s
+
+  local function spawned(o)
     o.setLock(true)
     o.setName(name)
-  end)
+    o.setColorTint(faction_bg_color[city.faction])
+    local fg = nil
+    local bg = nil
+    local msg = city.strength .. ""
+    if city.fortified then msg = msg .. "+1" end
+
+    local owner = city.controlledBy
+    if owner ~= nil then
+      fg = playerFontColor(owner)
+      bg = playerColor(owner)
+    else
+      fg = faction_fg_color[city.faction]
+      bg = faction_bg_color[city.faction]
+    end
+
+    local function scaled(x)
+      return x/s
+    end
+
+    o.createButton(
+      { font_size      = scaled(300)
+      , font_color     = fg
+      , hover_color    = bg
+      , press_color    = bg
+      , color          = bg
+      , label          = msg
+      , click_function = "nop"
+      , position       = { 0, 0.5, 0 }
+      , rotation       = { 0, 180, 0 }
+      , width          = scaled(500)
+      , height         = scaled(500)
+      }
+    )
+    k(o)
+  end
+
+  if city.constantinople then
+    s = 1.5
+    spawnObject(
+      { type              = "BlockSquare"
+      , position          = loc
+      , scale             = { s, 1, s }
+      , sound             = false
+      , callback_function = spawned
+      }
+    )
+  else
+    s = 0.75
+    local o = spawnObject({
+      type = "Custom_Model",
+      scale = { s,s,s },
+      position = loc,
+      sound = false,
+      callback_function = spawned
+    })
+    o.setCustomObject({
+      mesh = disc_url,
+      material = 1
+    })
+  end
 end
 
