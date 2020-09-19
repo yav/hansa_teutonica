@@ -37,19 +37,11 @@ end
 --------------------------------------------------------------------------------
 
 
-
-function newMap()
-  local map = { cities = {} , routes = {} }
-  addCity(map,"Dyrrachium",2,byzantium)
-  addCity(map,"Thessalonica",3,byzantium).bulgarStart = true
-  addRoute(map,"Dyrrachium","Thessalonica",road)
-end
-
 function addRoute(map,from,to,terrain)
   push(map.routes, { from = from, to = to, terrain = terrain })
 end
 
-function addCity(map,name,strength,faction)
+function addCity(map,name,faction,strength,x,y)
   local city =
     { strength       = strength
     , controlledBy   = nil
@@ -57,6 +49,8 @@ function addCity(map,name,strength,faction)
     , faction        = faction
     , bulgarStart    = false
     , constantinople = name == "Constantinople"
+    , x              = x
+    , y              = y
     }
   map.cities[name] = city
   return city

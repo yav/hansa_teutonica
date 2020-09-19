@@ -12,11 +12,12 @@ function newGUI(g,k)
   sem.up(); spawnBoard(sem.down)
   sem.up(); spawnBlocker(-15.7,-12.5,18,10,sem.down)
   sem.up(); spawnBlocker(24,4.3,15,23.5,sem.down)
-  -- sem.up(); spawnDisc({1,0,0,{00,1.2,0},sem.down)
   sem.up(); spawnPlayer(newPlayer("Red",1),sem.down)
   sem.up(); spawnPlayer(newPlayer("Green",2),sem.down)
   sem.up(); spawnPlayer(newPlayer("Yellow",3),sem.down)
   sem.up(); spawnPlayer(newPlayer("Blue",4),sem.down)
+
+  sem.up(); spawnCities(g,sem.down)
 
   sem.wait(k)
 end
@@ -45,6 +46,7 @@ function spawnDisc(color,loc,k)
     type = "Custom_Model",
     scale = { s,s,s },
     position = loc,
+    sound = false,
     callback_function = function(o)
       o.setColorTint(color)
       o.setLock(true)
@@ -70,11 +72,9 @@ function spawnPlayer(pstate,k)
   local h = 1
   local w = 1
   local sem = newSem()
-  sem.up(); spawnFaction(x,y,byzantium_fg_color,byzantium_bg_color,
-                                          pstate.factions[byzantium],sem.down)
+  sem.up(); spawnFaction(x,y,byzantium, pstate.factions[byzantium],sem.down)
   y = y - h
-  sem.up(); spawnFaction(x,y,arabs_fg_color, arabs_bg_color,
-                                          pstate.factions[arabs],sem.down)
+  sem.up(); spawnFaction(x,y,arabs, pstate.factions[arabs],sem.down)
   y = y - h
   local p  = pstate.color
   local fg = playerFontColor(p)
@@ -91,7 +91,9 @@ function spawnPlayer(pstate,k)
 end
 
 
-function spawnFaction(x,y,fg,bg,f,k)
+function spawnFaction(x,y,name,f,k)
+  local fg  = faction_fg_color[name]
+  local bg  = faction_bg_color[name]
   local w   = 1
   local sem = newSem()
   local function info(tip,msg)
@@ -146,4 +148,22 @@ function spawnBlocker(x,y,w,h,k)
   )
 end
 
+
+function spawnCities(g,k)
+  local sem = newSem()
+  for name,city in pairs(g.map.cities) do
+    sem.up()
+    spawnCity(name,city,sem.down)
+  end
+  sem.wait(k)
+end
+
+-- XXX: Constantinople square
+function spawnCity(name,city,k)
+  local loc = { city.x, 0.2, city.y }
+  spawnDisc(faction_bg_color[city.faction],loc,function(o)
+    o.setLock(true)
+    o.setName(name)
+  end)
+end
 
