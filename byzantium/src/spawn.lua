@@ -472,4 +472,31 @@ end
 --------------------------------------------------------------------------------
 
 
+function rollDice(player,n,k)
+  local x = 20
+  local y = 5
+  local sem = newSem()
+  local dice = {}
+  for i = 1,n do
+    sem.up()
+    dice[i] = spawnObject(
+      { type = "Die_6_Rounded"
+      , sound = false
+      , position = { x + i, 10, y }
+      , callback_function = function(o)
+          o.setColorTint(playerColor(player))
+          o.roll()
+          Wait.frames(||when(||o.resting,sem.down), 10)
+        end
+      }
+    )
+  end
+  sem.wait(function()
+    local result = {}
+    for i,d in ipairs(dice) do
+      result[i] = d.getRotationValue()
+    end
+    k(result)
+  end)
+end
 
