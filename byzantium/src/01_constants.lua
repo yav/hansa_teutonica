@@ -30,6 +30,44 @@ local road      = 1
 local sea       = 2
 local desert    = 3
 
+-- action spaces
+local bulgars_1         = 1
+local bulgars_2         = 2
+local fortify_1         = 3
+local fortify_2         = 4
+local byz_improve_1     = 5
+local byz_improve_2     = 6
+local emperor           = 7
+local byz_civil_war     = 8
+local byz_fleet         = 9
+local arab_improve_1    = 10
+local arab_improve_2    = 11
+local arab_improve_3    = 12
+local caliph            = 13
+local arab_civil_war_1  = 14
+local arab_civil_war_2  = 15
+local arab_fleet        = 16
+
+local allActionSpaces =
+  { bulgars_1
+  , bulgars_2
+  , fortify_1
+  , fortify_2
+  , byz_improve_1
+  , byz_improve_2
+  , emperor
+  , byz_civil_war
+  , byz_fleet
+  , arab_improve_1
+  , arab_improve_2
+  , arab_improve_3
+  , caliph
+  , arab_civil_war_1
+  , arab_civil_war_2
+  , arab_fleet
+  }
+
+
 
 --------------------------------------------------------------------------------
 local GUI

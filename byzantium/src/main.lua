@@ -17,7 +17,11 @@ function test(g)
     askText(g,"Green","Where?", { {text="Mosul",val="Mosul"}
                                 , {text="Antioch",val="Antioch"}
                                 }
-            , |x| doMoveArmy(g,"Green",byzantium,x))
+            , function(x)
+                doRemoveArmy(g,"Green",byzantium)
+                newGUI(g,||1)
+              end
+          )
   end)
 end
 

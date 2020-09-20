@@ -6,13 +6,12 @@ function newGUI(g,k)
   -- if 1 == 1 then return end
 
   GUI = {}
-  local sem = newSem()
+  local q = actQ()
 
-  sem.up(); spawnBoard(sem.down)
-  sem.up(); spawnPlayers(g,sem.down)
-  sem.up(); spawnCities(g,sem.down)
-
-  sem.wait(k)
+  q.enQ(||spawnBoard(q.next))
+  q.enQ(||spawnCities(g,q.next))
+  q.enQ(||spawnPlayers(g,q.next))
+  q.enQ(k)
 end
 
 
@@ -45,99 +44,26 @@ function spawnBoard(k)
   local dy = 0.131
   local sz = 60
 
-  local msg = table.concat(
-    { "Bulgar Army (Byzantium/Arabs)"
-    , ""
-    , "1. Increase Bulgar army strength by 2"
-    , "2. Either:"
-    , "     - Attack neighbouring city, or"
-    , "     - Increase strength by 2 more."
-    , ""
-    , "* Strength may not exceed 11."
-    , "* May only use roads."
-    },"\n")
-  spawnTip(x,y,sz,"bulgar-1",msg); x = x + dx
-  spawnTip(x,y,sz,"bulgar-2",msg); x = x + dx
-
-  msg = table.concat(
-    { "Fortify City (Byzantium/Arabs)"
-    , ""
-    , "Add one of your fortifications"
-    , "to a city you control."
-    , ""
-    , "* Fortifications add +1 when"
-    , "  a city is besieged."
-    , ""
-    , "* Fortifications stay with the city"
-    , "  until it is sacked."
-    , ""
-    , "* A city may have only one"
-    , "  foritification."
-    }, "\n")
-  spawnTip(x,y,sz,"fortify-1",msg); x = x + dx
-  spawnTip(x,y,sz,"fortify-2",msg); x = x + dx
+  spawnTip(x,y,sz, bulgars_1, bulgar_army_text);  x = x + dx
+  spawnTip(x,y,sz, bulgars_2, bulgar_army_text);  x = x + dx
+  spawnTip(x,y,sz, fortify_1, fortify_text);      x = x + dx
+  spawnTip(x,y,sz, fortify_2, fortify_text);      x = x + dx
 
   x = x0; y = y + dy
-
-  msg = table.concat(
-    { "Improve City (Byzantium)"
-    , ""
-    , "Add +1 strength to a Byzantine city."
-    , ""
-    , "* No need to control the city."
-    , ""
-    , "* City strength may not exceed 3"
-    , "  (fortifications do not count)."
-    }, "\n")
-  spawnTip(x,y,sz,"byz-improve-1",msg); x = x + dx
-  spawnTip(x,y,sz,"byz-improve-2",msg); x = x + dx
-
-  msg = table.concat(
-    { "Emperor (Byzantium)"
-    }, "\n")
-  spawnTip(x,y,sz,"emperor",msg); x = x + dx
-
-  msg = table.concat(
-    { "Civil War (Byzantium)"
-    }, "\n")
-  spawnTip(x,y,sz,"byz-civil-war",msg); x = x + dx
-
-  msg = table.concat(
-    { "Fleet (Byzantium)"
-    }, "\n")
-  spawnTip(x,y,sz,"byz-fleet",msg); x = x + dx
+  spawnTip(x,y,sz, byz_improve_1,  byz_improve_text);   x = x + dx
+  spawnTip(x,y,sz, byz_improve_2,  byz_improve_text);   x = x + dx
+  spawnTip(x,y,sz, emperor,        emperor_text);       x = x + dx
+  spawnTip(x,y,sz, byz_civil_war,  byz_civil_war_text); x = x + dx
+  spawnTip(x,y,sz, byz_fleet,      byz_fleet);          x = x + dx
 
   x = x0; y = y + dy
-
-  msg = table.concat(
-    { "Improve City (Arab)"
-    , ""
-    , "Add +1 strength to an Arab city."
-    , ""
-    , "* No need to control the city."
-    , ""
-    , "* City strength may not exceed 3"
-    , "  (fortifications do not count)."
-    }, "\n")
-  spawnTip(x,y,sz,"arab-improve-1",msg); x = x + dx
-  spawnTip(x,y,sz,"arab-improve-2",msg); x = x + dx
-  spawnTip(x,y,sz,"arab-improve-3",msg); x = x + dx
-
-  msg = table.concat(
-    { "Caliph (Arab)"
-    }, "\n")
-  spawnTip(x,y,sz,"caliph",msg); x = x + dx
-
-  msg = table.concat(
-    { "Civil War (Arab)"
-    }, "\n")
-  spawnTip(x,y,sz,"arab-civil-war-1",msg); x = x + dx
-  spawnTip(x,y,sz,"arab-civil-war-2",msg); x = x + dx
-
-  msg = table.concat(
-    { "Fleet (Arab)"
-    }, "\n")
-  spawnTip(x,y,sz,"arab-fleet",msg); x = x + dx
+  spawnTip(x,y,sz, arab_improve_1,   arab_improve_text);    x = x + dx
+  spawnTip(x,y,sz, arab_improve_2,   arab_improve_text);    x = x + dx
+  spawnTip(x,y,sz, arab_improve_3,   arab_improve_text);    x = x + dx
+  spawnTip(x,y,sz, caliph,           caliph_text);          x = x + dx
+  spawnTip(x,y,sz, arab_civil_war_1, arab_civil_war_text);  x = x + dx
+  spawnTip(x,y,sz, arab_civil_war_2, arab_civil_war_text);  x = x + dx
+  spawnTip(x,y,sz, arab_fleet,       arab_fleet_text);      x = x + dx
 
   sem.wait(k)
 end

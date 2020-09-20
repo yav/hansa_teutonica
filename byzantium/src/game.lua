@@ -13,12 +13,15 @@ function newGame(controlledBy)
     pstates[p] = newPlayer(p,i)
   end
 
+  local as = {}
+
   return
     { controlledBy  = controlledBy
     , map           = newMap()
     , finished      = false
     , bulgarArmy    = 7
     , playerState   = pstates
+    , actionSpaces  = as
 
     -- player order
     , players     = ps
@@ -112,6 +115,7 @@ function newPlayer(color,order)
     , available = 9
     , fortifications = 2
     , passed = 0  -- 0 means no; a +ve number indicates in what order we passed
+    , taxed = 0   -- how many cubes we have in taxation
     , factions = factions
     , color = color
     , order = order   -- order around table

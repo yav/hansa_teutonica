@@ -1,4 +1,7 @@
 
+--------------------------------------------------------------------------------
+-- Player stats
+
 function changePlayerStat(stat)
   return
     function(game,player,diff)
@@ -40,6 +43,9 @@ function changeRoyalty(game,player,faction,val)
 end
 
 
+--------------------------------------------------------------------------------
+-- Armies
+
 -- we don't compute the faction from the city, as if the army is
 -- attacking then these will no match.
 function doPlaceArmy(g,player,faction,city,k)
@@ -59,5 +65,18 @@ function doMoveArmy(g,player,faction,city)
   local o = GUI.players[player].factions[faction].fieldArmy
   o.setPositionSmooth(newLoc,false,false)
 end
+
+function doRemoveArmy(g,player,faction)
+  getPlayerState(g,player).factions[faction].fieldArmy = nil
+  local f = GUI.players[player].factions[faction]
+  f.fieldArmy.destroy()
+  f.fieldArmy = nil
+end
+
+
+
+--------------------------------------------------------------------------------
+-- Cities
+
 
 
