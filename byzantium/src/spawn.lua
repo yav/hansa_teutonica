@@ -6,12 +6,17 @@ function newGUI(g,k)
   -- if 1 == 1 then return end
 
   GUI = {}
-  local q = actQ()
 
-  q.enQ(||spawnBoard(q.next))
-  q.enQ(||spawnCities(g,q.next))
-  q.enQ(||spawnPlayers(g,q.next))
-  q.enQ(k)
+  local sem = newSem()
+  local citiesDone = false
+  sem.up(); spawnBoard(sem.down)
+  sem.up(); spawnActions(g,sem.down)
+  sem.up(); spawnCities(g, function()
+    citiesDone = true
+    sem.down()
+  end)
+  sem.up(); when(||citiesDone, ||spawnPlayers(g,sem.down))
+  sem.wait(k)
 end
 
 
@@ -36,35 +41,6 @@ function spawnBoard(k)
 
   sem.up(); spawnBlocker(-15.7,-12.5,18,10.5,sem.down)
   sem.up(); spawnBlocker(24,4.3,15,23.5,sem.down)
-
-  local x0 = -1.1
-  local x = x0
-  local y = 0.015
-  local dx = 0.131
-  local dy = 0.131
-  local sz = 60
-
-  spawnTip(x,y,sz, bulgars_1, bulgar_army_text);  x = x + dx
-  spawnTip(x,y,sz, bulgars_2, bulgar_army_text);  x = x + dx
-  spawnTip(x,y,sz, fortify_1, fortify_text);      x = x + dx
-  spawnTip(x,y,sz, fortify_2, fortify_text);      x = x + dx
-
-  x = x0; y = y + dy
-  spawnTip(x,y,sz, byz_improve_1,  byz_improve_text);   x = x + dx
-  spawnTip(x,y,sz, byz_improve_2,  byz_improve_text);   x = x + dx
-  spawnTip(x,y,sz, emperor,        emperor_text);       x = x + dx
-  spawnTip(x,y,sz, byz_civil_war,  byz_civil_war_text); x = x + dx
-  spawnTip(x,y,sz, byz_fleet,      byz_fleet);          x = x + dx
-
-  x = x0; y = y + dy
-  spawnTip(x,y,sz, arab_improve_1,   arab_improve_text);    x = x + dx
-  spawnTip(x,y,sz, arab_improve_2,   arab_improve_text);    x = x + dx
-  spawnTip(x,y,sz, arab_improve_3,   arab_improve_text);    x = x + dx
-  spawnTip(x,y,sz, caliph,           caliph_text);          x = x + dx
-  spawnTip(x,y,sz, arab_civil_war_1, arab_civil_war_text);  x = x + dx
-  spawnTip(x,y,sz, arab_civil_war_2, arab_civil_war_text);  x = x + dx
-  spawnTip(x,y,sz, arab_fleet,       arab_fleet_text);      x = x + dx
-
   sem.wait(k)
 end
 
@@ -96,7 +72,7 @@ function spawnBlocker(x,y,w,h,k)
     , sound             = false
     , callback_function = function(o)
         o.setLock(true)
-        o.setColorTint(Color(0.2,0.2,0.2))
+        o.setColorTint(blocker_color)
         k(o)
       end
     }
@@ -138,7 +114,7 @@ function spawnPlayer(g,player,k)
   local sem = newSem()
   local function label(tip,msg)
     sem.up()
-    spawnBox(x,y,Color(0.5,0.5,0.5),Color(0,0,0),tip,msg,sem.down)
+    spawnBox(x,y,Color(0.5,0.5,0.5),blocker_color,tip,msg,sem.down)
   end
   local x0 = x
   label("Elite Army","E");  x = x + w
@@ -159,7 +135,7 @@ function spawnPlayer(g,player,k)
   sem.up()
   factions[arabs] = spawnFaction(g,player,arabs, x, y, sem.down)
 
-  x = x0 + 0.5 * w
+  x = x0
   y = y - h
   local p  = pstate.color
   local fg = playerFontColor(p)
@@ -173,15 +149,12 @@ function spawnPlayer(g,player,k)
   end
 
   -- ids should match the fields in the model
-  info("available",      "Available",      pstate.available); x = x + w
-  info("casualty",       "Casualty",       pstate.casualty);  x = x + 3.5 * w
+  label("Available","[00FF00]✓[-]");                          x = x + w
+  info("available",      "Available",      pstate.available); x = x + 1.5 * w
+  label("Casualty", "[FF0000]✗[-]");                          x = x + w
+  info("casualty",       "Casualty",       pstate.casualty);  x = x + 1.5 * w
+  label("Fortifications", "F")                                x = x + w
   info("fortifications", "Fortifications", pstate.fortifications)
-
-  y = y - h
-  x = x0 + 0.5 * w
-  label("Available","[00FF00]✓[-]"); x = x + w
-  label("Casualty", "[FF0000]✗[-]"); x = x + 3.5 * w
-  label("Fortifications", "F")
 
   sem.wait(k)
 end
@@ -425,4 +398,57 @@ function rollDice(player,n,k)
     k(result)
   end)
 end
+
+--------------------------------------------------------------------------------
+
+function spawnActions(g,k)
+  GUI.actions = {}
+  local sem = newSem()
+  for _,action in ipairs(allActionSpaces) do
+    sem.up()
+    spawnAction(action,g.actionSpaces[action],sem.down)
+  end
+  sem.wait(k)
+end
+
+function spawnAction(action,owner,k)
+  local color = owner and playerColor(owner) or Color(0,0,0,0)
+  spawnCube(color, actionLoc(action), function(o)
+    o.setName(action_name[action])
+    o.setDescription(action_text[action])
+    GUI.actions[action] = o
+    k(o)
+  end)
+end
+
+function spawnCube(color,loc,k)
+  local s = 1
+  spawnObject(
+    { type              = "BlockSquare"
+    , position          = { loc[1], 0.7, loc[2] }
+    , scale             = { s, s, s }
+    , sound             = false
+    , callback_function = function(o)
+        o.setLock(true)
+        o.setColorTint(color)
+        k(o)
+      end
+    }
+  )
+end
+
+function actionLoc(act)
+  local x0 = -23.44
+  local y0 = -0.3
+  local dx = 2.67
+  local dy = 2.67
+  local sx
+  local sy
+  if     act > 9 then sx = act - 10; sy = 2
+  elseif act > 4 then sx = act - 5;  sy = 1
+  else                sx = act - 1;  sy = 0
+  end
+  return { x0 + sx * dx, y0 - sy * dy }
+end
+
 

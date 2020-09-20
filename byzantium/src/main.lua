@@ -11,6 +11,7 @@ end
 
 function test(g)
   local q = actQ()
+
   q.enQ(||doPlaceArmy(g,"Red",byzantium,"Damascus",q.next))
   q.enQ(||doPlaceArmy(g,"Green",byzantium,"Palmyra",q.next))
   q.enQ(function()

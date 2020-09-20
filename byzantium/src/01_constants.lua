@@ -68,6 +68,7 @@ local allActionSpaces =
   }
 
 
+local blocker_color = Color(0.2,0.2,0.2)
 
 --------------------------------------------------------------------------------
 local GUI
