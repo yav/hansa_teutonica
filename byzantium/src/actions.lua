@@ -1,3 +1,4 @@
+-- XXX: this is wrong: it is ok to use *any* cube no matter the faction
 function workerOptions(game,player,faction)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
