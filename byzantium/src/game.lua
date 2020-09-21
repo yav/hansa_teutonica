@@ -49,6 +49,12 @@ end
 
 function addRoute(map,from,to,terrain)
   push(map.routes, { from = from, to = to, terrain = terrain })
+  if terrain == sea then
+    local x = map.cities[from]
+    if not x.constantinople then x.mediterranean = true end
+    x = map.cities[to]
+    if not x.constantinople then x.mediterranean = true end
+  end
 end
 
 function addCity(map,name,faction,strength,x,y)
@@ -59,6 +65,7 @@ function addCity(map,name,faction,strength,x,y)
     , faction        = faction
     , bulgarStart    = false
     , constantinople = name == "Constantinople"
+    , mediterranean  = false
     , x              = x
     , y              = y
     }

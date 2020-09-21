@@ -297,6 +297,14 @@ function spawnCity(name,city,k)
       descr = descr .. "\nThis city may not be claimed."
       descr = descr .. "\nSacking this city ends the game."
     end
+    if city.bulgarStart then
+      descr = descr .. "\nThe Bulgars may attack here."
+    end
+    if city.mediterranean then
+      descr = descr .. "\nDirectly reachable from Constantinople."
+    end
+
+
 
     o.setDescription(descr)
 
