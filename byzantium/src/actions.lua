@@ -3,24 +3,38 @@ function workerOptions(game,player,faction)
   local fstate = pstate.factions[faction]
 
   local opts = {}
-  local function add(x,f)
-    push(opts, { text = x, val = ||f(game,player) })
+  local function label(x,c)
+    if c == 0 then return x end
+    return string.format("%s ($%s 3)", x, faction == arab and "A" or "B", c)
+  end
+  local function addP(x,c,f)
+    push(opts, { text = label(x,c)
+               , val  = function()
+                          changeTreasury(game,player,faction,-c)
+                          f(game,player,-1)
+                        end
+               })
+  end
+  local function addF(x,c,f)
+    push(opts, { text = label(x,c)
+               , val  = function()
+                          changeTreasury(game,player,faction,-c)
+                          f(game,player,faction,-1)
+                        end
+               })
   end
 
-  if pstate.available > 0 then add("Available worker", useAvailableWorker) end
+
+
+  if pstate.available > 0 then
+                        addP("Available worker", 0, changeAvailableWorkers) end
   if fstate.treasury < 3 then return opts end
 
-
-  local cost = string.format(" ($%s 3)", faction == arab and "A" or "B")
-  local function add(x,f)
-    push(opts, { text = x .. cost, val = ||f(game,player,faction) })
-  end
-
-  if pstate.casualty  > 0 then add("Hire worker",       useCasualtyWorker)  end
-  if fstate.levy      > 0 then add("Reduce levy",       useLevyWorker)      end
-  if fstate.mainArmy  > 0 then add("Reduce main army",  useMainArmyWorker)  end
-  if fstate.eliteArmy > 0 then add("Reduce elite army", useEliteArmyWorker) end
-  if fstate.movement  > 0 then add("Reduce movement",   useMovementWorker)  end
+  if pstate.casualty  > 0 then addP("Hire worker",3,       changeCasualties) end
+  if fstate.levy      > 0 then addF("Reduce levy",3,       changeLevy)       end
+  if fstate.mainArmy  > 0 then addF("Reduce main army",3,  changeMainArmy)   end
+  if fstate.eliteArmy > 0 then addF("Reduce elite army",3, changeEliteArmy)  end
+  if fstate.movement  > 0 then addF("Reduce movement",3,   changeMovement)   end
 
   return opts
 end
