@@ -14,15 +14,20 @@ function test(g)
 
   q.enQ(||doPlaceArmy(g,"Red",byzantium,"Damascus",q.next))
   q.enQ(||doPlaceArmy(g,"Green",byzantium,"Palmyra",q.next))
+--[[
   q.enQ(function()
-    askText(g,"Green","Where?", { {text="Mosul",val="Mosul"}
-                                , {text="Antioch",val="Antioch"}
-                                }
-            , function(x)
-                doRemoveArmy(g,"Green",byzantium)
-                newGUI(g,||1)
-              end
-          )
+    askAction(g,"Green", { actions = { { act = bulgars_1, val = 1 }
+                                     , { act = bulgars_2, val = 2 }
+                                     }
+                         , text = { { text = "Option 1", val = 3 }
+                                  , { text = "Option 2", val = 4 }
+                                  }
+
+                         }, function(x) log(x); q.next() end)
+  end)
+--]]
+  q.enQ(function()
+    askCity(g,"Blue","Pick City",{ "Constantinople", "Tabuk", "Hira" },log)
   end)
 end
 

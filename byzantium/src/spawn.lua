@@ -421,6 +421,11 @@ function spawnAction(action,owner,k)
   end)
 end
 
+function updateActionOwner(action,owner)
+  local color = owner and playerColor(owner) or Color(0,0,0,0)
+  GUI.actions[action].setColorTint(color)
+end
+
 function spawnCube(color,loc,k)
   local s = 1
   spawnObject(
