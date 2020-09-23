@@ -92,5 +92,36 @@ end
 --------------------------------------------------------------------------------
 -- Cities
 
+function doGainControl(game,player,city,k)
+  say(string.format("%s claimed %s.", playerColorBB(player), city))
 
+  local cstate = game.map.cities[city]
+
+  -- VP equal to the city's strength
+  changeVP(game,player,cstate.faction,cstate.strength)
+  say(string.format("  * scored %d %s VP."
+                   , cstate.strength
+                   , faction_name[cstate.faction]))
+
+  -- mark as controlled
+  cstate.controlledBy = player
+  redrawCity(game,city,function()
+
+    -- check to see if we should place byzantium's army
+    if cstate.faction == byzantium then
+      local pstate = getPlayerState(game,player)
+      local fstate = pstate.factions[byzantium]
+      if fstate.fieldArmy == nil and fstate.firstArmyPlacement then
+        fstate.fieldArmy = city
+        fstate.firstArmyPlacement = false
+        spawnArmy(game,player,city,function()
+          say("  * byzantene army is in the city")
+          k()
+        end)
+      else
+        k()
+      end
+    end
+  end)
+end
 

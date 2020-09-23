@@ -77,7 +77,7 @@ end
 function mayControlCity(city)
   if city.controlledBy ~= nil or city.constantinople then return nil end
   if city.faction == byzantium then return byzantium end
-  if city.faction == arab      then return arab      end
+  if city.faction == arabs     then return arabs     end
   return nil
 end
 
@@ -93,6 +93,7 @@ function newFaction()
     , treasury = 0
     , vp = 0
     , fieldArmy = nil     -- location of field army
+    , firstArmyPlacement = true
     , royalty = false
     }
 end

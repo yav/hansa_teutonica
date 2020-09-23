@@ -77,12 +77,23 @@ function workerOptions(game,player,faction,k)
 end
 
 
+function nextTurn(game)
+  takeTurn(game)
+end
+
+function takeTurn(game)
+  local opts = {}
+  checkControlAction(game,opts)
+  local player = getCurrentPlayer(game)
+  local quest = string.format("%s's turn:",playerColorBB(player))
+  askText(game,player,quest,opts,|f|f())
+end
 
 
 
 function checkControlAction(game, opts)
   local player = getCurrentPlayer(game)
-  local pstate = getPlayerState(player)
+  local pstate = getPlayerState(game,player)
 
   -- What cities can be controlled by the current player
   local choice = {}
@@ -91,7 +102,9 @@ function checkControlAction(game, opts)
   for name,city in pairs(game.map.cities) do
     local faction = mayControlCity(city)
     if faction ~= nil then
-      local workerOpts = workerOptions(game,player,faction)
+      local workerOpts = workerOptions(game,player,faction
+                                      , || doGainControl(game,player,name
+                                      , || nextTurn(game)))
       if #workerOpts > 0 then
         push(choice,name)
         payments[name] = workerOpts
@@ -101,14 +114,10 @@ function checkControlAction(game, opts)
   if #choice == 0 then return end
 
   push(opts,
-    { text = "Take Control of a City"
-    , val = function()
-              askCity(choice, function(city)
-                askTextQuick(payments[city], function(makePayment)
-                  makePayment()
-                  doGainControl(game,player,city)
-                end)
-              end)
-            end
+    { text = "Claim a City"
+    , val = |    | askCity(game,player,"Claim which city?",choice,
+            |city| askTextQuick(game,player,"Choose worker:",payments[city],
+            |   f| f()
+            ))
     })
 end

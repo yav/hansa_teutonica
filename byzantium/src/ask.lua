@@ -1,8 +1,5 @@
 
 
--- Choose one of the given cities
-function askCity(cityNames,k)
-end
 
 
 
