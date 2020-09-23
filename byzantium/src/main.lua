@@ -10,11 +10,8 @@ end
 
 
 function test(g)
-  askText(g, "Green", "Worker?", workerOptions(g,"Green",byzantium),
-    function(f)
-       f()
-       test(g)
-    end)
+  local opts = workerOptions(g,"Green",byzantium,||test(g))
+  askText(g,"Green", "Pay how?", opts, |f|f())
 
 end
 

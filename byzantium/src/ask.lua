@@ -4,16 +4,6 @@
 function askCity(cityNames,k)
 end
 
--- Ask text choices, if there is only one option, just select it
-function askTextQuick(opts,k)
-  if #opts == 1 then
-    k(opts[1].val)
-    return
-  end
-
-  -- XXX: ask question
-end
-
 
 
 function question(g,player,question,answer,menuOpts)
@@ -51,6 +41,17 @@ function askText(g,player,quest,opts,answer)
     end
   end)
 end
+
+-- Ask text choices, if there is only one option, just select it
+function askTextQuick(g,player,quest,opts,answer)
+  if #opts == 1 then
+    answer(opts[1].val)
+    return
+  end
+  askText(g,player,quest,opts,answer)
+end
+
+
 
 function askAction(g,player,opts,answer)
   local label = playerColorBB(player) .. "'s turn"
