@@ -19,7 +19,7 @@ function workerOptions(game,player,faction,k)
   if fstate.treasury < 3 then return opts end
 
   if pstate.casualty > 0 then
-    push(opts, { text = "Hire worker" .. cost
+    push(opts, { text = "Casualty" .. cost
                , val = function()
                          changeTreasury(game,player,faction,-3)
                          changeCasualties(game,player,-1)
@@ -141,6 +141,8 @@ function checkIncreaseArmy(game, opts)
     first = false
     placedElite = stat == "eliteArmy"
     changeFactionStat(stat)(game,player,faction,1)
+    say(playerColorBB(player) .. " increased " .. faction_name[faction]
+                                        .. " " ..  faction_stat_name[stat])
     askTextQuick(game,player,"Reassign to " .. faction_stat_name[stat],payment,
                       |f|f())
   end
