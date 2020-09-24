@@ -117,3 +117,13 @@ local action_text =
   , act_arab_fleet_text
   }
 
+
+local faction_stat_name =
+  { eliteArmy = "Elite Army"
+  , mainArmy  = "Main Army"
+  , levy      = "Levy"
+  , movement  = "Movement"
+  , treasury  = "Treasury"
+  , vp        = "VP"
+  }
+

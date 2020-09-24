@@ -34,7 +34,9 @@ end
 function askText(g,player,quest,opts,answer)
   question(g,player,quest,answer,function(menu,click)
     for ix,opt in ipairs(opts) do
-      spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
+      if opt.text ~= nil then
+        spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
+      end
     end
   end)
 end

@@ -121,6 +121,8 @@ function doGainControl(game,player,city,k)
       else
         k()
       end
+    else
+      k()
     end
   end)
 end

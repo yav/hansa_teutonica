@@ -1,7 +1,7 @@
 function workerOptions(game,player,faction,k)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
-  local cost   = faction == arab and " $A 3" or " $B 3"
+  local cost   = faction == arabs and " $A 3" or " $B 3"
 
   local opts = {}
 
@@ -84,6 +84,7 @@ end
 function takeTurn(game)
   local opts = {}
   checkControlAction(game,opts)
+  checkIncreaseArmy(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
   askText(game,player,quest,opts,|f|f())
@@ -121,3 +122,59 @@ function checkControlAction(game, opts)
             ))
     })
 end
+
+
+
+function checkIncreaseArmy(game, opts)
+  local player = getCurrentPlayer(game)
+  local pstate = getPlayerState(game,player)
+
+  if pstate.available == 0 and
+     pstate.factions[byzantium].treasury < 3 and
+     pstate.factions[arabs].treasury < 3 then return
+  end
+
+  local placedElite = false
+  local first = true
+
+  local function incStat(faction,stat,payment)
+    first = false
+    placedElite = stat == "eliteArmy"
+    changeFactionStat(stat)(game,player,faction,1)
+    askTextQuick(game,player,"Reassign to " .. faction_stat_name[stat],payment,
+                      |f|f())
+  end
+
+  local function actIncrease()
+    local needSep = true
+    local aopts = {}
+    for faction,_ in pairs(pstate.factions) do
+      if needSep then push(aopts, { text = nil }); needSep = false end
+      local wopts = workerOptions(game,player,faction,actIncrease)
+      if #wopts ~= 0 then
+        for _,stat in ipairs({ "eliteArmy", "mainArmy", "levy", "movement" }) do
+          if stat ~= "eliteArmy" or not placedElite then
+            needSep = true
+            push(aopts,
+              { text = faction_name[faction] .. " " .. faction_stat_name[stat]
+              , val  = || incStat(faction,stat,wopts)
+              })
+          end
+        end
+      end
+    end
+    if not first then
+      if needSep then push(aopts, { text = nil }); needSep = false end
+      push(aopts, { text = "Done", val = ||nextTurn(game) })
+    end
+    askText(game,player,"Army to increase:",aopts,|f|f())
+  end
+
+  push(opts,
+    { text = "Increase Army"
+    , val  = actIncrease
+    })
+
+end
+
+

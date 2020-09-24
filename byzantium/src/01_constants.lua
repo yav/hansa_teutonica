@@ -25,6 +25,7 @@ local faction_bg_color =
   , Color(0.5,0.7,0.5)
   }
 
+
 -- terrain types for routes
 local road      = 1
 local sea       = 2
