@@ -91,7 +91,7 @@ function askAction(g,player,opts,answer)
   end)
 end
 
-function askCity(g,player,quest,opts,answer)
+function askCity(g,player,quest,opts,textOpts,answer)
   local toClean = {}
   local function cleanup(i)
     for _,o in ipairs(toClean) do
@@ -100,16 +100,20 @@ function askCity(g,player,quest,opts,answer)
   end
 
   question(g,player,quest,cleanup,answer,function(menu,click)
-    for _,city in ipairs(opts) do
-      local o = GUI.cities[city]
+    for ix,opt in ipairs(textOpts) do
+      spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
+    end
+
+    for _,opt in ipairs(opts) do
+      local o = GUI.cities[opt.city]
       push(toClean,o)
       local s = o.getScale().x
       o.createButton(
-        { label          = "?"
+        { label          = opt.q
         , font_size      = 300/s
         , color          = playerColor(player)
         , font_color     = playerFontColor(player)
-        , click_function = click(city)
+        , click_function = click(opt.val == nil and opt.city or opt.val)
         , position       = { -0.8/s, 0.5, 0.8/s }
         , rotation       = { 0, 180, 0 }
         , width          = 500/s
