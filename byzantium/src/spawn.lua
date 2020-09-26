@@ -45,25 +45,6 @@ function spawnBoard(k)
 end
 
 
-function spawnTip(x,y,w,id,tip,k)
-  local fg = Color(1,1,1,0)
-  local bg = Color(0,0,0,0)
-  GUI.board.createButton(
-      { font_size      = 0
-      , font_color     = fg
-      , hover_color    = bg
-      , press_color    = bg
-      , color          = bg
-      , label          = id
-      , click_function = "nop"
-      , position       = { x, 5, y }
-      , rotation       = { 0, 0, 0 }
-      , width          = w
-      , height         = w
-      , tooltip        = tip
-      })
-end
-
 function spawnBlocker(x,y,w,h,k)
   return spawnObject(
     { type              = "BlockSquare"
@@ -233,7 +214,16 @@ function editBox(obj,val)
   obj.editButton({ index = 0, label = val })
 end
 
+function clickableBox(obj, f)
+  local lab = obj.getButtons()[1].label
+  obj.editButton({ index = 0, click_function = f, label = lab .. '?' })
+end
 
+function notClickableBlox(obj)
+  local lab = obj.getButtons()[1].label
+  lab = lab:sub(1,-2)
+  obj.editButton({ index = 0, click_function = "nop", label = lab })
+end
 
 
 --------------------------------------------------------------------------------

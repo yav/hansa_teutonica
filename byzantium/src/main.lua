@@ -10,9 +10,6 @@ end
 
 
 function test(g)
-  -- local opts = workerOptions(g,"Green",byzantium,||test(g))
-  -- askText(g,"Green", "Pay how?", opts, |f|f())
-
   takeTurn(g)
 end
 

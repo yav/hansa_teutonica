@@ -1,9 +1,6 @@
 
 
-
-
-
-function question(g,player,question,answer,menuOpts)
+function question(g,player,question,cleanup,answer,menuOpts)
   local finished = false
   local menu     = nil
   local funs     = {}
@@ -17,6 +14,7 @@ function question(g,player,question,answer,menuOpts)
         return
       end
       finished = true
+      cleanup()
       menu.destroy()
       for _,f in ipairs(funs) do DEL_DYN(f) end
       answer(i)
@@ -32,7 +30,7 @@ function question(g,player,question,answer,menuOpts)
 end
 
 function askText(g,player,quest,opts,answer)
-  question(g,player,quest,answer,function(menu,click)
+  question(g,player,quest,nop,answer,function(menu,click)
     for ix,opt in ipairs(opts) do
       if opt.text ~= nil then
         spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
@@ -56,15 +54,14 @@ function askAction(g,player,opts,answer)
   local label = playerColorBB(player) .. "'s turn"
   local toClean = {}
 
-  local function cleanupAnswer(i)
+  local function cleanup()
     for _,o in ipairs(toClean) do
       o.setColorTint(Color(0,0,0,0))
       o.removeButton(0)
     end
-    answer(i)
   end
 
-  question(g,player,label,cleanupAnswer,function(menu,click)
+  question(g,player,label,cleanup,answer,function(menu,click)
 
     if opts.text ~= nil then
       for ix,opt in ipairs(opts.text) do
@@ -96,14 +93,13 @@ end
 
 function askCity(g,player,quest,opts,answer)
   local toClean = {}
-  local function cleanupAnswer(i)
+  local function cleanup(i)
     for _,o in ipairs(toClean) do
       o.removeButton(1)
     end
-    answer(i)
   end
 
-  question(g,player,quest,cleanupAnswer,function(menu,click)
+  question(g,player,quest,cleanup,answer,function(menu,click)
     for _,city in ipairs(opts) do
       local o = GUI.cities[city]
       push(toClean,o)
@@ -125,3 +121,32 @@ function askCity(g,player,quest,opts,answer)
 end
 
 
+function askCube(g,player,quest,cubes,answer)
+  local ui = GUI.players[player]
+  local toClean = {}
+  local function cleanup()
+    for _,o in ipairs(toClean) do notClickableBlox(o) end
+  end
+  local pquest = playerColorNote(player,"> ") .. quest ..
+                                        playerColorNote(player,"< ")
+  question(g,player,pquest,cleanup,answer,function(menu,click)
+    for stat,val in pairs(cubes) do
+      if stat == byzantium or stat == arabs then
+        local fui = ui.factions[stat]
+        for fstat,fval in pairs(val) do
+          local o = fui[fstat]
+          push(toClean,o)
+          clickableBox(o, click(fval))
+        end
+      elseif stat == "text" then
+        for ix,opt in ipairs(val) do
+          spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
+        end
+      else
+        local o = ui[stat]
+        push(toClean,o)
+        clickableBox(o, click(val))
+      end
+    end
+  end)
+end
