@@ -250,20 +250,22 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
       elseif terrain == desert then
         cost = (faction == arabs) and 1 or nil
       end
+      local attack = tgtS.faction ~= faction
+      if tgtS.controlledBy == player and attack then cost = nil end
+
       if cost ~= nil and moveNumber > 1 then cost = cost + 1 end
       if cost ~= nil and fstate.movement >= cost then
-        local moveInfo = { to = target.to
+        local moveInfo = { to      = target.to
                          , terrain = target.terrain
                          , faction = faction
                          , cost    = cost
-                         , attack  = tgtS.faction ~= faction
+                         , attack  = attack
                          }
         local q = cost
-        if moveInfo.attack then q = q .. "⚔" end
+        if attack then q = q .. "⚔" end
         push(affordable, { city = target.to, q = q, val = moveInfo })
       end
     end
-    -- fleet, 2nd move
 
     local endAct = { text = "End Action", val = nil }
     askCity(game,player,"Move to which city?",affordable,{ endAct },
