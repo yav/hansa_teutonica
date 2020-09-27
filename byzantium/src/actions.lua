@@ -1,3 +1,4 @@
+-- XXX: check for disbanding army
 function workerOptions(game,player,faction)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
@@ -165,10 +166,34 @@ end
 
 
 
-function performAttack(game,player,fromCity,warCityt)
+function performAttack(game,player,fromCity,warCity)
   log("XXX: attack")
   nextTurn(game)
 end
+
+function performAttack(game,player,fromCity,warCity)
+  log("XXX: civial war")
+  nextTurn(game)
+end
+
+--[[
+Note on Retreating
+==================
+
+There is some ambiguity in the rules with exactly what happens when an
+attacker looses a battle.  The rules state that they must "retreat" to
+the city they came from, however, it is not clear if full retreat rules
+apply, or if it simply means the attacker just goes back to where they were.
+
+This question is asked on BGG but is unanswered, and in many related
+question the designer seems to only consider "retreating" in the context
+of defending armies loosing, so I choose to interpret this as meaning
+"go back to the city".  I think this also makes Arab sea attacks more
+viable, as otherwise they'd be extremely risky if someone else controls
+the Byznatene army---lossing the battle would destroy your whole army
+which seems no fun.
+--]]
+
 
 
 function checkMove(game,opts)
@@ -177,7 +202,9 @@ function checkMove(game,opts)
   local moveNumber = 1
 
 --[[
-Note on Byzantine Fleet:
+Note on the Byzantine Fleet
+===========================
+
 If an activation of the Byzantine fleet makes is so that the player
 cannot afford the move then they can pick a different route and there is
 no attack on the Arab army.  If there isn't another option, then their action
@@ -207,9 +234,34 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
     if moveInfo.attack then
       performAttack(game,player,fromCity,moveInfo.to)
     else
-      -- XXX: ask for civil war or more movement
-      local nextOpts = {}
-      nextTurn(game)
+
+      local cvActs   = { byz_civil_war }
+      if faction == arabs then
+        cvActs = { arab_civil_war_1, arab_civil_war_2 }
+      end
+
+      local actOpts = {}
+      for _,act in ipairs(cvActs) do
+        if game.actionSpaces[act] ~= nil then
+          push( civWarOpts
+              , { act = act
+                , val = ||performCivilWar(game,player,fromCity,moveInfo.to)
+                })
+        end
+      end
+
+      local textOpts = {}
+      if moveNumber == 2 then
+        push(textOpts, { text = "Move Again"
+                       , val  = ||askWhere(moveInfo.to)
+                       })
+      end
+      push(textOpts, { text = "End Action"
+                     , val  = || nextTurn(game)
+                     })
+
+      askAction(game,player,"What next?", { actions = actOpts
+                                          , text = textOpts }, |f| f())
     end
 
   end
@@ -282,6 +334,7 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
       local cstate = game.map.cities[city]
       local armyFaction = cstate.faction
       if pstate.factions[armyFaction].fieldArmy == nil then
+        -- XXX: make sure the army has cubes in it
         doPlaceArmy(game,player,armyFaction,city,||askWhere(city,false))
       else
         askWhere(city,false)
