@@ -114,13 +114,14 @@ function doGainControl(game,player,city,k)
     if cstate.faction == byzantium then
       local pstate = getPlayerState(game,player)
       local fstate = pstate.factions[byzantium]
-      if fstate.fieldArmy == nil and fstate.firstArmyPlacement then
-        fstate.fieldArmy = city
-        fstate.firstArmyPlacement = false
-        spawnArmy(game,player,city,function()
-          say("  * byzantene army is in the city")
-          k()
-        end)
+      if fstate.fieldArmy == nil and
+         factionArmySize(fstate) > 0 and
+         fstate.firstArmyPlacement then
+         doPlaceArmy(game,player,byzantium,city,function()
+           fstate.firstArmyPlacement = false
+           say("  * byzantene army is in the city")
+           k()
+         end)
       else
         k()
       end
