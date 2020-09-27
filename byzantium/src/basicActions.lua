@@ -57,6 +57,7 @@ changeVP               = changeFactionStat("vp")
 function changeRoyalty(game,player,faction,val)
   getPlayerState(game,player).factions[faction].royalty = val
   changeEliteArmy(game,player,faction,0)
+  -- change by 0 to force redraw and check for army destroyed
 end
 
 
