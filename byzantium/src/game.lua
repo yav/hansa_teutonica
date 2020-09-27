@@ -98,6 +98,12 @@ function newFaction()
     }
 end
 
+function factionArmySize(f)
+  local size = f.mainArmy + f.eliteArmy + f.movement
+  if f.royalty then size = size + 1 end
+  return size
+end
+
 
 function newPlayer(color,order)
   local factions = {}

@@ -1,4 +1,3 @@
--- XXX: check for disbanding army
 function workerOptions(game,player,faction)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
@@ -218,6 +217,7 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
       local fstate  = pstate.factions[faction]
       local hasArmy = fstate.fieldArmy == city
       local mayPlaceArmy = fstate.fieldArmy == nil and
+                           factionArmySize(fstate) > 0 and
                            (faction == arabs or not fstate.firstArmyPlacement)
       if hasArmy or mayPlaceArmy then
         push(startOpts, { city = city, q = "?" })
@@ -334,7 +334,6 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
       local cstate = game.map.cities[city]
       local armyFaction = cstate.faction
       if pstate.factions[armyFaction].fieldArmy == nil then
-        -- XXX: make sure the army has cubes in it
         doPlaceArmy(game,player,armyFaction,city,||askWhere(city,false))
       else
         askWhere(city,false)

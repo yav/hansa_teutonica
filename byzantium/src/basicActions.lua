@@ -27,6 +27,7 @@ function changePlayerStat(stat)
     end
 end
 
+
 function changeFactionStat(stat)
   return
     function(game,player,faction,diff)
@@ -34,9 +35,11 @@ function changeFactionStat(stat)
       local f           = pstate.factions[faction]
       local a           = f[stat] + diff
       f[stat]           = a
-
       editBox(GUI.players[player].factions[faction][stat],
                                                 factionValueLabel(stat,f))
+      if factionArmySize(f) <= 0 then
+        doRemoveArmy(g,player,army)
+      end
     end
 end
 
