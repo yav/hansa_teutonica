@@ -228,7 +228,7 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
     local cstate  = game.map.cities[city]
     local faction = cstate.faction
     local fstate  = pstate.factions[faction]
-    local targets = neighbours(game,city)
+    local targets = neighbours(game,city,byzantium)
     local affordable = {}
     for _,target in ipairs(targets) do
       local cost = nil    -- means infinit

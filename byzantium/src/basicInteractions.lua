@@ -55,6 +55,7 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
+--[[
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
   local done = 1
@@ -80,10 +81,66 @@ function chooseArmyCasualties(game,player,faction,todo,k)
     else
       local lab = string.format("Choose casualty %d/%d",done,todo)
       local cubeOpts = {}
-      local cubeOpts[faction] = opts
+      cubeOpts[faction] = opts
       askCube(game,player,lab,cubeOpts,|f|f())
     end
+--]]
 end
 
 
+function chooseRetreat(game,player,faction,city,k)
+  local pstate = getPlayerState(game,player)
+  local limit  = factionArmySize(pstate.factions[faction])
+  local banned = {}
+  local alwaysNo = false
+  local dist = 1
+  local interact
+
+  local function askPermission(city)
+    local byzFleet = game.actionSpaces[byz_fleet]
+    askText(game,byzFleet,"Allow sea retreat to " .. city .. "?"
+               , { { text = "Yes", val = ||k(city,dist-1) }
+                 , { text = "No"
+                   ,  val = function() banned[city] = true; interact() end
+                   }
+                 , { text = "Disallow any sea retreat"
+                   , val = function() alwaysNo = true; interact() end
+                   }
+                 }
+               , |f|f()
+               )
+  end
+
+  interact = function()
+    if dist > limit then k(nil,nil); return end -- destroy
+    local opts = retreatOptionsN(game,player,faction,city,banned,dist)
+    log(dist)
+
+    local qopts = {}
+    for city,info in pairs(opts) do
+      local lab = info.cost
+      if info.ask then lab = lab .. '!' end
+      if not (info.ask and alwaysNo) then
+        push(qopts, { city = city
+                    , q = lab
+                    , val = function()
+                              if info.ask then askPermission(city)
+                                          else k(city,info.cost)
+                              end
+                            end
+                    })
+      else
+        banned[city] = true
+      end
+    end
+    if next(qopts) ~= nil then
+      askCity(game,player,"Choose city to retreat to:",qopts,{},|f|f())
+    else
+      dist = dist + 1
+      interact()
+    end
+  end
+
+  interact()
+end
 
