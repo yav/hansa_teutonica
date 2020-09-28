@@ -23,8 +23,11 @@ function neighbours(game,city,faction)
   return opts
 end
 
-function retreatOptions1(game,player,faction,city)
+
+function retreatOptions1(game,player,faction,noPerm,city)
   local opts = {}
+  local later = {}
+
   for _,opt in ipairs(neighbours(game,city,faction)) do
     if faction == arabs or opt.terrain ~= desert then
       local otherFaction = game.map.cities[opt.to].faction
@@ -37,51 +40,58 @@ function retreatOptions1(game,player,faction,city)
                   , permission  = permission
                   , safe        = safe
                   }
-      push(opts, tgt)
+      if permission then
+        if not noPerm then push(later, tgt) end
+      else
+        push(opts,tgt)
+      end
     end
   end
+  for _,x in ipairs(later) do push(opts,x) end
   return opts
 end
 
 
-function retreatOptionsN(game,player,faction,startCity,banned,startN)
+function retreatOptionsN(game,player,faction,startCity,noPerm,banned,maxD)
   local visited = {}
+  local todo    = { { city     = startCity
+                    , distance = 0
+                    , ask      = false
+                    , safe     = false }
+                  }
+  local curEl   = 1
   local opts    = {}
+  local bestAns = nil
 
-  local function search(curCity,ask,cost,n)
-    local cities = retreatOptions1(game,player,faction,curCity)
+  while (curEl <= #todo) do
+    local target = todo[curEl]
+    if bestAns ~= nil and target.distance > bestAns then return opts end
 
-    -- Look for safe neighbours
-    if n == 1 then
-      for _,tgt in ipairs(cities) do
-        local nextCity = tgt.city
-        if tgt.safe and not visited[nextCity] and not banned[nextCity] then
-          local known = opts[nextCity]
-          local newAsk = ask or tgt.permission
-          if known == nil or cost < known.cost then
-            opts[nextCity] = { ask = newAsk, cost = cost }
-          elseif cost == known.cost then
-            known.ask = known.ask and newAsk
-          end
+    curEl = curEl + 1
+
+    local city  = target.city
+    local known = visited[city]
+    if not known then
+      visited[city] = true
+      if target.safe then
+        if not banned[city] then
+          bestAns    = target.distance
+          opts[city] = { cost = target.distance - 1, ask = target.ask }
         end
-      end
-
-    else
-      -- Look for unsafe neighbours or safe neighbours that require permission
-      for _,tgt in ipairs(cities) do
-        local nextCity = tgt.city
-        if not visited[nextCity] and
-           (not tgt.safe or tgt.safe and tgt.permission) then
-          visited[nextCity] = true
-          local newCost = cost
-          if not tgt.safe then newCost = newCost + 1 end
-          search(nextCity,ask or tgt.permission,newCost,n-1)
-          visited[nextCity] = nil
+      elseif target.distance < maxD then
+        local dist   = target.distance + 1
+        local cities = retreatOptions1(game,player,faction,noPerm,city)
+        for _,newTarget in ipairs(cities) do
+          push(todo, { city     = newTarget.city
+                     , distance = dist
+                     , ask      = target.ask or newTarget.permission
+                     , safe     = newTarget.safe
+                     })
         end
       end
     end
   end
-  search(startCity,false,0,startN)
+
   return opts
 end
 

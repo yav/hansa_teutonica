@@ -93,13 +93,12 @@ function chooseRetreat(game,player,faction,city,k)
   local limit  = factionArmySize(pstate.factions[faction])
   local banned = {}
   local alwaysNo = false
-  local dist = 1
   local interact
 
-  local function askPermission(city)
+  local function askPermission(city,cost)
     local byzFleet = game.actionSpaces[byz_fleet]
     askText(game,byzFleet,"Allow sea retreat to " .. city .. "?"
-               , { { text = "Yes", val = ||k(city,dist-1) }
+               , { { text = "Yes", val = ||k(city,cost) }
                  , { text = "No"
                    ,  val = function() banned[city] = true; interact() end
                    }
@@ -112,32 +111,26 @@ function chooseRetreat(game,player,faction,city,k)
   end
 
   interact = function()
-    if dist > limit then k(nil,nil); return end -- destroy
-    local opts = retreatOptionsN(game,player,faction,city,banned,dist)
-    log(dist)
+    local opts = retreatOptionsN(game,player,faction,city,alwaysNo,banned,limit)
 
     local qopts = {}
     for city,info in pairs(opts) do
       local lab = info.cost
       if info.ask then lab = lab .. '!' end
-      if not (info.ask and alwaysNo) then
-        push(qopts, { city = city
-                    , q = lab
-                    , val = function()
-                              if info.ask then askPermission(city)
-                                          else k(city,info.cost)
-                              end
+      push(qopts, { city = city
+                  , q = lab
+                  , val = function()
+                            if info.ask then askPermission(city,info.cost)
+                                        else k(city,info.cost)
                             end
-                    })
-      else
-        banned[city] = true
-      end
+                          end
+                 })
     end
+
     if next(qopts) ~= nil then
       askCity(game,player,"Choose city to retreat to:",qopts,{},|f|f())
     else
-      dist = dist + 1
-      interact()
+      k(nil,nil)
     end
   end
 

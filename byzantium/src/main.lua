@@ -12,7 +12,7 @@ end
 function test(g)
   -- takeTurn(g)
   g.actionSpaces[byz_fleet] = "Red"
-  chooseRetreat(g,"Green",arabs,"Antioch",log)
+  chooseRetreat(g,"Green",arabs,"Constantinople",log)
 end
 
 
