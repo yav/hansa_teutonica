@@ -55,10 +55,16 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
---[[
+  if todo == 0 then k(); return end
+
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
   local done = 1
+  if factionArmySize(fstate) <= todo then
+    doDestroyArmy(game,player,faction)
+    k()
+    return
+  end
 
   local function doOne()
     if done > todo then k(); return end
@@ -68,7 +74,7 @@ function chooseArmyCasualties(game,player,faction,todo,k)
       if fstate[stat] > 0 then
         opts[stat] =
           function()
-            changeFactionStat(game,player,faction,stat,-1)
+            changeFactionStat(stat)(game,player,faction,-1)
             changeCasualties(game,player,1)
             done = done + 1
             doOne()
@@ -84,7 +90,9 @@ function chooseArmyCasualties(game,player,faction,todo,k)
       cubeOpts[faction] = opts
       askCube(game,player,lab,cubeOpts,|f|f())
     end
---]]
+  end
+
+  doOne()
 end
 
 
@@ -137,3 +145,84 @@ function chooseRetreat(game,player,faction,city,k)
   interact()
 end
 
+
+
+function chooseArmyToMove(game,player)
+  local pstate = getPlayerState(game,player)
+
+  local startOpts = {}
+  for city,cstate in pairs(game.map.cities) do
+    local faction = cstate.faction
+    if faction == byzantium or faction == arabs then
+      local fstate  = pstate.factions[faction]
+      local hasArmy = fstate.fieldArmy == city
+      local mayPlaceArmy = fstate.fieldArmy == nil and
+                           factionArmySize(fstate) > 0 and
+                           (faction == arabs or not fstate.firstArmyPlacement)
+      local info = { city = city
+                   , moveOpts = armyDestinationOptions(game,player,city,false)
+                   }
+      if mayPlaceArmy then
+        push(startOpts, { city = city, q = "?", val = info })
+      elseif hasArmy and next(info.moveOpts) ~= nil then
+        push(startOpts, { city = city, q = "?", val = info })
+      end
+    end
+  end
+  if next(startOpts) == nil then return nil end
+
+  return |k|
+    askCity(game,player,"Choose Start City", startOpts, {}, function(info)
+      local cstate = game.map.cities[info.city]
+      local armyFaction = cstate.faction
+      if pstate.factions[armyFaction].fieldArmy == nil then
+        doPlaceArmy(game,player,armyFaction,info.city,||k(info))
+      else
+        k(info)
+      end
+    end)
+end
+
+
+function armyDestinationOptions(game,player,city,sndMove)
+  local cstate  = game.map.cities[city]
+  local faction = cstate.faction
+  local pstate  = getPlayerState(game,player)
+  local fstate  = pstate.factions[faction]
+  local targets = neighbours(game,city,faction)
+
+  local affordable = {}
+  for _,target in ipairs(targets) do
+    local cost = nil    -- means infinite
+    local tgtS = game.map.cities[target.to]
+    local terrain = target.terrain
+    if     terrain == road then cost = 1
+    elseif terrain == sea  then
+      if   faction == byzantium then cost = 1
+      else
+        local hasArabFleet = game.actionSpaces[arab_fleet] == player
+        cost = hasArabFleet and 1 or 2
+        if tgtS.constantinople then cost = cost * 2 end
+      end
+    elseif terrain == desert then
+      cost = (faction == arabs) and 1 or nil
+    end
+    local attack = tgtS.faction ~= faction
+    if tgtS.controlledBy == player and attack then cost = nil end
+
+    if cost ~= nil and sndMove then cost = cost + 1 end
+    if cost ~= nil and fstate.movement >= cost then
+      local moveInfo = { to      = target.to
+                       , terrain = target.terrain
+                       , faction = faction
+                       , cost    = cost
+                       , attack  = attack
+                       }
+      local q = cost
+      if attack then q = q .. "⚔" end
+      push(affordable, { city = target.to, q = q, val = moveInfo })
+    end
+  end
+
+  return affordable
+end

@@ -38,7 +38,7 @@ function changeFactionStat(stat)
       editBox(GUI.players[player].factions[faction][stat],
                                                 factionValueLabel(stat,f))
       if factionArmySize(f) <= 0 then
-        doRemoveArmy(g,player,army)
+        doRemoveArmy(game,player,faction)
       end
     end
 end
@@ -81,14 +81,27 @@ function doMoveArmy(g,player,faction,city)
 
   local newLoc = armyPos(g,player,city)
   local o = GUI.players[player].factions[faction].fieldArmy
+  log(o)
   o.setPositionSmooth(newLoc,false,false)
 end
 
 function doRemoveArmy(g,player,faction)
-  getPlayerState(g,player).factions[faction].fieldArmy = nil
-  local f = GUI.players[player].factions[faction]
-  f.fieldArmy.destroy()
-  f.fieldArmy = nil
+  local fstate = getPlayerState(g,player).factions[faction]
+  if fstate.fieldArmy ~= nil then
+    getPlayerState(g,player).factions[faction].fieldArmy = nil
+    local f = GUI.players[player].factions[faction]
+    f.fieldArmy.destroy()
+    f.fieldArmy = nil
+  end
+end
+
+function doDestroyArmy(game,player,faction)
+  local fstate = getPlayerState(game,player).factions[faction]
+  changeEliteArmy(game,player,faction,-fstate.eliteArmy)
+  changeMainArmy(game,player,faction,-fstate.mainArmy)
+  changeMovement(game,player,faction,-fstate.movement)
+  changeRoyalty(game,player,faction,false)
+  doRemoveArmy(game,player,faction)
 end
 
 

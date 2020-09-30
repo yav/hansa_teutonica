@@ -8,11 +8,20 @@ function takeTurn(game)
   checkControlAction(game,opts)
   checkIncreaseArmy(game,opts)
   checkMove(game,opts)
+  checkTest(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
   askText(game,player,quest,opts,|f|f())
 end
 
+
+function checkTest(game,opts)
+  local player = getCurrentPlayer(game)
+  push(opts,{ text = "Test"
+            , val = || chooseArmyCasualties(game,player,byzantium,5,
+                    || nextTurn(game))
+            })
+end
 
 
 function checkControlAction(game, opts)
@@ -134,14 +143,12 @@ of defending armies loosing, so I choose to interpret this as meaning
 viable, as otherwise they'd be extremely risky if someone else controls
 the Byznatene army---lossing the battle would destroy your whole army
 which seems no fun.
+
+XXX: actually just doing a standard retreat might not be all that bad:
+if any army is defeated, then it likely has very few members anyway,
+so perhaps it's not terrible if it just gets destroyed.
 --]]
 
-
-
-function checkMove(game,opts)
-  local player = getCurrentPlayer(game)
-  local pstate = getPlayerState(game,player)
-  local moveNumber = 1
 
 --[[
 Note on the Byzantine Fleet
@@ -153,21 +160,13 @@ no attack on the Arab army.  If there isn't another option, then their action
 ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
 --]]
 
-  local startOpts = {}
-  for city,cstate in pairs(game.map.cities) do
-    local faction = cstate.faction
-    if faction == byzantium or faction == arabs then
-      local fstate  = pstate.factions[faction]
-      local hasArmy = fstate.fieldArmy == city
-      local mayPlaceArmy = fstate.fieldArmy == nil and
-                           factionArmySize(fstate) > 0 and
-                           (faction == arabs or not fstate.firstArmyPlacement)
-      if hasArmy or mayPlaceArmy then
-        push(startOpts, { city = city, q = "?" })
-      end
-    end
-  end
-  if next(startOpts) == nil then return opts end
+
+
+function checkMove(game,opts)
+  local player = getCurrentPlayer(game)
+  local pstate = getPlayerState(game,player)
+  local moveNumber = 1
+
 
   -- Perform the selected move
   local function makeMove(fromCity,moveInfo)
@@ -177,6 +176,8 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
     if moveInfo.attack then
       performAttack(game,player,fromCity,moveInfo.to)
     else
+      nextTurn(game)
+    --[[
 
       local cvActs   = { byz_civil_war }
       if faction == arabs then
@@ -205,6 +206,7 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
 
       askAction(game,player,"What next?", { actions = actOpts
                                           , text = textOpts }, |f| f())
+--]]
     end
 
   end
@@ -224,67 +226,24 @@ ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
   end
 
   -- Choose where to move from the given city
-  local function askWhere(city)
-    local cstate  = game.map.cities[city]
-    local faction = cstate.faction
-    local fstate  = pstate.factions[faction]
-    local targets = neighbours(game,city,byzantium)
-    local affordable = {}
-    for _,target in ipairs(targets) do
-      local cost = nil    -- means infinit
-      local tgtS = game.map.cities[target.to]
-      local terrain = target.terrain
-      if     terrain == road then cost = 1
-      elseif terrain == sea  then
-        if   faction == byzantium then cost = 1
-        else
-          local hasArabFleet = game.actionSpaces[arab_fleet] == player
-          cost = hasArabFleet and 1 or 2
-          if tgtS.constantinople then cost = cost * 2 end
-        end
-      elseif terrain == desert then
-        cost = (faction == arabs) and 1 or nil
-      end
-      local attack = tgtS.faction ~= faction
-      if tgtS.controlledBy == player and attack then cost = nil end
-
-      if cost ~= nil and moveNumber > 1 then cost = cost + 1 end
-      if cost ~= nil and fstate.movement >= cost then
-        local moveInfo = { to      = target.to
-                         , terrain = target.terrain
-                         , faction = faction
-                         , cost    = cost
-                         , attack  = attack
-                         }
-        local q = cost
-        if attack then q = q .. "⚔" end
-        push(affordable, { city = target.to, q = q, val = moveInfo })
-      end
-    end
-
+  local function askWhere1(info)
     local endAct = { text = "End Action", val = nil }
-    askCity(game,player,"Move to which city?",affordable,{ endAct },
+    askCity(game,player,"Move to which city?",info.moveOpts, { endAct },
       function(tgt)
-        if tgt == nil then nextTurn(game); return end
-        tryMove(city,tgt)
+        if tgt == nil
+        then nextTurn(game)
+        else tryMove(info.city,tgt)
+        end
       end)
-
-
   end
 
-  local function pickArmy()
-    askCity(game,player,"Choose Start City", startOpts, {}, function(city)
-      local cstate = game.map.cities[city]
-      local armyFaction = cstate.faction
-      if pstate.factions[armyFaction].fieldArmy == nil then
-        doPlaceArmy(game,player,armyFaction,city,||askWhere(city,false))
-      else
-        askWhere(city,false)
-      end
-    end)
-  end
+  local pickArmy = chooseArmyToMove(game,player)
 
-  push(opts, { text = "Move Army" , val = pickArmy })
+  if pickArmy == nil then
+    return opts
+  else
+    push(opts, { text = "Move Army", val = || pickArmy(askWhere1) })
+  end
 end
 
 
