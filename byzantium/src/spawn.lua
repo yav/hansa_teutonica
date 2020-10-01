@@ -219,7 +219,7 @@ function clickableBox(obj, f)
   obj.editButton({ index = 0, click_function = f, label = lab .. '?' })
 end
 
-function notClickableBlox(obj)
+function notClickableBox(obj)
   local lab = obj.getButtons()[1].label
   lab = lab:sub(1,-2)
   obj.editButton({ index = 0, click_function = "nop", label = lab })

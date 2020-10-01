@@ -11,7 +11,7 @@ function takeTurn(game)
   checkTest(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
-  askText(game,player,quest,opts,|f|f())
+  ask(game,player,quest,{menu = opts},|f|f())
 end
 
 
@@ -41,7 +41,7 @@ function checkControlAction(game, opts)
     if faction ~= nil then
       local p = fpayments[faction]
       if next(p) ~= nil then
-        push(choice,{ city = name, q = "?" })
+        push(choice,{ city = name, q = "?", val = name })
         payments[name] = p
       end
     end
@@ -50,8 +50,8 @@ function checkControlAction(game, opts)
 
   push(opts,
     { text = "Claim a City"
-    , val = |    | askCity(game,player,"Claim which city?",choice,{},
-            |city| askCube(game,player,"Choose Worker",payments[city],
+    , val = |    | ask(game,player,"Claim which city?", {cities=choice},
+            |city| ask(game,player,"Choose Worker",{cubes=payments[city]},
             function(f)
               f()
               doGainControl(game,player,city,||nextTurn(game))
@@ -84,7 +84,7 @@ function checkIncreaseArmy(game, opts)
         for _,stat in ipairs({ "eliteArmy", "mainArmy", "levy", "movement" }) do
           if stat ~= "eliteArmy" or not placedElite then
             fopts[stat] = function()
-              askCube(game,player,"Choose worker to reassign",wopts,
+              ask(game,player,"Choose worker to reassign",{cubes=wopts},
               function(pay)
                 pay()
                 first = false
@@ -102,10 +102,12 @@ function checkIncreaseArmy(game, opts)
         aopts[faction] = fopts
       end
     end
+    local menu = {}
     if not first then
-      aopts.text = { { text = "Done", val = ||nextTurn(game) } }
+      menu = { { text = "Done", val = ||nextTurn(game) } }
     end
-    askCube(game,player,"Army to increase:",aopts,|f|f())
+    local lab = string.format("%s army to increase",playerColorBB(player))
+    ask(game,player,lab,{menu=menu,cubes=aopts},|f|f())
   end
 
   push(opts,
@@ -227,8 +229,10 @@ function checkMove(game,opts)
 
   -- Choose where to move from the given city
   local function askWhere1(info)
-    local endAct = { text = "End Action", val = nil }
-    askCity(game,player,"Move to which city?",info.moveOpts, { endAct },
+    local opts = { menu   = { text = "End Action", val = nil }
+                 , cities = info.moveOpts
+                 }
+    ask(game,player,"Move to which city?", opts,
       function(tgt)
         if tgt == nil
         then nextTurn(game)

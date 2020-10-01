@@ -85,10 +85,11 @@ function chooseArmyCasualties(game,player,faction,todo,k)
       if fstate.royalty then changeRoyalty(game,player,faction,false) end
       k()
     else
-      local lab = string.format("Choose casualty %d/%d",done,todo)
+      local lab = string.format("%s casualty %d/%d",
+                                        playerColorBB(player),done,todo)
       local cubeOpts = {}
       cubeOpts[faction] = opts
-      askCube(game,player,lab,cubeOpts,|f|f())
+      ask(game,player,lab,{cubes=cubeOpts},|f|f())
     end
   end
 
@@ -105,8 +106,7 @@ function chooseRetreat(game,player,faction,city,k)
 
   local function askPermission(city,cost)
     local byzFleet = game.actionSpaces[byz_fleet]
-    askText(game,byzFleet,"Allow sea retreat to " .. city .. "?"
-               , { { text = "Yes", val = ||k(city,cost) }
+    local opts = { { text = "Yes", val = ||k(city,cost) }
                  , { text = "No"
                    ,  val = function() banned[city] = true; interact() end
                    }
@@ -114,8 +114,10 @@ function chooseRetreat(game,player,faction,city,k)
                    , val = function() alwaysNo = true; interact() end
                    }
                  }
-               , |f|f()
-               )
+
+    ask(game,byzFleet,"Allow sea retreat to " .. city .. "?", {menu=opts}
+       , |f|f()
+       )
   end
 
   interact = function()
@@ -136,7 +138,7 @@ function chooseRetreat(game,player,faction,city,k)
     end
 
     if next(qopts) ~= nil then
-      askCity(game,player,"Choose city to retreat to:",qopts,{},|f|f())
+      ask(game,player,"Choose city to retreat to:", { cities = qopts },|f|f())
     else
       k(nil,nil)
     end
@@ -172,7 +174,7 @@ function chooseArmyToMove(game,player)
   if next(startOpts) == nil then return nil end
 
   return |k|
-    askCity(game,player,"Choose Start City", startOpts, {}, function(info)
+    ask(game,player,"Choose Start City", { cities = startOpts }, function(info)
       local cstate = game.map.cities[info.city]
       local armyFaction = cstate.faction
       if pstate.factions[armyFaction].fieldArmy == nil then
