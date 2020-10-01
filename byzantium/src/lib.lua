@@ -2,6 +2,7 @@
 -- Library
 
 function nop() end
+function apply(f) f() end
 
 function push(arr,el)
   local n = #arr + 1

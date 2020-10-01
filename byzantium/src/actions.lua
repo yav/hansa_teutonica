@@ -11,7 +11,7 @@ function takeTurn(game)
   checkTest(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
-  ask(game,player,quest,{menu = opts},|f|f())
+  ask(game,player,quest,{menu = opts},apply)
 end
 
 
@@ -107,7 +107,7 @@ function checkIncreaseArmy(game, opts)
       menu = { { text = "Done", val = ||nextTurn(game) } }
     end
     local lab = string.format("%s army to increase",playerColorBB(player))
-    ask(game,player,lab,{menu=menu,cubes=aopts},|f|f())
+    ask(game,player,lab,{menu=menu,cubes=aopts},apply)
   end
 
   push(opts,

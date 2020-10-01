@@ -89,7 +89,7 @@ function chooseArmyCasualties(game,player,faction,todo,k)
                                         playerColorBB(player),done,todo)
       local cubeOpts = {}
       cubeOpts[faction] = opts
-      ask(game,player,lab,{cubes=cubeOpts},|f|f())
+      ask(game,player,lab,{cubes=cubeOpts},apply)
     end
   end
 
@@ -116,8 +116,7 @@ function chooseRetreat(game,player,faction,city,k)
                  }
 
     ask(game,byzFleet,"Allow sea retreat to " .. city .. "?", {menu=opts}
-       , |f|f()
-       )
+       , apply)
   end
 
   interact = function()
@@ -138,7 +137,7 @@ function chooseRetreat(game,player,faction,city,k)
     end
 
     if next(qopts) ~= nil then
-      ask(game,player,"Choose city to retreat to:", { cities = qopts },|f|f())
+      ask(game,player,"Choose city to retreat to:", { cities = qopts },apply)
     else
       k(nil,nil)
     end
