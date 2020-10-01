@@ -81,7 +81,6 @@ function doMoveArmy(g,player,faction,city)
 
   local newLoc = armyPos(g,player,city)
   local o = GUI.players[player].factions[faction].fieldArmy
-  log(o)
   o.setPositionSmooth(newLoc,false,false)
 end
 

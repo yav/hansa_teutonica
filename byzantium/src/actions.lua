@@ -173,6 +173,8 @@ function checkMove(game,opts)
   -- Perform the selected move
   local function makeMove(fromCity,moveInfo)
     changeMovement(game,player,moveInfo.faction,-moveInfo.cost)
+    -- XXX: spending the movecost might destroy the army, in which case we
+    -- are done (check "perish")
     doMoveArmy(game,player,moveInfo.faction,moveInfo.to)
     moveNumber = moveNumber + 1
     if moveInfo.attack then
@@ -228,6 +230,7 @@ function checkMove(game,opts)
   end
 
   -- Choose where to move from the given city
+  -- XXX: should give the option to not move, or use a civil war
   local function askWhere1(info)
     local opts = { menu   = { text = "End Action", val = nil }
                  , cities = info.moveOpts

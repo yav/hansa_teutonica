@@ -213,14 +213,17 @@ function armyDestinationOptions(game,player,city,sndMove)
 
     if cost ~= nil and sndMove then cost = cost + 1 end
     if cost ~= nil and fstate.movement >= cost then
+      local perish = cost == factionArmySize(fstate)
       local moveInfo = { to      = target.to
                        , terrain = target.terrain
                        , faction = faction
                        , cost    = cost
+                       , perish  = perish
                        , attack  = attack
                        }
       local q = cost
-      if attack then q = q .. "⚔" end
+      if perish then q = q .. "☠"
+      elseif attack then q = q .. "⚔" end
       push(affordable, { city = target.to, q = q, val = moveInfo })
     end
   end
