@@ -148,6 +148,73 @@ end
 
 
 
+function startCivilWar(game,player,city,wopts)
+  -- XXX
+  log("Start civil war in " .. city)
+  nextTurn(game)
+end
+
+function attackCity(game,player,fromCity,attackedCity)
+  log("Attack " .. city)
+  nextTurn(game)
+end
+
+function chooseArmyActionFrom(game,player,city,opts)
+  local lab = string.format("%s army in %s",playerColorBB(player),city)
+  ask(game,player,lab,opts,apply)
+end
+
+function chooseArmyAction(game,player,city,movedNo,endActOk)
+  local opts = friendlyArmyActions(game,player,city,movedNo,endActOk)
+  if opts == nil then
+    nextTurn(game)
+  else
+    chooseArmyActionFrom(game,player,city,opts)
+  end
+end
+
+function friendlyArmyActions(game,player,city,movedNo,endActOk)
+
+  local hasOpts = false
+
+  local moveOpts = {}
+  if movedNo < 2 then
+    moveOpts = armyDestinationOptions(game,player,city,movedNo)
+    hasOpts = next(moveOpts) ~= nil
+  end
+
+  local textOpts = {}
+  if endActOk then
+    textOpts = { { text = "End Action", val = ||nextTurn(game) } }
+    hasOpts  = true
+  end
+
+  local civWarActs    = {}
+  local faction       = game.map.cities[city].faction
+  local spotOpts      = faction == byzantium and { byz_civil_war }
+                        or { arab_civil_war_1, arab_civil_war_2 }
+
+  for _,act in ipairs(spotOpts) do
+    if game.actionSpaces[act] == nil then
+      local wopts = workerOptions(game,player,faction)
+      if next(wopts) ~= nil then
+        hasOpts = true
+        push(civWarActs, { action = act
+                         , val = ||startCivilWar(game,player,city,wopts)
+                         })
+      end
+    end
+  end
+
+  if hasOpts then
+    return { menu = textOpts, cities = moveOpts, actions = civWarActs }
+  else
+    return nil
+  end
+
+end
+
+
 function chooseArmyToMove(game,player)
   local pstate = getPlayerState(game,player)
 
@@ -160,32 +227,83 @@ function chooseArmyToMove(game,player)
       local mayPlaceArmy = fstate.fieldArmy == nil and
                            factionArmySize(fstate) > 0 and
                            (faction == arabs or not fstate.firstArmyPlacement)
-      local info = { city = city
-                   , moveOpts = armyDestinationOptions(game,player,city,false)
+      local info = { city     = city
+                   , faction  = faction
+                   , place    = mayPlaceArmy
+                   , armyActs = friendlyArmyActions
+                                            (game,player,city,0,mayPlaceArmy)
                    }
-      if mayPlaceArmy then
-        push(startOpts, { city = city, q = "?", val = info })
-      elseif hasArmy and next(info.moveOpts) ~= nil then
+      if mayPlaceArmy or hasArmy and info.armyActs ~= nil then
         push(startOpts, { city = city, q = "?", val = info })
       end
     end
   end
   if next(startOpts) == nil then return nil end
 
-  return |k|
-    ask(game,player,"Choose Start City", { cities = startOpts }, function(info)
-      local cstate = game.map.cities[info.city]
-      local armyFaction = cstate.faction
-      if pstate.factions[armyFaction].fieldArmy == nil then
-        doPlaceArmy(game,player,armyFaction,info.city,||k(info))
+  return ||
+    ask(game,player,"Choose Start City", { cities = startOpts },
+    function(info)
+      if info.place then
+        doPlaceArmy(game,player,info.faction,info.city,
+          ||chooseArmyActionFrom(game,player,info.city,info.armyActs))
       else
-        k(info)
+        chooseArmyActionFrom(game,player,info.city,info.armyActs)
       end
     end)
 end
 
 
-function armyDestinationOptions(game,player,city,sndMove)
+
+-- Move an army
+function makeMove(game,player,city,moveInfo)
+  changeMovement(game,player,moveInfo.faction,-moveInfo.cost)
+  if moveInfo.perish then nextTurn(game); return end
+
+  doMoveArmy(game,player,moveInfo.faction,moveInfo.to)
+  if moveInfo.attack then
+    attackCity(game,player,city,moveInfo.to)
+  else
+    chooseArmyAction(game,player,moveInfo.to,moveInfo.moveNo,true)
+  end
+end
+
+
+
+--[[
+Note on the Byzantine Fleet
+===========================
+
+If an activation of the Byzantine fleet makes is so that the player
+cannot afford the move then they can pick a different route and there is
+no attack on the Arab army.  If there isn't another option, then their action
+ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
+--]]
+
+
+
+
+-- Try to move an army.  Handles interaction between the byzantium
+-- fleet and the arabs.
+function tryMoveArmy(game,player,city,moveInfo)
+
+  local byzFleet = game.actionSpaces[byz_fleet]
+  if moveInfo.faction == arabs and
+     moveInfo.terrain == sea   and
+     byzFleet ~= nil           and
+     byzFleet ~= player
+  then
+      -- XXX
+    log("Ask Byzantium Fleet Activation")
+  else
+    makeMove(game,player,city,moveInfo)
+  end
+
+end
+
+
+
+-- What cities are reachable from the given city for the army of the player.
+function armyDestinationOptions(game,player,city,movedNo)
   local cstate  = game.map.cities[city]
   local faction = cstate.faction
   local pstate  = getPlayerState(game,player)
@@ -211,7 +329,7 @@ function armyDestinationOptions(game,player,city,sndMove)
     local attack = tgtS.faction ~= faction
     if tgtS.controlledBy == player and attack then cost = nil end
 
-    if cost ~= nil and sndMove then cost = cost + 1 end
+    if cost ~= nil and movedNo > 0 then cost = cost + 1 end
     if cost ~= nil and fstate.movement >= cost then
       local perish = cost == factionArmySize(fstate)
       local moveInfo = { to      = target.to
@@ -220,11 +338,14 @@ function armyDestinationOptions(game,player,city,sndMove)
                        , cost    = cost
                        , perish  = perish
                        , attack  = attack
+                       , moveNo  = 1 + movedNo
                        }
       local q = cost
       if perish then q = q .. "☠"
       elseif attack then q = q .. "⚔" end
-      push(affordable, { city = target.to, q = q, val = moveInfo })
+      push(affordable, { city = target.to, q = q
+                       , val  = || tryMoveArmy(game,player,city,moveInfo)
+                       })
     end
   end
 

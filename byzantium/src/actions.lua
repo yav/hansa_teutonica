@@ -124,11 +124,6 @@ function performAttack(game,player,fromCity,warCity)
   nextTurn(game)
 end
 
-function performCivilWar(game,player,fromCity,warCity)
-  log("XXX: civial war")
-  nextTurn(game)
-end
-
 --[[
 Note on Retreating
 ==================
@@ -152,104 +147,15 @@ so perhaps it's not terrible if it just gets destroyed.
 --]]
 
 
---[[
-Note on the Byzantine Fleet
-===========================
-
-If an activation of the Byzantine fleet makes is so that the player
-cannot afford the move then they can pick a different route and there is
-no attack on the Arab army.  If there isn't another option, then their action
-ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
---]]
-
-
 
 function checkMove(game,opts)
-  local player = getCurrentPlayer(game)
-  local pstate = getPlayerState(game,player)
-  local moveNumber = 1
 
-
-  -- Perform the selected move
-  local function makeMove(fromCity,moveInfo)
-    changeMovement(game,player,moveInfo.faction,-moveInfo.cost)
-    -- XXX: spending the movecost might destroy the army, in which case we
-    -- are done (check "perish")
-    doMoveArmy(game,player,moveInfo.faction,moveInfo.to)
-    moveNumber = moveNumber + 1
-    if moveInfo.attack then
-      performAttack(game,player,fromCity,moveInfo.to)
-    else
-      nextTurn(game)
-    --[[
-
-      local cvActs   = { byz_civil_war }
-      if faction == arabs then
-        cvActs = { arab_civil_war_1, arab_civil_war_2 }
-      end
-
-      local actOpts = {}
-      for _,act in ipairs(cvActs) do
-        if game.actionSpaces[act] ~= nil then
-          push( civWarOpts
-              , { act = act
-                , val = ||performCivilWar(game,player,fromCity,moveInfo.to)
-                })
-        end
-      end
-
-      local textOpts = {}
-      if moveNumber == 2 then
-        push(textOpts, { text = "Move Again"
-                       , val  = ||askWhere(moveInfo.to)
-                       })
-      end
-      push(textOpts, { text = "End Action"
-                     , val  = || nextTurn(game)
-                     })
-
-      askAction(game,player,"What next?", { actions = actOpts
-                                          , text = textOpts }, |f| f())
---]]
-    end
-
-  end
-
-  -- Try to move from one city to another.  This works unless the
-  -- Byzantine fleet interferese, which could cancel the move
-  -- (because it cannot be afforder, or army got destroyed) or change its cost.
-  local function tryMove(fromCity,moveInfo)
-    local byzFleet = game.actionSpaces[byz_fleet]
-    if moveInfo.faction == arabs and
-       moveInfo.terrain == sea   and
-       byzFleet ~= nil           and
-       byzFleet ~= player then
-      -- XXX
-    else makeMove(fromCity,moveInfo)
-    end
-  end
-
-  -- Choose where to move from the given city
-  -- XXX: should give the option to not move, or use a civil war
-  local function askWhere1(info)
-    local opts = { menu   = { text = "End Action", val = nil }
-                 , cities = info.moveOpts
-                 }
-    ask(game,player,"Move to which city?", opts,
-      function(tgt)
-        if tgt == nil
-        then nextTurn(game)
-        else tryMove(info.city,tgt)
-        end
-      end)
-  end
-
-  local pickArmy = chooseArmyToMove(game,player)
+  local pickArmy = chooseArmyToMove(game,getCurrentPlayer(game))
 
   if pickArmy == nil then
     return opts
   else
-    push(opts, { text = "Move Army", val = || pickArmy(askWhere1) })
+    push(opts, { text = "Move Army", val = pickArmy })
   end
 end
 
