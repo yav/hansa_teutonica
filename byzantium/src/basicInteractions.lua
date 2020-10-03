@@ -55,7 +55,7 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
-  say(string.format("The %s army suffered %d casulaties."
+  say(string.format("  * The %s army suffered %d casulaties."
                    , playerColorBB(player), todo))
 
   local pstate = getPlayerState(game,player)
@@ -172,7 +172,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
 
   if opponent == nil then
     -- Siege
-    say(string.format("%s besieged %s", playerColorBB(player), city))
+    say(string.format("  * %s besieged %s", playerColorBB(player), city))
     siegeBattle = true
     defenderDice = cstate.strength
     if cstate.fortified then defenderDice = defenderDice + 1 end
@@ -185,14 +185,14 @@ function doSingleBattle(game,player,faction,city,opponent,result)
     dstate        = getPlayerState(game,opponent).factions[cstate.faction]
     if dstate.fieldArmy == city then
       -- Against army
-      say(string.format( "%s attacked the %s army in %s"
+      say(string.format( "  * %s attacked the %s army in %s"
                        , playerColorBB(player)
                        , playerColorBB(opponent)
                        , city))
 
       defenderDice = armyDice(dstate)
     else
-      say(string.format( "%s attacked the %s levy in %s"
+      say(string.format( "  * %s attacked the %s levy in %s"
                        , playerColorBB(player)
                        , playerColorBB(opponent)
                        , city))
@@ -230,7 +230,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
     end
     removeDice()
     local outcome = attackerStrength > defenderStrength
-    say(string.format("%s %s the battle"
+    say(string.format("  * %s %s the battle"
                      , playerColorBB(player)
                      , outcome and "won" or "lost"))
     result(outcome)
@@ -273,6 +273,9 @@ end
 
 
 function startCivilWar(game,player,city,wopts)
+  say(string.format( "\n%s started a civil war in %s"
+                   , playerColorBB(player), city ))
+
   local cstate = getCity(game,city)
 
   doSingleBattle(game,player,cstate.faction,city,nil,function(res)
@@ -326,6 +329,7 @@ function friendlyArmyActions(game,player,city,movedNo,endActOk)
     spotOpts = { arab_civil_war_1, arab_civil_war_2 }
   end
 
+  -- XXX: should not be able to start a civil war in our own city
   for _,act in ipairs(spotOpts) do
     if game.actionSpaces[act] == nil then
       local wopts = workerOptions(game,player,faction)

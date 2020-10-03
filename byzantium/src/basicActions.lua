@@ -91,6 +91,9 @@ function doRemoveArmy(g,player,faction)
     local f = GUI.players[player].factions[faction]
     f.fieldArmy.destroy()
     f.fieldArmy = nil
+    say(string.format( "%s's %s army s was destroyed."
+                     , playerColorBB(player), faction_name[faction]
+                     ))
   end
 end
 
@@ -109,7 +112,7 @@ end
 -- Cities
 
 function doGainControl(game,player,city,k)
-  say(string.format("%s claimed %s.", playerColorBB(player), city))
+  say(string.format("\n%s claimed %s.", playerColorBB(player), city))
 
   local cstate = game.map.cities[city]
 
