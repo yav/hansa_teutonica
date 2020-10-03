@@ -155,7 +155,7 @@ function startCivilWar(game,player,city,wopts)
 end
 
 function attackCity(game,player,fromCity,attackedCity)
-  log("Attack " .. city)
+  log("Attack " .. attackedCity)
   nextTurn(game)
 end
 
@@ -190,9 +190,14 @@ function friendlyArmyActions(game,player,city,movedNo,endActOk)
   end
 
   local civWarActs    = {}
-  local faction       = game.map.cities[city].faction
-  local spotOpts      = faction == byzantium and { byz_civil_war }
-                        or { arab_civil_war_1, arab_civil_war_2 }
+  local cstate        = game.map.cities[city]
+  local faction       = cstate.faction
+  local spotOpts      = {}
+  if faction == byzantium and not cstate.constantinople then
+    spotOpts = { byz_civil_war }
+  elseif faction == arabs then
+    spotOpts = { arab_civil_war_1, arab_civil_war_2 }
+  end
 
   for _,act in ipairs(spotOpts) do
     if game.actionSpaces[act] == nil then

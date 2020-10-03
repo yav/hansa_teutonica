@@ -155,7 +155,7 @@ function checkMove(game,opts)
   if pickArmy == nil then
     return opts
   else
-    push(opts, { text = "Move Army", val = pickArmy })
+    push(opts, { text = "Use Army", val = pickArmy })
   end
 end
 
