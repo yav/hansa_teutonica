@@ -30,6 +30,15 @@ function newGame(controlledBy)
     }
 end
 
+function playerAfter(game,player)
+  local n
+  for i,p in ipairs(game.players) do
+    if p == player then n = i + 1; break end
+  end
+  if n > #g.players then n = 1 end
+  return game.players[n]
+end
+
 function getNextPlayer(g)
   local p = g.curPlayer + 1
   if p > #g.players then p = 1 end
@@ -42,6 +51,10 @@ end
 
 function getPlayerState(g,p)
   return g.playerState[p]
+end
+
+function getCity(game,city)
+  return game.map.cities[city]
 end
 
 --------------------------------------------------------------------------------

@@ -55,7 +55,8 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
-  if todo == 0 then k(); return end
+  say(string.format("The %s army suffered %d casulaties."
+                   , playerColorBB(player), todo))
 
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
@@ -147,11 +148,137 @@ function chooseRetreat(game,player,faction,city,k)
 end
 
 
+function doSingleBattle(game,player,faction,city,opponent,result)
+  local cstate = getCity(game,city)
+  local pstate = getPlayerState(game,player)
+  local fstate = pstate.factions[faction]
+  local levyBattle  = false
+  local siegeBattle = false
+
+  local function armyDice(state)
+    local dice = state.mainArmy
+    if dice > 3 then dice = 3 end
+    dice = dice + state.eliteArmy
+    if state.royalty then dice = dice + 1 end
+    return dice
+  end
+
+  local attackerDice  = 0
+  local attackerColor = nil
+
+  local defenderDice  = 0
+  local defenderColor = nil
+  local dstate        = nil
+
+  if opponent == nil then
+    -- Siege
+    say(string.format("%s besieged %s", playerColorBB(player), city))
+    siegeBattle = true
+    defenderDice = cstate.strength
+    if cstate.fortified then defenderDice = defenderDice + 1 end
+    defenderColor = faction_bg_color[cstate.faction]
+  else
+    attackerDice  = armyDice(fstate)
+    attackerColor = playerColor(player)
+
+    defenderColor = getPlayerColor(opponent)
+    dstate        = getPlayerState(game,opponent).factions[cstate.faction]
+    if dstate.fieldArmy == city then
+      -- Against army
+      say(string.format( "%s attacked the %s army in %s"
+                       , playerColorBB(player)
+                       , playerColorBB(opponent)
+                       , city))
+
+      defenderDice = armyDice(dstate)
+    else
+      say(string.format( "%s attacked the %s levy in %s"
+                       , playerColorBB(player)
+                       , playerColorBB(opponent)
+                       , city))
+      -- Against levy
+      levyBattle   = true
+      defenderDice = dstate.levy
+      if defenderDice > 3 then defenderDice = 3 end
+    end
+  end
+
+  local sem = newSem()
+  local attackerHits = 0
+  local defenderHits = 0
+  if not siegeBattle then
+    sem.up()
+    rollDice(attackerColor,attacker,attackerDice,
+      function(n) attackerHits = n; sem.down() end)
+  end
+
+  sem.up()
+  rollDice(defenderColor,defender,defenderDice,
+      function(n)
+        defenderHits = n
+        if cstate.constantinople then defenderHits = 2 * defenderHits end
+        sem.down()
+      end)
+
+  local function checkOutcome()
+    local attackerStrength = factionArmySize(fstate) - fstate.movement
+
+    local defenderStrength = 0
+    if siegeBattle    then defenderStrength = defenderDice
+    elseif levyBattle then defenderStrength = dstate.levy
+    else defenderStrength = factionArmySize(dstate) - dstate.movement
+    end
+    removeDice()
+    local outcome = attackerStrength > defenderStrength
+    say(string.format("%s %s the battle"
+                     , playerColorBB(player)
+                     , outcome and "won" or "lost"))
+    result(outcome)
+  end
+
+  sem.wait(|| chooseArmyCasualties(game,player,faction,defenderHits,
+              function()
+                if siegeBattle then checkOutcome()
+
+                elseif levyBattle then
+                  if attackerHits > dstate.levy then
+                      attackerHits = dstate.levy
+                  end
+                  changeLevy(game,player,cstate.faction,-attackerHits)
+                  say("The %s levy suffered %d casualties",
+                        playerColorBB(opponent), attackerHits)
+                  checkOutcome()
+
+                else
+                  chooseArmyCasualties(game,opponent,cstate.faction,
+                                                attackerHits, checkOutcome)
+                end
+              end))
+
+end
+
+
+function doBattle(game,player,fromCityMaybe,city)
+  -- ask retreat
+  -- check for armies:
+  --   if yes, fight them in whatever order
+  --      if loose retreat
+  --      if win then besige
+  --   if no, is there an owner (controller, or emperor in the case of const.)
+  --      if no owner, besieg
+  --      if yes owner ask if using levy
+  --        if no besieg
+  --        if yes fight levies
+end
+
 
 function startCivilWar(game,player,city,wopts)
-  -- XXX
-  log("Start civil war in " .. city)
-  nextTurn(game)
+  local cstate = getCity(game,city)
+
+  doSingleBattle(game,player,cstate.faction,city,nil,function(res)
+    log(res)
+    nextTurn(game)
+  end)
 end
 
 function attackCity(game,player,fromCity,attackedCity)

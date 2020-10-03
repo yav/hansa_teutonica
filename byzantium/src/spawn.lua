@@ -369,19 +369,26 @@ end
 --------------------------------------------------------------------------------
 
 
-function rollDice(player,n,k)
+-- XXX: can't see pips on arab dice
+function rollDice(color,who,n,k)
   local x = 20
-  local y = 5
+  local y = 3
+  if who == defender then y = -1 end
   local sem = newSem()
   local dice = {}
+
+  local ui = GUI.dice
+  if ui == nil then ui = {}; GUI.dice = ui end
+  ui[who] = dice
+
   for i = 1,n do
     sem.up()
     dice[i] = spawnObject(
       { type = "Die_6_Rounded"
       , sound = false
-      , position = { x + i, 10, y }
+      , position = { x + i * 1.1, 10, y }
       , callback_function = function(o)
-          o.setColorTint(playerColor(player))
+          o.setColorTint(color)
           o.roll()
           Wait.frames(||when(||o.resting,sem.down), 10)
         end
@@ -389,12 +396,35 @@ function rollDice(player,n,k)
     )
   end
   sem.wait(function()
-    local result = {}
+    local hits = 0
     for i,d in ipairs(dice) do
-      result[i] = d.getRotationValue()
+      local v = d.getRotationValue()
+      local hit = v >= 4
+      local p = d.getPosition()
+      if hit then
+        p.z = p.z + 0.75
+        hits = hits + 1
+      else
+        p.z = p.z - 0.75
+        local c = Color(color)
+        c.a = 0.2
+        d.setColorTint(c)
+      end
+      d.setPositionSmooth(p,false,false)
     end
-    k(result)
+    k(hits)
   end)
+end
+
+function removeDice()
+  local todo = GUI.dice
+  if todo == nil then return end
+  for _,ds in pairs(todo) do
+    for _,d in ipairs(ds) do
+      d.destroy()
+    end
+  end
+  GUI.dice = nil
 end
 
 --------------------------------------------------------------------------------

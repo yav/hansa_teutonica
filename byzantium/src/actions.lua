@@ -17,10 +17,27 @@ end
 
 function checkTest(game,opts)
   local player = getCurrentPlayer(game)
-  push(opts,{ text = "Test"
-            , val = || chooseArmyCasualties(game,player,byzantium,5,
-                    || nextTurn(game))
-            })
+
+  local function test()
+
+    local sem = newSem()
+    local aVal = nil
+    local dVal = nil
+
+    sem.up(); rollDice(playerColor(player),attacker,8,
+                        function(n) aVal = n sem.down() end)
+    sem.up(); rollDice(faction_bg_color[byzantium],defender,4,
+                        function(n) dVal = n sem.down() end)
+    sem.wait(function()
+      log(aVal)
+      log(dVal)
+      Wait.frames(removeDice,120)
+      nextTurn(game)
+    end)
+
+  end
+
+  push(opts,{ text = "Test", val = test })
 end
 
 

@@ -68,8 +68,15 @@ local allActionSpaces =
   , arab_fleet
   }
 
+-- attacker/defender
+local attacker = 1
+local defender = 2
+
 
 local blocker_color = Color(0.2,0.2,0.2)
+
+
+
 
 --------------------------------------------------------------------------------
 local GUI
