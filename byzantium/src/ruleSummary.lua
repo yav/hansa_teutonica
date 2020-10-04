@@ -4,7 +4,7 @@ function addRuleSummary()
     Notes.removeNotebookTab(tab.index)
   end
   local function ruleSection(name,def)
-    Notes.addNotebookTab({title=name,body=def,color="Gray"})
+    Notes.addNotebookTab({title=name,body=def})
   end
 
   ruleSection("End of Round",
