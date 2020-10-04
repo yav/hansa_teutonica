@@ -155,6 +155,9 @@ function spawnFaction(g,player,faction,x,y,k)
   local sem = newSem()
   local function info(id)
     local tip = faction_stat_name[id]
+    if id == "treasury" then
+      tip = string.format("%s (%s)", tip, faction_currency[faction])
+    end
     sem.up()
     spawnBox(x,y,fg,bg,tip,factionValueLabel(id,f),function(o)
       ui[id] = o

@@ -2,7 +2,7 @@
 function workerOptions(game,player,faction)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
-  local cost   = "$3 " .. faction_poss[faction]
+  local cost   = "$3 " .. faction_currency[faction]
   local pcost  = "? (" .. cost .. ")"
 
   local opts = {}
@@ -514,3 +514,54 @@ function armyDestinationOptions(game,player,city,movedNo)
 
   return affordable
 end
+
+
+
+
+function conquerCity(game,player,city,faction,usingBulgars)
+  local cstate = getCity(game,city)
+  local owner = cstate.controlledBy
+  if owner ~= nil then
+    if cstate.fortified then
+      cstate.fortified = false
+      changeFortifications(game,owner,1)
+    else
+      changeCasualties(game,owner,1)
+    end
+  end
+  cstate.controlledBy = nil
+
+  local newStrength = cstate.strength - 1
+  if not usingBulgars then changeTreasury(game,player,faction,newStrength) end
+  changeVP(game,player,faction,newStrength)
+
+  if newStrength == 0 then newStrength = 1 end
+  cstate.strength = newStrength
+  cstate.faction  = usingBulgars and bulgars or faction
+
+  local function doGaintControl()
+    if not usingBulgars then cstate.controlledBy = player end
+    redrawCity(||nextTurn(game))
+  end
+
+  if usingBulgars then
+    doGaintControl()
+  else
+    local wopts = workerOptions(game,player,faction)
+    if next(wopts) == nil then
+      chooseArmyCasualties(game,player,faction,2,function()
+        changeCasualties(game,player,-1)
+        doGaintControl()
+      end)
+    else
+      local lab = "Choose worker to govern"
+      ask(game,player,lab, { cubes = wopts }, function(f)
+        f()
+        doGaintControl()
+      end)
+    end
+  end
+end
+
+
+

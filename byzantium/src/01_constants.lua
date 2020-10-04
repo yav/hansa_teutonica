@@ -11,6 +11,11 @@ local faction_name =
   , "Persia"
   }
 
+local faction_currency =
+  { "bezants"
+  , "dinars"
+  }
+
 local faction_poss =
   { "byzantine"
   , "arab"
