@@ -2,8 +2,8 @@
 --------------------------------------------------------------------------------
 -- Actions
 
-function markAction(g,player,action)
-  g.actions[action] = player
+function markAction(game,player,action)
+  game.actionSpaces[action] = player
   GUI.actions[action].setColorTint(playerColor(player))
 end
 
@@ -70,6 +70,11 @@ function doPlaceArmy(g,player,faction,city,k)
   getPlayerState(g,player).factions[faction].fieldArmy = city
   spawnArmy(g,player,city,function(o)
     GUI.players[player].factions[faction].fieldArmy = o
+    local lab = string.format("  * %s's %s army appeared in %s"
+                             , playerColorBB(player)
+                             , faction_poss[faction]
+                             , city)
+    say(lab)
     k(o)
   end)
 end
@@ -82,6 +87,10 @@ function doMoveArmy(g,player,faction,city)
   local newLoc = armyPos(g,player,city)
   local o = GUI.players[player].factions[faction].fieldArmy
   o.setPositionSmooth(newLoc,false,false)
+
+  local lab = string.format("  * %s moved from %s to %s"
+                           , playerColorBB(player),curCity,city)
+  say(lab)
 end
 
 function doRemoveArmy(g,player,faction)
@@ -91,8 +100,8 @@ function doRemoveArmy(g,player,faction)
     local f = GUI.players[player].factions[faction]
     f.fieldArmy.destroy()
     f.fieldArmy = nil
-    say(string.format( "%s's %s army s was destroyed."
-                     , playerColorBB(player), faction_name[faction]
+    say(string.format( "%s's %s army was destroyed."
+                     , playerColorBB(player), faction_poss[faction]
                      ))
   end
 end
@@ -112,15 +121,15 @@ end
 -- Cities
 
 function doGainControl(game,player,city,k)
-  say(string.format("\n%s claimed %s.", playerColorBB(player), city))
+  say(string.format("  * %s claimed %s", playerColorBB(player), city))
 
   local cstate = game.map.cities[city]
 
   -- VP equal to the city's strength
   changeVP(game,player,cstate.faction,cstate.strength)
-  say(string.format("  * scored %d %s VP."
+  say(string.format("  * scored %d %s VP"
                    , cstate.strength
-                   , faction_name[cstate.faction]))
+                   , faction_poss[cstate.faction]))
 
   -- mark as controlled
   cstate.controlledBy = player
@@ -135,7 +144,6 @@ function doGainControl(game,player,city,k)
          fstate.firstArmyPlacement then
          doPlaceArmy(game,player,byzantium,city,function()
            fstate.firstArmyPlacement = false
-           say("  * byzantene army is in the city")
            k()
          end)
       else

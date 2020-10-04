@@ -50,10 +50,17 @@ function ask(game,player,quest,options,answer)
     end
   end
 
-  question(game,player,quest,cleanup,answer,function(menu,click)
+  if options.menu    == nil then options.menu    = {} end
+  if options.actions == nil then options.actions = {} end
+  if options.cities  == nil then options.cities  = {} end
+  if options.cubes   == nil then options.cubes   = {} end
+
+  local quest1 = quest
+  if next(options.menu) == nil then quest1 = markPlayerText(player,quest) end
+
+  question(game,player,quest1,cleanup,answer,function(menu,click)
 
     -- format: { text, val }
-    if options.menu == nil then options.menu = {} end
     for ix,opt in ipairs(options.menu) do
       if opt.text ~= nil then
         spawnMenuItem(player,menu,ix,opt.text,click(opt.val))
@@ -61,7 +68,6 @@ function ask(game,player,quest,options,answer)
     end
 
     -- format: { action, val }
-    if options.actions == nil then options.actions = {} end
     local bg = Color(0,0,0,0)
     for _,opt in ipairs(options.actions) do
       local o = GUI.actions[opt.action]
@@ -81,7 +87,6 @@ function ask(game,player,quest,options,answer)
     end
 
     -- format: { city, q, val }
-    if options.cities == nil then options.cities = {} end
     for _,opt in ipairs(options.cities) do
       local o = GUI.cities[opt.city]
       push(toCleanCities,o)
@@ -100,8 +105,12 @@ function ask(game,player,quest,options,answer)
       )
     end
 
-    -- format: {}
-    if options.cubes == nil then options.cubes = {} end
+    -- format: { entry }
+    -- entry: faction = { fstat = ui }
+    --      | pstat   = ui
+    --
+    -- ui = { q, val }
+
     local ui = GUI.players[player]
     for stat,val in pairs(options.cubes) do
       if stat == byzantium or stat == arabs then
@@ -109,12 +118,12 @@ function ask(game,player,quest,options,answer)
         for fstat,fval in pairs(val) do
           local o = fui[fstat]
           push(toCleanCubes,o)
-          clickableBox(o, click(fval))
+          clickableBox(o, fval.q, click(fval.val))
         end
       else
         local o = ui[stat]
         push(toCleanCubes,o)
-        clickableBox(o, click(val))
+        clickableBox(o, val.q, click(val.val))
       end
     end
   end)

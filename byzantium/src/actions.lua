@@ -100,18 +100,23 @@ function checkIncreaseArmy(game, opts)
       if next(wopts) ~= nil then
         for _,stat in ipairs({ "eliteArmy", "mainArmy", "levy", "movement" }) do
           if stat ~= "eliteArmy" or not placedElite then
-            fopts[stat] = function()
-              ask(game,player,"Choose worker to reassign",{cubes=wopts},
-              function(pay)
-                pay()
-                first = false
-                placedElite = stat == "eliteArmy"
-                changeFactionStat(stat)(game,player,faction,1)
-                say(playerColorBB(player) .. " increased " ..
-                      faction_name[faction] .. " " ..  faction_stat_name[stat])
-                actIncrease()
-              end)
-            end
+            fopts[stat] = 
+               { q = "?", val =
+                 function()
+                   ask(game,player,"Choose worker to reassign",{cubes=wopts},
+                   function(pay)
+                     pay()
+                     first = false
+                     placedElite = stat == "eliteArmy"
+                     changeFactionStat(stat)(game,player,faction,1)
+                     local msg = string.format("  * %s %s increased"
+                                              , faction_poss[faction]
+                                              , faction_stat_name[stat])
+                     say(msg)
+                     actIncrease()
+                   end)
+                end
+              }
           end
         end
       end
@@ -150,17 +155,9 @@ attacker looses a battle.  The rules state that they must "retreat" to
 the city they came from, however, it is not clear if full retreat rules
 apply, or if it simply means the attacker just goes back to where they were.
 
-This question is asked on BGG but is unanswered, and in many related
-question the designer seems to only consider "retreating" in the context
-of defending armies loosing, so I choose to interpret this as meaning
-"go back to the city".  I think this also makes Arab sea attacks more
-viable, as otherwise they'd be extremely risky if someone else controls
-the Byznatene army---lossing the battle would destroy your whole army
-which seems no fun.
-
-XXX: actually just doing a standard retreat might not be all that bad:
-if any army is defeated, then it likely has very few members anyway,
-so perhaps it's not terrible if it just gets destroyed.
+This matters if an arab army attacks via a sea route and looses,
+as with "retreat rules" the byzanteed fleet could interfere thus destroying
+them.
 --]]
 
 

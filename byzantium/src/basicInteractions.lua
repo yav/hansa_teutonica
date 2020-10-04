@@ -2,33 +2,40 @@
 function workerOptions(game,player,faction)
   local pstate = getPlayerState(game,player)
   local fstate = pstate.factions[faction]
-  local cost   = faction == arabs and " $A 3" or " $B 3"
+  local cost   = "$3 " .. faction_poss[faction]
+  local pcost  = "? (" .. cost .. ")"
 
   local opts = {}
 
   if pstate.available > 0 then
     opts.available =
-      function()
-        changeAvailableWorkers(game,player,-1)
-        say(playerColorBB(player) .. " used an available worker.")
-      end
+      { q = "?"
+      , val = function()
+                changeAvailableWorkers(game,player,-1)
+                say(playerColorBB(player) .. " used an available worker:")
+              end
+      }
   end
 
   if fstate.treasury < 3 then return opts end
 
   if pstate.casualty > 0 then
     opts.casualty =
-      function()
-        changeTreasury(game,player,faction,-3)
-        changeCasualties(game,player,-1)
-        say(playerColorBB(player) ..  " used a casualty for" .. cost)
-      end
+      { q   = pcost
+      , val = function()
+                changeTreasury(game,player,faction,-3)
+                changeCasualties(game,player,-1)
+                local msg = string.format("%s hired a casualty:\n  * for %s"
+                                         , playerColorBB(player),cost)
+                say(msg)
+              end
+      }
   end
 
-  local check = { eliteArmy = { "Elite army", changeEliteArmy }
-                , mainArmy  = { "Main army",  changeMainArmy }
-                , levy      = { "Levy",       changeLevy }
-                , movement  = { "Movement",   changeMovement }
+  local check = { eliteArmy = changeEliteArmy
+                , mainArmy  = changeMainArmy
+                , levy      = changeLevy
+                , movement  = changeMovement
                 }
 
   for fName,fState in pairs(pstate.factions) do
@@ -38,13 +45,19 @@ function workerOptions(game,player,faction)
       if fState[stat] > 0 then
         have = true
         os[stat] =
-           function ()
-             changeTreasury(game,player,faction,-3)
-             how[2](game,player,fName,-1)
-             say(playerColorBB(player) ..
-               " used a worker from the " ..  faction_name[fName] ..
-               " " .. how[1] ..  " for" .. cost)
-           end
+          { q   = pcost
+          , val = function ()
+                    changeTreasury(game,player,faction,-3)
+                    local msg = string.format("%s spent a worker:\n  * from %s %s\n  * for %s"
+                              , playerColorBB(player)
+                              , faction_poss[fName]
+                              , faction_stat_name[stat]
+                              , cost
+                              )
+                    how(game,player,fName,-1)
+                    say(msg)
+                  end
+         }
       end
     end
     if have then opts[fName] = os end
@@ -55,7 +68,7 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
-  say(string.format("  * The %s army suffered %d casulaties."
+  say(string.format("  * The %s army suffered %d casulaties"
                    , playerColorBB(player), todo))
 
   local pstate = getPlayerState(game,player)
@@ -74,20 +87,21 @@ function chooseArmyCasualties(game,player,faction,todo,k)
     for _,stat in ipairs({"movement","mainArmy","eliteArmy"}) do
       if fstate[stat] > 0 then
         opts[stat] =
-          function()
-            changeFactionStat(stat)(game,player,faction,-1)
-            changeCasualties(game,player,1)
-            done = done + 1
-            doOne()
-          end
+          { q = "?"
+          , val = function()
+                    changeFactionStat(stat)(game,player,faction,-1)
+                    changeCasualties(game,player,1)
+                    done = done + 1
+                    doOne()
+                  end
+          }
       end
     end
     if next(opts) == nil then
       if fstate.royalty then changeRoyalty(game,player,faction,false) end
       k()
     else
-      local lab = string.format("%s casualty %d/%d",
-                                        playerColorBB(player),done,todo)
+      local lab = string.format("Choose casualty %d/%d",done,todo)
       local cubeOpts = {}
       cubeOpts[faction] = opts
       ask(game,player,lab,{cubes=cubeOpts},apply)
@@ -138,7 +152,8 @@ function chooseRetreat(game,player,faction,city,k)
     end
 
     if next(qopts) ~= nil then
-      ask(game,player,"Choose city to retreat to:", { cities = qopts },apply)
+      local lab = "Choose retreat city"
+      ask(game,player,lab, { cities = qopts },apply)
     else
       k(nil,nil)
     end
@@ -272,16 +287,23 @@ function doBattle(game,player,fromCityMaybe,city)
 end
 
 
-function startCivilWar(game,player,city,wopts)
-  say(string.format( "\n%s started a civil war in %s"
-                   , playerColorBB(player), city ))
-
+function startCivilWar(game,player,city,act,wopts)
+  local quest = "Choose civial war worker"
   local cstate = getCity(game,city)
+  local q = actQ()
 
-  doSingleBattle(game,player,cstate.faction,city,nil,function(res)
+  q.enQ(||ask(game,player,quest,{cubes=wopts},function(f)
+    f()
+    markAction(game,player,act)
+    say(string.format( "\n%s started a civil war in %s"
+                     , playerColorBB(player), city ))
+    q.next()
+  end))
+
+  q.enQ(||doSingleBattle(game,player,cstate.faction,city,nil,function(res)
     log(res)
     nextTurn(game)
-  end)
+  end))
 end
 
 function attackCity(game,player,fromCity,attackedCity)
@@ -290,11 +312,12 @@ function attackCity(game,player,fromCity,attackedCity)
 end
 
 function chooseArmyActionFrom(game,player,city,opts)
-  local lab = string.format("%s army in %s",playerColorBB(player),city)
+  local lab = "Action for army in " .. city
   ask(game,player,lab,opts,apply)
 end
 
 function chooseArmyAction(game,player,city,movedNo,endActOk)
+  say(lab)
   local opts = friendlyArmyActions(game,player,city,movedNo,endActOk)
   if opts == nil then
     nextTurn(game)
@@ -321,23 +344,25 @@ function friendlyArmyActions(game,player,city,movedNo,endActOk)
 
   local civWarActs    = {}
   local cstate        = game.map.cities[city]
-  local faction       = cstate.faction
-  local spotOpts      = {}
-  if faction == byzantium and not cstate.constantinople then
-    spotOpts = { byz_civil_war }
-  elseif faction == arabs then
-    spotOpts = { arab_civil_war_1, arab_civil_war_2 }
-  end
 
-  -- XXX: should not be able to start a civil war in our own city
-  for _,act in ipairs(spotOpts) do
-    if game.actionSpaces[act] == nil then
-      local wopts = workerOptions(game,player,faction)
-      if next(wopts) ~= nil then
-        hasOpts = true
-        push(civWarActs, { action = act
-                         , val = ||startCivilWar(game,player,city,wopts)
-                         })
+  if cstate.controlledBy ~= player then
+    local faction       = cstate.faction
+    local spotOpts      = {}
+    if faction == byzantium and not cstate.constantinople then
+      spotOpts = { byz_civil_war }
+    elseif faction == arabs then
+      spotOpts = { arab_civil_war_1, arab_civil_war_2 }
+    end
+
+    for _,act in ipairs(spotOpts) do
+      if game.actionSpaces[act] == nil then
+        local wopts = workerOptions(game,player,faction)
+        if next(wopts) ~= nil then
+          hasOpts = true
+          push(civWarActs, { action = act
+                           , val = ||startCivilWar(game,player,city,act,wopts)
+                           })
+        end
       end
     end
   end
@@ -376,8 +401,9 @@ function chooseArmyToMove(game,player)
   end
   if next(startOpts) == nil then return nil end
 
-  return ||
-    ask(game,player,"Choose Start City", { cities = startOpts },
+  return function()
+    say(string.format("\n%s is using an army", playerColorBB(player)))
+    ask(game,player,"Choose army",{ cities = startOpts },
     function(info)
       if info.place then
         doPlaceArmy(game,player,info.faction,info.city,
@@ -386,6 +412,7 @@ function chooseArmyToMove(game,player)
         chooseArmyActionFrom(game,player,info.city,info.armyActs)
       end
     end)
+  end
 end
 
 

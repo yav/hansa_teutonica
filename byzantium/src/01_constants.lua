@@ -11,6 +11,13 @@ local faction_name =
   , "Persia"
   }
 
+local faction_poss =
+  { "byzantine"
+  , "arab"
+  , "bulgar"
+  , "persian"
+  }
+
 local faction_fg_color =
   { Color(0.9, 0.9, 0.9)
   , Color(0,0,0)

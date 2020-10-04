@@ -93,17 +93,18 @@ function spawnPlayer(g,player,k)
   local h = 1
   local w = 1
   local sem = newSem()
-  local function label(tip,msg)
+  local function label(tip,msg,maint)
+    if maint then tip = string.format("%s\nmaintenance: $%d",tip,maint) end
     sem.up()
     spawnBox(x,y,Color(0.5,0.5,0.5),blocker_color,tip,msg,sem.down)
   end
   local x0 = x
-  label("Elite Army","E");  x = x + w
-  label("Main Army","A");   x = x + w
-  label("Levy","L");        x = x + w
-  label("Movement","M");    x = x + 1.5 * w
-  label("Treasury","$");    x = x + 1.5 * w
-  label("VP","VP");         x = x + 1.5 * w
+  label(faction_stat_name.eliteArmy, "E",  3);   x = x + w
+  label(faction_stat_name.mainArmy,  "A",  1);   x = x + w
+  label(faction_stat_name.movement,  "M",  1);   x = x + w
+  label(faction_stat_name.levy,      "L",  2);   x = x + 1.5 * w
+  label(faction_stat_name.treasury,  "$",  nil); x = x + 1.5 * w
+  label(faction_stat_name.vp,        "VP", nil); x = x + 1.5 * w
 
   x = x0; y = y - h
 
@@ -152,7 +153,8 @@ function spawnFaction(g,player,faction,x,y,k)
   local f      = pstate.factions[faction]
 
   local sem = newSem()
-  local function info(id,tip)
+  local function info(id)
+    local tip = faction_stat_name[id]
     sem.up()
     spawnBox(x,y,fg,bg,tip,factionValueLabel(id,f),function(o)
       ui[id] = o
@@ -162,12 +164,12 @@ function spawnFaction(g,player,faction,x,y,k)
 
   local x0 = x
   -- ids should match the names in the model
-  info("eliteArmy", "Elite Army ($3)"); x = x + w
-  info("mainArmy",  "Main Army ($1)");  x = x + w
-  info("levy",      "Levy ($2)");       x = x + w
-  info("movement",  "Movement ($1)");   x = x + 1.5 * w
-  info("treasury",  "Treasury");        x = x + 1.5 * w
-  info("vp",        "VP")
+  info("eliteArmy"); x = x + w
+  info("mainArmy");  x = x + w
+  info("movement");  x = x + w
+  info("levy");      x = x + 1.5 * w
+  info("treasury");  x = x + 1.5 * w
+  info("vp")
 
   ui.fieldArmy = nil
   if f.fieldArmy ~= nil then
@@ -214,15 +216,22 @@ function editBox(obj,val)
   obj.editButton({ index = 0, label = val })
 end
 
-function clickableBox(obj, f)
-  local lab = obj.getButtons()[1].label
-  obj.editButton({ index = 0, click_function = f, label = lab .. '?' })
+function clickableBox(obj, suff, f)
+  local btn = obj.getButtons()[1]
+  local info = { label = btn.label, tip = btn.tooltip }
+  local ui = GUI.clickableBox
+  if ui == nil then ui = {}; GUI.clickableBox = ui end
+  ui[obj.getGUID()] = info
+  local newLab = info.label .. '?'
+  local newTip = info.tip .. suff
+  obj.editButton({ index = 0, click_function = f,
+                  label = newLab, tooltip = newTip })
 end
 
 function notClickableBox(obj)
-  local lab = obj.getButtons()[1].label
-  lab = lab:sub(1,-2)
-  obj.editButton({ index = 0, click_function = "nop", label = lab })
+  local info = GUI.clickableBox[obj.getGUID()]
+  obj.editButton({ index = 0, click_function = "nop"
+                 , label = info.label, tooltip = info.tip })
 end
 
 

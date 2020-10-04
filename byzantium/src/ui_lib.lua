@@ -23,6 +23,26 @@ function colorNote(c,txt)
     math.floor(c[3] * 255))
 end
 
+function clickablePlayerText(player,txt)
+  return string.format( "%s %s %s"
+                      , playerColorNote(player,">")
+                      , txt
+                      , playerColorNote(player,"<")
+                      )
+end
+
+
+function markPlayerText(player,txt)
+  return string.format( "%s %s %s"
+                      , playerColorNote(player,"<")
+                      , txt
+                      , playerColorNote(player,">")
+                      )
+end
+
+
+
+
 
 
 function spawnMenu(x,y,k)
@@ -44,9 +64,7 @@ function spawnMenuItem(p,menu,ix,lab,f)
   local bg  = f and {0,0,0} or {0.1,0.1,0.1}
   local fg  = {1,1,1}
   local msg = lab
-  if p and f then
-    msg = playerColorNote(p, "> ") .. lab .. playerColorNote(p, " <")
-  end
+  if p and f then msg = clickablePlayerText(p,lab) end
   local hover = f and {0.3,0.3,0.3} or bg
   if p and f then
     local h = playerColor(p)
