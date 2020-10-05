@@ -68,6 +68,14 @@ end
 
 
 function chooseArmyCasualties(game,player,faction,todo,k)
+  if player == "bulgars" or faction == bulgars then
+    say(string.format("  * The %s army suffered %d casulaties"
+                   , faction_poss[bulgars], todo))
+    changeBulgars(game,-todo)
+    k()
+    return
+  end
+
   say(string.format("  * The %s army suffered %d casulaties"
                    , playerColorBB(player), todo))
 
@@ -162,11 +170,26 @@ function chooseRetreat(game,player,faction,city,k)
   interact()
 end
 
-
+-- faction  == bulgars                    => attack with bulgars
+-- faction  == byzantium/arams            => attack with player's army
+-- opponent == nil                        => siege
+-- opponent == "bulgars"                  => opponnet is bulgar army
+-- opponent == "Red"  and player has army => Red's is army
+-- opponent == "Red"  and no army         => Red's levy
 function doSingleBattle(game,player,faction,city,opponent,result)
   local cstate = getCity(game,city)
-  local pstate = getPlayerState(game,player)
-  local fstate = pstate.factions[faction]
+  local fstate = nil
+  local who = nil
+  if faction == bulgars then
+    who             = "The " .. faction_poss[bulgars] .. " army"
+    fstate          = newFaction()
+    fstate.mainArmy = game.bulgarArmy
+  else
+    who          = "The " .. playerColorBB(player) .. " army"
+    local pstate = getPlayerState(game,player)
+    fstate       = pstate.factions[faction]
+  end
+
   local levyBattle  = false
   local siegeBattle = false
 
@@ -184,34 +207,46 @@ function doSingleBattle(game,player,faction,city,opponent,result)
   local defenderDice  = 0
   local defenderColor = nil
   local dstate        = nil
+  local whoDefends    = nil
 
   if opponent == nil then
     -- Siege
-    say(string.format("  * %s besieged %s", playerColorBB(player), city))
+    say(string.format("  * %s besieged %s", who, city))
     siegeBattle = true
     defenderDice = cstate.strength
     if cstate.fortified then defenderDice = defenderDice + 1 end
     defenderColor = faction_bg_color[cstate.faction]
   else
     attackerDice  = armyDice(fstate)
-    attackerColor = playerColor(player)
+    attackerColor = faction == bulgars and faction_bg_color[bulgars]
+                    or playerColor(player)
 
-    defenderColor = getPlayerColor(opponent)
-    dstate        = getPlayerState(game,opponent).factions[cstate.faction]
+    if opponent == "bulgars" then
+      whoDefends       = "the " .. faction_poss[bulgars] .. " army"
+      defenderColor    = faction_bg_color[bulgars]
+      dstate           = newFaction()
+      dstate.mainArmy  = game.bulgarArmy
+      dstate.fieldArmy = city
+    else
+      whoDefends    = "the " .. playerColorBB(opponent) .. " army"
+      defenderColor = getPlayerColor(opponent)
+      dstate        = getPlayerState(game,opponent).factions[cstate.faction]
+    end
     if dstate.fieldArmy == city then
       -- Against army
-      say(string.format( "  * %s attacked the %s army in %s"
-                       , playerColorBB(player)
-                       , playerColorBB(opponent)
+      say(string.format( "  * %s attacked %s in %s"
+                       , who
+                       , whoDefends
                        , city))
 
       defenderDice = armyDice(dstate)
     else
-      say(string.format( "  * %s attacked the %s levy in %s"
-                       , playerColorBB(player)
-                       , playerColorBB(opponent)
-                       , city))
       -- Against levy
+      whoDefends = "the " .. playerColorBB(opponent) .. " levy"
+      say(string.format( "  * %s attacked the %s in %s"
+                       , who
+                       , whoDefends
+                       , city))
       levyBattle   = true
       defenderDice = dstate.levy
       if defenderDice > 3 then defenderDice = 3 end
@@ -246,7 +281,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
     removeDice()
     local outcome = attackerStrength > defenderStrength
     say(string.format("  * %s %s the battle"
-                     , playerColorBB(player)
+                     , who
                      , outcome and "won" or "lost"))
     result(outcome)
   end
@@ -261,7 +296,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
                   end
                   changeLevy(game,player,cstate.faction,-attackerHits)
                   say("The %s levy suffered %d casualties",
-                        playerColorBB(opponent), attackerHits)
+                        whoDefends, attackerHits)
                   checkOutcome()
 
                 else
@@ -271,6 +306,12 @@ function doSingleBattle(game,player,faction,city,opponent,result)
               end))
 
 end
+
+
+
+
+
+
 
 
 function doBattle(game,player,fromCityMaybe,city)
@@ -518,6 +559,7 @@ end
 
 
 
+-- XXX: handle Constantinople
 function conquerCity(game,player,city,faction,usingBulgars)
   local cstate = getCity(game,city)
   local owner = cstate.controlledBy

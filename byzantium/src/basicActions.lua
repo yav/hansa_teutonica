@@ -62,6 +62,19 @@ end
 
 
 --------------------------------------------------------------------------------
+-- Bulgars
+
+function changeBulgars(game,diff)
+  local x = game.bulgarArmy + diff
+  if     x < 0  then x = 0
+  elseif x > 11 then x = 11
+  end
+  game.bulgarArmy = x
+  editBox(GUI.bulgarArmy,x.."")
+end
+
+
+--------------------------------------------------------------------------------
 -- Armies
 
 -- we don't compute the faction from the city, as if the army is

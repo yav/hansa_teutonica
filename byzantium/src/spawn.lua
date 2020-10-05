@@ -12,6 +12,7 @@ function newGUI(g,k)
   local sem = newSem()
   local citiesDone = false
   sem.up(); spawnBoard(sem.down)
+  sem.up(); spawnBulgarStats(g,sem.down)
   sem.up(); spawnActions(g,sem.down)
   sem.up(); spawnCities(g, function()
     citiesDone = true
@@ -496,6 +497,20 @@ function actionLoc(act)
   else                sx = act - 1;  sy = 0
   end
   return { x0 + sx * dx, y0 - sy * dy }
+end
+
+
+function spawnBulgarStats(game,k)
+  local x   = -24
+  local y   = 8
+  local fg  = Color(0,0,0)
+  local bg  = Color(0.9,0.9,0.9)
+  local tip = "Bulgar Army Strength"
+  local msg = game.bulgarArmy .. ""
+  spawnBox(x,y,fg,bg,tip,msg,function(o)
+    GUI.bulgarArmy = o
+    k(o)
+  end)
 end
 
 
