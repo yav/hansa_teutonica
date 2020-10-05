@@ -234,23 +234,16 @@ function doSingleBattle(game,player,faction,city,opponent,result)
     end
     if dstate.fieldArmy == city then
       -- Against army
-      say(string.format( "  * %s attacked %s in %s"
-                       , who
-                       , whoDefends
-                       , city))
 
       defenderDice = armyDice(dstate)
     else
       -- Against levy
       whoDefends = "the " .. playerColorBB(opponent) .. " levy"
-      say(string.format( "  * %s attacked the %s in %s"
-                       , who
-                       , whoDefends
-                       , city))
       levyBattle   = true
       defenderDice = dstate.levy
       if defenderDice > 3 then defenderDice = 3 end
     end
+    say(string.format( "  * %s attacked %s in %s", who, whoDefends, city))
   end
 
   local sem = newSem()

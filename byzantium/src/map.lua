@@ -6,8 +6,7 @@ function newMap()
   x = addCity(map, "Thessalonica",byzantium,3,-19.39,14.46)
   x.bulgarStart = true
   x.mediterranean = true
-  -- x = addCity(map, "Athens",byzantium,2,-18.61,10.50)
-  x = addCity(map, "Athens",bulgars,2,-18.61,10.50)
+  x = addCity(map, "Athens",byzantium,2,-18.61,10.50)
   x = addCity(map, "Candia",byzantium,2,-16.55,5.75)
   x = addCity(map, "Adrianople",byzantium,2,-15.16,16.59)
   x.bulgarStart = true
