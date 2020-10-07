@@ -127,6 +127,16 @@ function chooseRetreat(game,player,faction,city,k)
   local alwaysNo = false
   local interact
 
+  local function doRetreat(tgtCity,cost)
+    if tgtCity == nil then
+      doDestroyArmy(game,player,faction)
+      k()
+    else
+      doMoveArmy(game,player,faction,tgtCity)
+      chooseArmyCasualties(game,player,faction,cost,k)
+    end
+  end
+
   local function askPermission(city,cost)
     local byzFleet = game.actionSpaces[byz_fleet]
     local opts = { { text = "Yes", val = ||k(city,cost) }
@@ -153,7 +163,7 @@ function chooseRetreat(game,player,faction,city,k)
                   , q = lab
                   , val = function()
                             if info.ask then askPermission(city,info.cost)
-                                        else k(city,info.cost)
+                                        else doRetreat(city,info.cost)
                             end
                           end
                  })
@@ -163,7 +173,7 @@ function chooseRetreat(game,player,faction,city,k)
       local lab = "Choose retreat city"
       ask(game,player,lab, { cities = qopts },apply)
     else
-      k(nil,nil)
+      doRetreat(nil,nil)
     end
   end
 
@@ -301,23 +311,113 @@ function doSingleBattle(game,player,faction,city,opponent,result)
 end
 
 
+--[[
+"player" is the player initiating the attack
+"faction" is the faction that will benefit if successful
+"city" is where the battle is happening
+"usingBulgars" indicates if the player is using the bulgars to attck
+"ifLost" is a callback to call if the player looses the battle
 
+if "faction" matches the faction of the city then we have a civial war
+--]]
+function doWar(game,player,faction,city,usingBulgars,ifLost)
+  local cstate = getCity(game,city)
+  local attacker = faction
+  if usingBulgars then attacker = bulgars end
+  local isCivilWar = attacker == cstate.faction
 
+  local q = actQ()
 
+  -- Check for retreat
+  local opponents = {}
+  if cstate.faction == byzantium or cstate.faction == arabs then
+    local p = player
+    local count = 0
+    while count < #game.players do
+      local pstate = getPlayerState(game,p)
+      local fstate = pstate.factions[cstate.faction]
+      if fstate.fieldArmy == city then
+        if p == player then
+          if not isCivilWar then
+            q.enQ(||chooseRetreat(game,player,cstate.faction,city,q.next))
+          end
+        else
+          local menu =
+            { { text = "Defend City"
+              , val  = function() anyArmies = push(opponents,p); q.next() end
+              }
+            , { text = "Retreat"
+              , val  = chooseRetreat(game,player,cstate.faction,city,q.next)
+              }
+            }
+          q.enQ(||ask(game,player,"Choose Army Action", { menu = menu }, apply))
+        end
+      end
+      p = playerAfter(game,p)
+      count = count + 1
+    end
+  end
 
+  -- Check for levy
+  q.enQ(function()
+    if next(opponents) ~= nil then q.next(); return end
+    local defender = cstate.controlledBy
+    if defender == nil then
+      if cstate.constantinople then defender = getEmperor(game) end
+    end
+    if defender == nil then
+      if cstate.faction == bulgars then opponents = { "bulgars" } end
+      q.next()
+      return
+    end
 
+    local pstate = getPlayerState(game,defender)
+    local fstate = pstate.factions[cstate.faction]
+    if fstate.levy <= 0 then q.next(); return end
 
-function doBattle(game,player,fromCityMaybe,city)
-  -- ask retreat
-  -- check for armies:
-  --   if yes, fight them in whatever order
-  --      if loose retreat
-  --      if win then besige
-  --   if no, is there an owner (controller, or emperor in the case of const.)
-  --      if no owner, besieg
-  --      if yes owner ask if using levy
-  --        if no besieg
-  --        if yes fight levies
+    local menu =
+      { { text = "Defend with Levy"
+        , val  = function() push(opponents,defender); q.next() end
+        }
+      , { text = "Do not Defend"
+        , val  = q.next
+        }
+     }
+    ask(game,defender,"Use Levy?",{menu=menu},apply)
+  end)
+
+  local function doBattles()
+    local opts = {}
+    for _,p in pairs(opponents) do
+      push(opts, { text = "Fight " .. (p == "bulgars" and faction_name[bulgars]
+                                       or playerColorBB(p))
+                 , val  = function()
+                    doSingleBattle(game,player,attacker,city,p,function(won)
+                      if won then doBattles() else ifLost(game) end
+                    end)
+                   end
+                 })
+    end
+
+    local n = #opts
+    if n == 0 then q.next(); return end
+    if n == 1 then opts[1].val(); return end
+    ask(game,players,"Choose Opponent",{menu=opts},apply)
+  end
+
+  -- Do battles
+  q.enQ(doBattles)
+
+  -- Do siege
+  q.enQ(function()
+    doSingleBattle(game,player,attacker,city,nil,function(won)
+      if won
+      then conquerCity(game,player,city,faction,usingBulgars)
+      else ifLost(game)
+      end
+    end)
+  end)
+
 end
 
 
@@ -329,15 +429,12 @@ function startCivilWar(game,player,city,act,wopts)
   q.enQ(||ask(game,player,quest,{cubes=wopts},function(f)
     f()
     markAction(game,player,act)
-    say(string.format( "\n%s started a civil war in %s"
+    say(string.format( "  * %s started a civil war in %s"
                      , playerColorBB(player), city ))
     q.next()
   end))
 
-  q.enQ(||doSingleBattle(game,player,cstate.faction,city,nil,function(res)
-    log(res)
-    nextTurn(game)
-  end))
+  q.enQ(||doWar(game,player,cstate.faction,city,false,nextTurn))
 end
 
 function attackCity(game,player,fromCity,attackedCity)
@@ -552,7 +649,6 @@ end
 
 
 
--- XXX: handle Constantinople
 function conquerCity(game,player,city,faction,usingBulgars)
   local cstate = getCity(game,city)
   local owner = cstate.controlledBy
@@ -566,17 +662,30 @@ function conquerCity(game,player,city,faction,usingBulgars)
   end
   cstate.controlledBy = nil
 
-  local newStrength = cstate.strength - 1
-  if not usingBulgars then changeTreasury(game,player,faction,newStrength) end
-  changeVP(game,player,faction,newStrength)
-
-  if newStrength == 0 then newStrength = 1 end
-  cstate.strength = newStrength
-  cstate.faction  = usingBulgars and bulgars or faction
-
   local function doGaintControl()
-    if not usingBulgars then cstate.controlledBy = player end
-    redrawCity(||nextTurn(game))
+    if not usingBulgars then
+      cstate.controlledBy = player
+      say(string.format("  * %s conquered %s",playerColorBB(player),city))
+    else
+      say(string.format("  * The %s conquered %s",faction_name[bulgars],city))
+    end
+
+    local newStrength = cstate.strength - 1
+    if not usingBulgars then
+      changeTreasury(game,player,faction,newStrength)
+      say(string.format("  * Gained %d %s", newStrength,
+                                            faction_currency[faction]))
+    end
+    changeVP(game,player,faction,newStrength)
+    say(string.format("  * Gained %d %s VP", newStrength
+                                           , faction_poss[faction]))
+
+    if newStrength == 0 then newStrength = 1 end
+    cstate.strength = newStrength
+    cstate.faction  = usingBulgars and bulgars or faction
+
+    -- XXX: check for fall of Constantinople
+    redrawCity(game,city,||nextTurn(game))
   end
 
   if usingBulgars then

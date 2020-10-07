@@ -35,7 +35,7 @@ function playerAfter(game,player)
   for i,p in ipairs(game.players) do
     if p == player then n = i + 1; break end
   end
-  if n > #g.players then n = 1 end
+  if n > #game.players then n = 1 end
   return game.players[n]
 end
 
@@ -55,6 +55,13 @@ end
 
 function getCity(game,city)
   return game.map.cities[city]
+end
+
+function getEmperor(game)
+  local p = game.actionSpaces[emperor]
+  if p == nil then return nil end
+  if playerState(game,p).factions[byzantium].royalty then return p end
+  return nil
 end
 
 --------------------------------------------------------------------------------
