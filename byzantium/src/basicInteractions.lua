@@ -133,13 +133,18 @@ function chooseRetreat(game,player,faction,city,k)
       k()
     else
       doMoveArmy(game,player,faction,tgtCity)
+      local msg = string.format("  * The %s %s army retreated to %s"
+                               , playerColorBB(player)
+                               , faction_poss[faction]
+                               , city)
+      say(msg)
       chooseArmyCasualties(game,player,faction,cost,k)
     end
   end
 
   local function askPermission(city,cost)
     local byzFleet = game.actionSpaces[byz_fleet]
-    local opts = { { text = "Yes", val = ||k(city,cost) }
+    local opts = { { text = "Yes", val = || doRetreat(city,cost) }
                  , { text = "No"
                    ,  val = function() banned[city] = true; interact() end
                    }
@@ -438,8 +443,15 @@ function startCivilWar(game,player,city,act,wopts)
 end
 
 function attackCity(game,player,fromCity,attackedCity)
-  log("Attack " .. attackedCity)
-  nextTurn(game)
+  local faction = getCity(game,fromCity).faction
+
+  doWar(game,player,faction,attackedCity,false,
+  function()
+    if getPlayerState(game,player).factions[faction].fieldArmy ~= nil then
+      doMoveArmy(game,player,faction,fromCity)  -- or retreat??
+    end
+    nextTurn(game)
+  end)
 end
 
 function chooseArmyActionFrom(game,player,city,opts)
