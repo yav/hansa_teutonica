@@ -7,11 +7,50 @@ function addRuleSummary()
     Notes.addNotebookTab({title=name,body=def})
   end
 
+  ruleSection("Battles",
+[[
+[b]1. Determine Defenders[/b]
+  1. In turn order, opposing armies in the city may choose to retreat.
+  2. Remaining armies become the city's defenders.
+  3. If there are no defenders, then the city's protector
+     may defend with their levy:
+     * the protector of a city is the player who controls it,
+     * the protector of Constantinople is the Emperor
+
+[b]2. Combat[/b]
+The attacker fights defenders one at a time, in any order.
+
+  1. Each side rolls [b]X d6[/b]:
+    * Army: [b]X = min(A,3) + E[/b]
+    * Levy: [b]X = min(L,3)[/b]
+  2. A die hits on [b]4[/b] or more
+  3. Attacker takes hits, then defender.
+    * A hit moves a cube to the [b]casualty[/b] pool
+      - Army: move from [b]E/A/M[/b]
+      - Levy: move from [b]L[/b]
+  4. Attacker wins if their strength is [i]higher[/i] than the defender
+    * Army strength is [b]E+A[/b]
+    * Levy strength is [b]L[/b]
+  5. Outcome:
+    * If the attacker looses the battle ends
+    * A defeated defending army must [i]retreat[/i]
+
+[b]3. Siege[/b]
+  1. The city rolls d6 equal to its strength
+    * A city with fortifications rolls an extra d6
+  2. Attacker takes hits as in battles
+    * Constantinople does hits x2
+  3. Attacker wins if their strength is more than
+     the number of dice rolled by the city.
+
+
+]])
+
   ruleSection("End of Round",
 [[
 [b]End of Round[/b]
 * The round ends when all players pass.
-* If all but one player have passed, then this player may take
+* If [i]all but one[/i] player have passed, then this player may take
   1 last action, after which the round ends.
 
 [b]Income[/b]
@@ -19,7 +58,7 @@ function addRuleSummary()
 * The income is 2x the city strength, not counting fortifications.
 
 [b]Maintenance[/b]
-* Pay a fee for [b]each cube[/b] in both armies.
+* Pay a fee for [i]each cube[/i] in both armies.
 * Payments come from the treasury matching the army.
 * Maintenace costs:
   - Elite Army: $3/cube
@@ -36,7 +75,7 @@ If a player cannot pay for a cube:
 [b]Restock Workers[/b]
 * Cubes used for actions become availabe
   - Taxes, Special actions, Pass
-* Half of casualties become available (round up).
+* Half of casualties become available, round up.
 
 ]])
 
