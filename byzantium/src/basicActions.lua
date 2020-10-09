@@ -77,14 +77,12 @@ end
 --------------------------------------------------------------------------------
 -- Armies
 
--- we don't compute the faction from the city, as if the army is
--- attacking then these will no match.
-function doPlaceArmy(g,player,faction,city,k)
-  getPlayerState(g,player).factions[faction].fieldArmy = city
-  spawnArmy(g,player,city,function(o)
+function doPlaceArmy(game,player,city,k)
+  local faction = getCity(game,city).faction
+  getPlayerState(game,player).factions[faction].fieldArmy = city
+  spawnArmy(game,player,city,function(o)
     GUI.players[player].factions[faction].fieldArmy = o
-    local lab = string.format("  * %s's %s army appeared in %s"
-                             , playerColorBB(player)
+    local lab = string.format("  * %s army is now in %s"
                              , faction_poss[faction]
                              , city)
     say(lab)
@@ -101,8 +99,7 @@ function doMoveArmy(g,player,faction,city)
   local o = GUI.players[player].factions[faction].fieldArmy
   o.setPositionSmooth(newLoc,false,false)
 
-  local lab = string.format("  * %s moved from %s to %s"
-                           , playerColorBB(player),curCity,city)
+  local lab = string.format("  * moved from %s to %s", curCity,city)
   say(lab)
 end
 
@@ -134,13 +131,13 @@ end
 -- Cities
 
 function doGainControl(game,player,city,k)
-  say(string.format("  * %s claimed %s", playerColorBB(player), city))
+  say(string.format("  * to claim %s", city))
 
   local cstate = game.map.cities[city]
 
   -- VP equal to the city's strength
   changeVP(game,player,cstate.faction,cstate.strength)
-  say(string.format("  * scored %d %s VP"
+  say(string.format("  * +%d %s VP"
                    , cstate.strength
                    , faction_poss[cstate.faction]))
 
@@ -155,7 +152,7 @@ function doGainControl(game,player,city,k)
       if fstate.fieldArmy == nil and
          factionArmySize(fstate) > 0 and
          fstate.firstArmyPlacement then
-         doPlaceArmy(game,player,byzantium,city,function()
+         doPlaceArmy(game,player,city,function()
            fstate.firstArmyPlacement = false
            k()
          end)

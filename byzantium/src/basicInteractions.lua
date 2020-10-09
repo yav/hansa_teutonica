@@ -12,7 +12,7 @@ function workerOptions(game,player,faction)
       { q = "?"
       , val = function()
                 changeAvailableWorkers(game,player,-1)
-                say(playerColorBB(player) .. " used an available worker:")
+                say(playerColorBB(player) .. " used an available worker")
               end
       }
   end
@@ -25,7 +25,7 @@ function workerOptions(game,player,faction)
       , val = function()
                 changeTreasury(game,player,faction,-3)
                 changeCasualties(game,player,-1)
-                local msg = string.format("%s hired a casualty:\n  * for %s"
+                local msg = string.format("%s hired a casualty\n  * for %s"
                                          , playerColorBB(player),cost)
                 say(msg)
               end
@@ -48,7 +48,7 @@ function workerOptions(game,player,faction)
           { q   = pcost
           , val = function ()
                     changeTreasury(game,player,faction,-3)
-                    local msg = string.format("%s spent a worker:\n  * from %s %s\n  * for %s"
+                    local msg = string.format("%s spent a worker\n  * from %s %s\n  * for %s"
                               , playerColorBB(player)
                               , faction_poss[fName]
                               , faction_stat_name[stat]
@@ -439,8 +439,7 @@ function startCivilWar(game,player,city,act,wopts)
   q.enQ(||ask(game,player,quest,{cubes=wopts},function(f)
     f()
     markAction(game,player,act)
-    say(string.format( "  * %s started a civil war in %s"
-                     , playerColorBB(player), city ))
+    say(string.format( "  * started a civil war in %s", city ))
     q.next()
   end))
 
@@ -484,7 +483,6 @@ function chooseArmyActionFrom(game,player,city,opts)
 end
 
 function chooseArmyAction(game,player,city,movedNo,endActOk)
-  say(lab)
   local opts = friendlyArmyActions(game,player,city,movedNo,endActOk)
   if opts == nil then
     nextTurn(game)
@@ -573,7 +571,7 @@ function chooseArmyToMove(game,player)
     ask(game,player,"Choose army",{ cities = startOpts },
     function(info)
       if info.place then
-        doPlaceArmy(game,player,info.faction,info.city,
+        doPlaceArmy(game,player,info.city,
           ||chooseArmyActionFrom(game,player,info.city,info.armyActs))
       else
         chooseArmyActionFrom(game,player,info.city,info.armyActs)
@@ -701,7 +699,7 @@ function conquerCity(game,player,city,faction,usingBulgars)
   local function doGaintControl()
     if not usingBulgars then
       cstate.controlledBy = player
-      say(string.format("  * %s conquered %s",playerColorBB(player),city))
+      say(string.format("  * conquered %s",city))
     else
       say(string.format("  * The %s conquered %s",faction_name[bulgars],city))
     end
@@ -709,12 +707,11 @@ function conquerCity(game,player,city,faction,usingBulgars)
     local newStrength = cstate.strength - 1
     if not usingBulgars then
       changeTreasury(game,player,faction,newStrength)
-      say(string.format("  * Gained %d %s", newStrength,
+      say(string.format("  * +%d %s", newStrength,
                                             faction_currency[faction]))
     end
     changeVP(game,player,faction,newStrength)
-    say(string.format("  * Gained %d %s VP", newStrength
-                                           , faction_poss[faction]))
+    say(string.format("  * +%d %s VP", newStrength, faction_poss[faction]))
 
     if newStrength == 0 then newStrength = 1 end
     cstate.strength = newStrength

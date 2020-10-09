@@ -182,6 +182,10 @@ function checkBulgars(game,opts)
     ask(game,player,"Choose Sponsor",{menu=benefactor},function(info)
       ask(game,player,"Choose Diplomat",{cubes=info.workers},function(f)
         f()
+        local msg = string.format("  * to use %s on behalf of %s"
+                                 , faction_name[bulgars]
+                                 , faction_name[info.faction])
+        say(msg)
         markAction(game,player,act)
         changeBulgars(game,2)
         local cities = {}
