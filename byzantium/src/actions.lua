@@ -8,10 +8,23 @@ function takeTurn(game)
   checkControlAction(game,opts)
   checkIncreaseArmy(game,opts)
   checkMove(game,opts)
+  checkBulgars(game,opts)
   checkTest(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
-  ask(game,player,quest,{menu = opts},apply)
+  ask(game,player,quest,opts,apply)
+end
+
+function addTextOption(opts,x)
+  local menu = opts.menu
+  if menu == nil then menu = {}; opts.menu = menu end
+  push(menu,x)
+end
+
+function addActOption(opts,x)
+  local acts = opts.actions
+  if acts == nil then acts = {}; opts.actions = acts end
+  push(acts,x)
 end
 
 
@@ -25,7 +38,7 @@ function checkTest(game,opts)
     end)
   end
 
-  push(opts,{ text = "Test", val = test })
+  addTextOption(opts,{ text = "Test", val = test })
 end
 
 
@@ -53,7 +66,7 @@ function checkControlAction(game, opts)
   end
   if #choice == 0 then return end
 
-  push(opts,
+  addTextOption(opts,
     { text = "Claim a City"
     , val = |    | ask(game,player,"Claim which city?", {cities=choice},
             |city| ask(game,player,"Choose Worker",{cubes=payments[city]},
@@ -120,33 +133,12 @@ function checkIncreaseArmy(game, opts)
     ask(game,player,lab,{menu=menu,cubes=aopts},apply)
   end
 
-  push(opts,
+  addTextOption(opts,
     { text = "Increase Army"
     , val  = actIncrease
     })
 end
 
-
-
-
-function performAttack(game,player,fromCity,warCity)
-  log("XXX: attack")
-  nextTurn(game)
-end
-
---[[
-Note on Retreating
-==================
-
-There is some ambiguity in the rules with exactly what happens when an
-attacker looses a battle.  The rules state that they must "retreat" to
-the city they came from, however, it is not clear if full retreat rules
-apply, or if it simply means the attacker just goes back to where they were.
-
-This matters if an arab army attacks via a sea route and looses,
-as with "retreat rules" the byzanteed fleet could interfere thus destroying
-them.
---]]
 
 
 
@@ -157,8 +149,65 @@ function checkMove(game,opts)
   if pickArmy == nil then
     return opts
   else
-    push(opts, { text = "Use Army", val = pickArmy })
+    addTextOption(opts, { text = "Use Army", val = pickArmy })
   end
 end
 
 
+function checkBulgars(game,opts)
+  local player      = getCurrentPlayer(game)
+  local aworker     = workerOptions(game,player,arabs)
+  local bworker     = workerOptions(game,player,byzantium)
+  local atgts,btgts = bulgarTargets(game)
+  local bulgarArmy  = game.bulgarArmy
+
+  local benefactor = {}
+  for _,ben in ipairs({ {arabs,aworker,atgts}, {byzantium,bworker,btgts} }) do
+    local faction = ben[1]
+    local workers = ben[2]
+    local targets = ben[3]
+    if next(workers) ~= nil and (next(targets) ~= nil or bulgarArmy <= 7) then
+      push(benefactor, { text = "Use " .. faction_name[faction]
+                       , val  = { faction = faction
+                                , workers = workers
+                                , targets = targets
+                                }
+                       })
+    end
+  end
+
+  if next(benefactor) == nil then return opts end
+
+  local function use(act)
+    ask(game,player,"Choose Sponsor",{menu=benefactor},function(info)
+      ask(game,player,"Choose Diplomat",{cubes=info.workers},function(f)
+        f()
+        markAction(game,player,act)
+        changeBulgars(game,2)
+        local cities = {}
+        for city,_ in pairs(info.targets) do
+          push(cities, { city = city, q = "⚔", val = city })
+        end
+        local menu = {}
+        if game.bulgarArmy <= 9 then
+          push(menu, { text = "Bulgar Army +2", val = nil })
+        end
+        ask(game,player, "Bulgar Army Action",
+                        { menu = menu, cities = cities }, function(city)
+          if city == nil then
+            changeBulgars(game,2)
+            nextTurn(game)
+          else
+            doWar(game,player,info.faction,city,true,nextTurn)
+          end
+        end)
+      end)
+    end)
+  end
+
+  for _,act in ipairs({bulgars_1,bulgars_2}) do
+    if game.actionSpaces[act] == nil then
+      addActOption(opts, { action = act, val = ||use(act) })
+    end
+  end
+end

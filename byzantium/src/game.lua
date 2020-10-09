@@ -57,13 +57,6 @@ function getCity(game,city)
   return game.map.cities[city]
 end
 
-function getEmperor(game)
-  local p = game.actionSpaces[emperor]
-  if p == nil then return nil end
-  if playerState(game,p).factions[byzantium].royalty then return p end
-  return nil
-end
-
 --------------------------------------------------------------------------------
 
 

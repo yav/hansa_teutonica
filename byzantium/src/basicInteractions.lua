@@ -120,6 +120,7 @@ function chooseArmyCasualties(game,player,faction,todo,k)
 end
 
 
+
 function chooseRetreat(game,player,faction,city,k)
   local pstate = getPlayerState(game,player)
   local limit  = factionArmySize(pstate.factions[faction])
@@ -280,10 +281,12 @@ function doSingleBattle(game,player,faction,city,opponent,result)
 
   local function checkOutcome()
     local attackerStrength = factionArmySize(fstate) - fstate.movement
+    if faction == bulgars then attackerStrength = game.bulgarArmy end
 
     local defenderStrength = 0
     if siegeBattle    then defenderStrength = defenderDice
     elseif levyBattle then defenderStrength = dstate.levy
+    elseif opponent == "bulgars" then defenderStrength = game.bulgarArmy
     else defenderStrength = factionArmySize(dstate) - dstate.movement
     end
     removeDice()
@@ -368,7 +371,9 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
     if next(opponents) ~= nil then q.next(); return end
     local defender = cstate.controlledBy
     if defender == nil then
-      if cstate.constantinople then defender = getEmperor(game) end
+      if cstate.constantinople then defender = game.actionSpaces[emperor] end
+      -- Not sure if it matters if they lost the emperor cube.
+      -- Let's say it doesn't matter.
     end
     if defender == nil then
       if cstate.faction == bulgars then opponents = { "bulgars" } end
@@ -442,6 +447,25 @@ function startCivilWar(game,player,city,act,wopts)
   q.enQ(||doWar(game,player,cstate.faction,city,false,nextTurn))
 end
 
+
+--[[
+Note on Retreating
+==================
+
+There is some ambiguity in the rules with exactly what happens when an
+attacker looses a battle.  The rules state that they must "retreat" to
+the city they came from, however, it is not clear if full retreat rules
+apply, or if it simply means the attacker just goes back to where they were.
+
+This matters if an arab army attacks via a sea route and looses,
+as with "retreat rules" the byzanteed fleet could interfere thus destroying
+them.
+
+For simplicty we just implement it to mean "attacker goes back".
+Reading through the BGG forums it seems that the designer only talks
+about retreting in the context of defending armyies although there is
+no official ruling one way or the other.
+--]]
 function attackCity(game,player,fromCity,attackedCity)
   local faction = getCity(game,fromCity).faction
 

@@ -3,7 +3,10 @@ function neighbours(game,city,faction)
   local opts = {}
 
   for _,route in ipairs(game.map.routes) do
-    if faction == arabs or route.terrain ~= desert then
+    if faction == arabs or
+       (faction == bulgars   and route.terrain == road) or
+       (faction == byzantium and route.terrain ~= desert)
+    then
       if route.from == city then
         push(opts, { to = route.to, terrain = route.terrain })
       elseif route.to == city then
@@ -96,3 +99,27 @@ function retreatOptionsN(game,player,faction,startCity,noPerm,banned,maxD)
 end
 
 
+function bulgarTargets(game)
+  local aopts = {}
+  local bopts = {}
+
+  local function addCity(city)
+    local f = getCity(game,city).faction
+    if     f == persians  then aopts[city] = true; bopts[city] = true
+    elseif f == arabs     then                     bopts[city] = true;
+    elseif f == byzantium then aopts[city] = true;
+    end
+  end
+
+  for city,cstate in pairs(game.map.cities) do
+    if cstate.faction == bulgars then
+      for _,tgt in ipairs(neighbours(game,city,bulgars)) do
+        addCity(tgt.to)
+      end
+    else
+      if cstate.bulgarStart then addCity(city) end
+    end
+  end
+
+  return aopts,bopts
+end
