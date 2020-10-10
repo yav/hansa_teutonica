@@ -9,6 +9,10 @@ function takeTurn(game)
   checkIncreaseArmy(game,opts)
   checkMove(game,opts)
   checkBulgars(game,opts)
+  checkRoyalty(game,opts)
+  checkFleet(game,opts)
+  checkImproveCity(game,opts)
+  checkFortifyCity(game,opts)
   checkTest(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
@@ -215,3 +219,174 @@ function checkBulgars(game,opts)
     end
   end
 end
+
+
+function checkRoyalty(game, opts)
+  for _,faction in ipairs({byzantium,arabs}) do
+    local action = emperor
+    if faction == arabs then action = caliph end
+    local name = string.format("%s royalty", faction_poss[faction])
+    if game.actionSpaces[action] == nil then
+      local player = getCurrentPlayer(game)
+      local wopts  = workerOptions(game,player,faction)
+      if next(wopts) ~= nil then
+        addActOption(opts,
+          { action = action
+          , val = function()
+              ask(game, player, "Choose Royalty", { cubes = wopts },
+              function(pay)
+                pay()
+                markAction(game,player,action)
+                changeRoyalty(game,player,faction,true)
+                say("  * Influenced the " .. name)
+                nextTurn(game)
+              end)
+            end
+          })
+      end
+    end
+  end
+end
+
+function checkFleet(game, opts)
+  for _,faction in ipairs({byzantium,arabs}) do
+    local action = byz_fleet
+    if faction == arabs then action = arab_fleet end
+    if game.actionSpaces[action] == nil then
+      local player = getCurrentPlayer(game)
+      local wopts  = workerOptions(game,player,faction)
+      if next(wopts) ~= nil then
+        addActOption(opts,
+          { action = action
+          , val = function()
+              ask(game, player, "Choose Captain", { cubes = wopts },
+              function(pay)
+                pay()
+                markAction(game,player,action)
+                say(string.format("  * Controls the %s fleet",
+                                                    faction_poss[faction]))
+                nextTurn(game)
+              end)
+            end
+          })
+      end
+    end
+  end
+end
+
+
+function checkImproveCity(game, opts)
+  local actions = {}
+  actions[arabs]     = { arab_improve_1, arab_improve_2, arab_improve_3 }
+  actions[byzantium] = { byz_improve_1, byz_improve_2 }
+
+  local hasSpot = false
+  for _,as in pairs(actions) do
+    for _,a in ipairs(as) do
+      if game.actionSpaces[a] == nil then hasSpot = true; break end
+    end
+    if hasSpot then break end
+  end
+  if not hasSpot then return end
+
+  local cityOpts = {}
+  local player   = getCurrentPlayer(game)
+  for faction,cities in pairs(improveTargets(game)) do
+    local qs = {}
+    cityOpts[faction] = qs
+    local wopts = workerOptions(game,player,faction)
+    if next(wopts) ~= nil then
+      for _,city in ipairs(cities) do
+        push(qs, {city = city, q = "+1", val = { wopts = wopts, city = city }})
+      end
+    end
+  end
+  if next(cityOpts) == nil then return end
+
+  for faction,actions in pairs(actions) do
+    local copts = cityOpts[faction]
+    if next(copts) ~= nil then
+      for _,action in ipairs(actions) do
+        if game.actionSpaces[action] == nil then
+          addActOption(opts,
+            { action = action
+            , val =
+              ||     ask(game,player,"City to Improve", { cities = copts },
+              |info| ask(game, player, "Choose worker", { cubes = info.wopts },
+              function(pay)
+                pay()
+                markAction(game,player,action)
+                local city = info.city
+                local cstate = getCity(game,city)
+                cstate.strength = cstate.strength + 1
+                redrawCity(game,city,function()
+                  say("  * to improve " .. city)
+                  nextTurn(game)
+                end)
+              end))
+            })
+        end
+      end
+    end
+  end
+
+end
+
+
+
+function checkFortifyCity(game, opts)
+  local player = getCurrentPlayer(game)
+  local pstate = getPlayerState(game,player)
+  if pstate.fortifications == 0 then return end
+
+  local actions = { fortify_1, fortify_2 }
+
+  -- Don't bother computing other stuff if there are no actions left.
+  local hasSpot = false
+  for _,action in ipairs(actions) do
+    if game.actionSpaces[action] == nil then hasSpot = true; break end
+  end
+  if not hasSpot then return end
+
+  local cityOpts = {}
+  for faction,cities in pairs(fortifyTargets(game)) do
+    if next(cities) ~= nil then
+      local wopts = workerOptions(game,player,faction)
+      if next(wopts) ~= nil then
+        for _,city in ipairs(cities) do
+          push(cityOpts, { city = city, q = "+1"
+                         , val = { wopts = wopts, city = city }
+                         })
+        end
+      end
+    end
+  end
+  if next(cityOpts) == nil then return end
+
+  for _,action in ipairs(actions) do
+    if game.actionSpaces[action] == nil then
+      addActOption(opts,
+        { action = action
+        , val = function()
+            ask(game,player,"City to Fortify",{cities=cityOpts},function(info)
+              ask(game,player,"Choose Worker",{cubes=info.wopts},function(pay)
+                pay()
+                markAction(game,player,action)
+                changeFortifications(game,player,-1)
+                local city = info.city
+                getCity(game,city).fortified = true
+                redrawCity(game,city,function()
+                  say("  * to fortify " .. city)
+                  nextTurn(game)
+                end)
+              end)
+            end)
+          end
+        })
+    end
+  end
+
+
+end
+
+

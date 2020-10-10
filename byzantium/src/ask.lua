@@ -73,7 +73,7 @@ function ask(game,player,quest,options,answer)
       local o = GUI.actions[opt.action]
       push(toCleanActions,o)
       local c = playerColor(player)
-      c.a = 0.8
+      c.a = 0.7
       o.setColorTint(c)
       o.createButton(
         { hover_color    = bg

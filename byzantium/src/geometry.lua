@@ -123,3 +123,31 @@ function bulgarTargets(game)
 
   return aopts,bopts
 end
+
+
+function improveTargets(game)
+  local player = getCurrentPlayer(game)
+  local opts = {}
+  opts[byzantium] = {}
+  opts[arabs] = {}
+  for city,cstate in pairs(game.map.cities) do
+    if cstate.controlledBy == player and cstate.strength < 3 then
+      push(opts[cstate.faction], city)
+    end
+  end
+  return opts
+end
+
+function fortifyTargets(game)
+  local player = getCurrentPlayer(game)
+  local opts = {}
+  opts[byzantium] = {}
+  opts[arabs] = {}
+  for city,cstate in pairs(game.map.cities) do
+    if cstate.controlledBy == player and not cstate.fortified then
+      push(opts[cstate.faction], city)
+    end
+  end
+  return opts
+end
+
