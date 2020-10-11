@@ -460,35 +460,23 @@ function startCivilWar(game,player,city,act,wopts)
     q.next()
   end))
 
-  q.enQ(||doWar(game,player,cstate.faction,city,false,nextTurn))
+  q.enQ(||doWar(game,player,cstate.faction,city,false,
+        ||chooseRetreat(game,player,cstate.faction,city,
+        ||nextTurn(game))
+        ))
 end
 
 
---[[
-Note on Retreating
-==================
-
-There is some ambiguity in the rules with exactly what happens when an
-attacker looses a battle.  The rules state that they must "retreat" to
-the city they came from, however, it is not clear if full retreat rules
-apply, or if it simply means the attacker just goes back to where they were.
-
-This matters if an arab army attacks via a sea route and looses,
-as with "retreat rules" the byzanteed fleet could interfere thus destroying
-them.
-
-For simplicty we just implement it to mean "attacker goes back".
-Reading through the BGG forums it seems that the designer only talks
-about retreting in the context of defending armyies although there is
-no official ruling one way or the other.
---]]
 function attackCity(game,player,fromCity,attackedCity)
   local faction = getCity(game,fromCity).faction
 
   doWar(game,player,faction,attackedCity,false,
   function()
     if getPlayerState(game,player).factions[faction].fieldArmy ~= nil then
-      doMoveArmy(game,player,faction,fromCity)  -- or retreat??
+      doMoveArmy(game,player,faction,fromCity)
+      -- or retreat??  the only difference would be if we are talking
+      -- about an arab army that attacked via sea, and another player
+      -- controls the byzanten fleet.
       local msg = string.format("  * Attack failed, moved back to %s",fromCity)
       say(msg)
     end

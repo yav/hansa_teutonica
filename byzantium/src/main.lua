@@ -3,8 +3,8 @@ function onLoad()
   local controlledBy = {}
   controlledBy["Red"]   = "White"
   controlledBy["Blue"]  = "White"
-  controlledBy["Green"] = "White"
-  controlledBy["Yellow"] = "White"
+  -- controlledBy["Green"] = "White"
+  -- controlledBy["Yellow"] = "White"
   local g = newGame(controlledBy)
   newGUI(g,||test(g))
 end

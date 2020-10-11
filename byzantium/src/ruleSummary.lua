@@ -33,7 +33,7 @@ The attacker fights defenders one at a time, in any order.
     * Levy strength is [b]L[/b]
   5. Outcome:
     * If the attacker looses the battle ends
-    * A defeated defending army must [i]retreat[/i]
+    * A loosing army must [i]retreat[/i]
 
 [b]3. Siege[/b]
   1. The city rolls d6 equal to its strength
