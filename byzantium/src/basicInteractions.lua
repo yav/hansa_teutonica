@@ -348,7 +348,7 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
       if fstate.fieldArmy == city then
         if thisP == player then
           if not isCivilWar then
-            q.enQ(||chooseRetreat(game,thiP,cstate.faction,city,q.next))
+            q.enQ(||chooseRetreat(game,thisP,cstate.faction,city,q.next))
           end
         else
           local menu =
