@@ -101,10 +101,10 @@ function checkIncreaseArmy(game, opts)
   end
 
   local placedElite = false
-  local first = true
+
+  local num = 1
 
   local function actIncrease()
-    local needSep = true
     local aopts = {}
     for faction,_ in pairs(pstate.factions) do
       local fopts = {}
@@ -112,20 +112,20 @@ function checkIncreaseArmy(game, opts)
       if next(wopts) ~= nil then
         for _,stat in ipairs({ "eliteArmy", "mainArmy", "levy", "movement" }) do
           if stat ~= "eliteArmy" or not placedElite then
-            fopts[stat] = 
+            fopts[stat] =
                { q = "?", val =
                  function()
                    ask(game,player,"Choose worker to reassign",{cubes=wopts},
                    function(pay)
                      pay()
-                     first = false
                      placedElite = stat == "eliteArmy"
                      changeFactionStat(stat)(game,player,faction,1)
+                     num = num + 1
                      local msg = string.format("  * %s %s increased"
                                               , faction_poss[faction]
                                               , faction_stat_name[stat])
                      say(msg)
-                     actIncrease()
+                     if num <= 3 then actIncrease() else nextTurn(game) end
                    end)
                 end
               }
@@ -137,10 +137,8 @@ function checkIncreaseArmy(game, opts)
       end
     end
     local menu = {}
-    if not first then
-      menu = { { text = "Done", val = ||nextTurn(game) } }
-    end
-    local lab = string.format("%s army to increase",playerColorBB(player))
+    menu = { { text = "Done", val = ||nextTurn(game) } }
+    local lab = string.format("Increase army %d/3",num)
     ask(game,player,lab,{menu=menu,cubes=aopts},apply)
   end
 
