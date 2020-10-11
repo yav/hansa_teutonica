@@ -131,8 +131,9 @@ function improveTargets(game)
   opts[byzantium] = {}
   opts[arabs] = {}
   for city,cstate in pairs(game.map.cities) do
-    if cstate.controlledBy == player and cstate.strength < 3 then
-      push(opts[cstate.faction], city)
+    local faction = cstate.faction
+    if (faction == byzantium or faction == arabs) and cstate.strength < 3 then
+      push(opts[faction], city)
     end
   end
   return opts
