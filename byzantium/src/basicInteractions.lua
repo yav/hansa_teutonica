@@ -245,7 +245,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
       dstate.fieldArmy = city
     else
       whoDefends    = "the " .. playerColorBB(opponent) .. " army"
-      defenderColor = getPlayerColor(opponent)
+      defenderColor = playerColor(opponent)
       dstate        = getPlayerState(game,opponent).factions[cstate.faction]
     end
     if dstate.fieldArmy == city then
@@ -342,26 +342,31 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
     local p = player
     local count = 0
     while count < #game.players do
-      local pstate = getPlayerState(game,p)
+      local thisP  = p    -- to capture the right variable
+      local pstate = getPlayerState(game,thisP)
       local fstate = pstate.factions[cstate.faction]
       if fstate.fieldArmy == city then
-        if p == player then
+        if thisP == player then
           if not isCivilWar then
-            q.enQ(||chooseRetreat(game,player,cstate.faction,city,q.next))
+            q.enQ(||chooseRetreat(game,thiP,cstate.faction,city,q.next))
           end
         else
           local menu =
             { { text = "Defend City"
-              , val  = function() anyArmies = push(opponents,p); q.next() end
+              , val  = function()
+                         anyArmies = push(opponents,{ opponent = thisP
+                                                    , retreat = true})
+                         q.next()
+                       end
               }
             , { text = "Retreat"
-              , val  = chooseRetreat(game,player,cstate.faction,city,q.next)
+              , val  = ||chooseRetreat(game,thisP,cstate.faction,city,q.next)
               }
             }
-          q.enQ(||ask(game,player,"Choose Army Action", { menu = menu }, apply))
+          q.enQ(||ask(game,thisP,"Choose Army Action", { menu = menu }, apply))
         end
       end
-      p = playerAfter(game,p)
+      p = playerAfter(game,thisP)
       count = count + 1
     end
   end
@@ -376,7 +381,8 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
       -- Let's say it doesn't matter.
     end
     if defender == nil then
-      if cstate.faction == bulgars then opponents = { "bulgars" } end
+      if cstate.faction == bulgars then
+          opponents = { { opponent = "bulgars", retreat = false  }} end
       q.next()
       return
     end
@@ -387,7 +393,10 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
 
     local menu =
       { { text = "Defend with Levy"
-        , val  = function() push(opponents,defender); q.next() end
+        , val  = function()
+                   push(opponents,{opponent=defender,retreat=false});
+                   q.next()
+                 end
         }
       , { text = "Do not Defend"
         , val  = q.next
@@ -398,12 +407,20 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
 
   local function doBattles()
     local opts = {}
-    for _,p in pairs(opponents) do
+    for i,opp in pairs(opponents) do
+      local p = opp.opponent
       push(opts, { text = "Fight " .. (p == "bulgars" and faction_name[bulgars]
                                        or playerColorBB(p))
                  , val  = function()
                     doSingleBattle(game,player,attacker,city,p,function(won)
-                      if won then doBattles() else ifLost(game) end
+                      if won then
+                        opponents[i] = nil
+                        if opp.retreat then
+                          chooseRetreat(game,p,cstate.faction,city,doBattles)
+                        else doBattles()
+                        end
+                      else ifLost(game)
+                      end
                     end)
                    end
                  })
@@ -497,7 +514,7 @@ function friendlyArmyActions(game,player,city,movedNo,endActOk)
 
   local moveOpts = {}
   if movedNo < 2 then
-    moveOpts = armyDestinationOptions(game,player,city,movedNo)
+    moveOpts = armyDestinationOptions(game,player,city,movedNo,{})
     hasOpts = next(moveOpts) ~= nil
   end
 
@@ -620,8 +637,44 @@ function tryMoveArmy(game,player,city,moveInfo)
      byzFleet ~= nil           and
      byzFleet ~= player
   then
-      -- XXX
-    log("Ask Byzantium Fleet Activation")
+    local opts = { { text = "Activate fleet!", val = true }
+                 , { text = "Let them pass.", val = false }
+                 }
+    local q = string.format("Activate %s fleet?",faction_poss[byzantium])
+    ask(game,byzFleet,q,{menu=opts},function(use)
+      if use then
+        local newCost   = 2 * moveInfo.cost
+        local fstate    = getPlayerState(game,player).factions[arabs]
+        moveInfo.cost   = newCost
+        moveInfo.perish = factionArmySize(fstate) == newCost
+
+        local opts = {}
+        if fstate.movement >= newCost then
+          push(opts, { text = "Proceed with movement"
+                     , val = ||makeMove(game,player,city,moveInfo)
+                            -- XXX: do attack
+                     })
+        end
+
+        local banned = moveInfo.banned
+        banned[moveInfo.to] = true
+        local moveNo = moveInfo.moveNo - 1
+        local otherOpts = armyDestinationOptions(game,player,city,moveNo,banned)
+        if next(otherOpts) == nil then
+          push(opts, { text = "End action"
+                     , val  = ||nextTurn(game)
+                     })
+        else
+          push(opts, { text = "Different destination"
+                     , val = ||ask(game,player,"New destination",
+                                                  {cities=otherOpts}, apply)
+                     })
+        end
+        ask(game,player,"What now?",{menu=opts},apply)
+      else
+        makeMove(game,player,city,moveInfo)
+      end
+    end)
   else
     makeMove(game,player,city,moveInfo)
   end
@@ -631,7 +684,7 @@ end
 
 
 -- What cities are reachable from the given city for the army of the player.
-function armyDestinationOptions(game,player,city,movedNo)
+function armyDestinationOptions(game,player,city,movedNo,banned)
   local cstate  = game.map.cities[city]
   local faction = cstate.faction
   local pstate  = getPlayerState(game,player)
@@ -640,40 +693,43 @@ function armyDestinationOptions(game,player,city,movedNo)
 
   local affordable = {}
   for _,target in ipairs(targets) do
-    local cost = nil    -- means infinite
-    local tgtS = game.map.cities[target.to]
-    local terrain = target.terrain
-    if     terrain == road then cost = 1
-    elseif terrain == sea  then
-      if   faction == byzantium then cost = 1
-      else
-        local hasArabFleet = game.actionSpaces[arab_fleet] == player
-        cost = hasArabFleet and 1 or 2
-        if tgtS.constantinople then cost = cost * 2 end
+    if not banned[target.to] then
+      local cost = nil    -- means infinite
+      local tgtS = game.map.cities[target.to]
+      local terrain = target.terrain
+      if     terrain == road then cost = 1
+      elseif terrain == sea  then
+        if   faction == byzantium then cost = 1
+        else
+          local hasArabFleet = game.actionSpaces[arab_fleet] == player
+          cost = hasArabFleet and 1 or 2
+          if tgtS.constantinople then cost = cost * 2 end
+        end
+      elseif terrain == desert then
+        cost = (faction == arabs) and 1 or nil
       end
-    elseif terrain == desert then
-      cost = (faction == arabs) and 1 or nil
-    end
-    local attack = tgtS.faction ~= faction
-    if tgtS.controlledBy == player and attack then cost = nil end
+      local attack = tgtS.faction ~= faction
+      if tgtS.controlledBy == player and attack then cost = nil end
 
-    if cost ~= nil and movedNo > 0 then cost = cost + 1 end
-    if cost ~= nil and fstate.movement >= cost then
-      local perish = cost == factionArmySize(fstate)
-      local moveInfo = { to      = target.to
-                       , terrain = target.terrain
-                       , faction = faction
-                       , cost    = cost
-                       , perish  = perish
-                       , attack  = attack
-                       , moveNo  = 1 + movedNo
-                       }
-      local q = cost
-      if perish then q = q .. "☠"
-      elseif attack then q = q .. "⚔" end
-      push(affordable, { city = target.to, q = q
-                       , val  = || tryMoveArmy(game,player,city,moveInfo)
-                       })
+      if cost ~= nil and movedNo > 0 then cost = cost + 1 end
+      if cost ~= nil and fstate.movement >= cost then
+        local perish = cost == factionArmySize(fstate)
+        local moveInfo = { to      = target.to
+                         , terrain = target.terrain
+                         , faction = faction
+                         , cost    = cost
+                         , perish  = perish
+                         , attack  = attack
+                         , moveNo  = 1 + movedNo
+                         , banned  = banned
+                         }
+        local q = cost
+        if perish then q = q .. "☠"
+        elseif attack then q = q .. "⚔" end
+        push(affordable, { city = target.to, q = q
+                         , val  = || tryMoveArmy(game,player,city,moveInfo)
+                         })
+      end
     end
   end
 

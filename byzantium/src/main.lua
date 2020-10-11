@@ -1,7 +1,7 @@
 
 function onLoad()
   local controlledBy = {}
-  controlledBy["Red"]   = "White"
+  -- controlledBy["Red"]   = "White"
   controlledBy["Blue"]  = "White"
   controlledBy["Green"] = "White"
   local g = newGame(controlledBy)

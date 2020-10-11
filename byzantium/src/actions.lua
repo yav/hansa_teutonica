@@ -1,5 +1,12 @@
 
 function nextTurn(game)
+  local n = game.curPlayer
+  n = n + 1
+  if n > #game.players then n = 1 end
+  game.curPlayer = n
+
+  -- XXX: check for passed, end of round etc
+
   takeTurn(game)
 end
 
@@ -225,7 +232,6 @@ function checkRoyalty(game, opts)
   for _,faction in ipairs({byzantium,arabs}) do
     local action = emperor
     if faction == arabs then action = caliph end
-    local name = string.format("%s royalty", faction_poss[faction])
     if game.actionSpaces[action] == nil then
       local player = getCurrentPlayer(game)
       local wopts  = workerOptions(game,player,faction)
@@ -233,12 +239,13 @@ function checkRoyalty(game, opts)
         addActOption(opts,
           { action = action
           , val = function()
-              ask(game, player, "Choose Royalty", { cubes = wopts },
+              ask(game, player, "Choose worker", { cubes = wopts },
               function(pay)
                 pay()
                 markAction(game,player,action)
                 changeRoyalty(game,player,faction,true)
-                say("  * Influenced the " .. name)
+                local name = faction == arabs and "Caliph" or "Emperor"
+                say("  * to influence the " .. name)
                 nextTurn(game)
               end)
             end
@@ -259,11 +266,11 @@ function checkFleet(game, opts)
         addActOption(opts,
           { action = action
           , val = function()
-              ask(game, player, "Choose Captain", { cubes = wopts },
+              ask(game, player, "Choose worker", { cubes = wopts },
               function(pay)
                 pay()
                 markAction(game,player,action)
-                say(string.format("  * Controls the %s fleet",
+                say(string.format("  * to claim the %s fleet",
                                                     faction_poss[faction]))
                 nextTurn(game)
               end)

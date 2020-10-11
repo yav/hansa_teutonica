@@ -30,6 +30,7 @@ function newGame(controlledBy)
     }
 end
 
+
 function playerAfter(game,player)
   local n
   for i,p in ipairs(game.players) do
@@ -37,12 +38,6 @@ function playerAfter(game,player)
   end
   if n > #game.players then n = 1 end
   return game.players[n]
-end
-
-function getNextPlayer(g)
-  local p = g.curPlayer + 1
-  if p > #g.players then p = 1 end
-  return p
 end
 
 function getCurrentPlayer(g)
