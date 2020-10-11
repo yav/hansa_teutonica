@@ -60,6 +60,13 @@ function changeRoyalty(game,player,faction,val)
   -- change by 0 to force redraw and check for army destroyed
 end
 
+function changeTaxes(game,player,diff)
+  local pstate = getPlayerState(game,player)
+  local newVal = pstate.taxed + diff
+  pstate.taxed = newVal
+  editTaxes(player,newVal)
+end
+
 
 --------------------------------------------------------------------------------
 -- Bulgars

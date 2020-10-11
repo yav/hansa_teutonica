@@ -67,6 +67,15 @@ local arab_fleet_text = table.concat(
     { "Fleet (Arab)"
     }, "\n")
 
+local act_taxes_text =
+[[
+Spend any number of available
+workers for $2/worker.
+
+* May only be used once a round.
+* Earnings may be split between treasuries.
+]]
+
 
 local act_bulgar_army_name    = "Bulgar Army (Byzantium/Arabs)"
 local act_fortify_name        = "Fortify City (Byzantium/Arabs)"
@@ -78,6 +87,7 @@ local act_arab_improve_name   = "Improve City (Arab)"
 local act_caliph_name         = "Caliph (Arab)"
 local act_arab_civil_war_name = "Civil War (Arab)"
 local act_arab_fleet_name     = "Fleet (Arab)"
+local act_taxes_name          = "Collect Taxes"
 
 local action_name =
   { act_bulgar_army_name
@@ -96,6 +106,7 @@ local action_name =
   , act_arab_civil_war_name
   , act_arab_civil_war_name
   , act_arab_fleet_name
+  , act_taxes_name
   }
 
 local action_text =
@@ -115,6 +126,7 @@ local action_text =
   , act_arab_civil_war_text
   , act_arab_civil_war_text
   , act_arab_fleet_text
+  , act_taxes_text
   }
 
 

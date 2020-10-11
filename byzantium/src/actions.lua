@@ -20,7 +20,7 @@ function takeTurn(game)
   checkFleet(game,opts)
   checkImproveCity(game,opts)
   checkFortifyCity(game,opts)
-  checkTest(game,opts)
+  checkTaxes(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
   ask(game,player,quest,opts,apply)
@@ -393,7 +393,41 @@ function checkFortifyCity(game, opts)
     end
   end
 
-
 end
 
+function checkTaxes(game,opts)
+  local player = getCurrentPlayer(game)
+  local pstate = getPlayerState(game,player)
+  if pstate.taxed > 0 or pstate.available == 0 then return end
+
+  local choices = { { text = "Get $2 " .. faction_currency[byzantium]
+                    , val  = {2,0}
+                    }
+                  , { text = "Get $2 " .. faction_currency[arabs]
+                    , val  = {0,2}
+                    }
+                  , { text = "Get $1 " .. faction_currency[byzantium]
+                          .. " and $1 " .. faction_currency[arabs]
+                    , val = {1,1}
+                    }
+                  , { text = "Done"
+                    , val = nil
+                    }
+                  }
+
+  local function doTaxes()
+    if pstate.available == 0 then nextTurn(game); return end
+
+    ask(game,player,"Spend available worker?",{menu=choices},function(delta)
+      if delta == nil then nextTurn(game); return end
+      changeTreasury(game,player,byzantium,delta[1])
+      changeTreasury(game,player,arabs,delta[2])
+      changeAvailableWorkers(game,player,-1)
+      changeTaxes(game,player,1)
+      doTaxes()
+    end)
+  end
+
+  addActOption(opts, { action = taxes, val = doTaxes })
+end
 

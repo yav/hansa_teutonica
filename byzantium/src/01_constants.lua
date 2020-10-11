@@ -60,6 +60,7 @@ local caliph            = 13
 local arab_civil_war_1  = 14
 local arab_civil_war_2  = 15
 local arab_fleet        = 16
+local taxes             = 17
 
 local allActionSpaces =
   { bulgars_1
@@ -78,6 +79,7 @@ local allActionSpaces =
   , arab_civil_war_1
   , arab_civil_war_2
   , arab_fleet
+  , taxes
   }
 
 -- attacker/defender

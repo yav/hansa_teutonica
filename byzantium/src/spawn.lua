@@ -167,21 +167,27 @@ function spawnPlayer(g,player,k)
   info("fortifications", "Fortifications", pstate.fortifications)
 
   -- taxes
-  if pstate.taxed > 0 then
-    sem.up()
-    spawnBox( -23  +  1.5 * dx
-            ,  5.5 + -1.5 * dy
-            , playerColor(player)
-            , playerFontColor(player)
-            , playerColor(player)
-            , playerColorBB(player) .. " taxation"
-            , pstate.taxed
-            , function(o)
-                ui.taxed = o
-                sem.down()
-              end
-            )
+  sem.up()
+  local taxBG = playerColor(player)
+  local taxFG = playerFontColor(player)
+  if pstate.taxed == 0 then
+    taxBG.a = 0
+    taxFG.a = 0
   end
+  spawnBox( -23  +  1.5 * dx
+          ,  5.5 + -1.5 * dy
+          , taxBG
+          , taxFG
+          , taxBG
+          , ""
+          , pstate.taxed
+          , function(o)
+              o.setName(act_taxes_name)
+              o.setDescription(act_taxes_text)
+              ui.taxed = o
+              sem.down()
+            end
+          )
 
   -- passed
   if pstate.passed > 0 then
@@ -200,6 +206,22 @@ function spawnPlayer(g,player,k)
   end
 
   sem.wait(k)
+end
+
+function editTaxes(player,val)
+  local fg = playerFontColor(player)
+  local bg = playerColor(player)
+  if val == 0 then fg = Color(0,0,0,0); bg = Color(0,0,0,0) end
+  local ui = GUI.players[player].taxed
+  ui.setColorTint(bg)
+  ui.editButton(
+    { index       = 0
+    , label       = val
+    , font_color  = fg
+    , hover_color = bg
+    , press_color = bg
+    , color       = bg
+    })
 end
 
 
@@ -270,6 +292,7 @@ function spawnBox(x,y,boxColor,fg,bg,tip,msg,k)
     z = 0
   end
   spawnCube(boxColor, {x,y}, function(menu)
+    menu.setName(tip)
     menu.createButton(
       { font_size      = 300
       , font_color     = fg
@@ -564,6 +587,10 @@ function spawnCube(color,loc,k)
 end
 
 function actionLoc(act)
+  if act == taxes then
+    return { -22.25, 2.7 }
+  end
+
   local x0 = -23.44
   local y0 = -0.3
   local dx = 2.67
