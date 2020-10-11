@@ -133,12 +133,12 @@ function chooseRetreat(game,player,faction,city,k)
       doDestroyArmy(game,player,faction)
       k()
     else
-      doMoveArmy(game,player,faction,tgtCity)
-      local msg = string.format("  * The %s %s army retreated to %s"
+      local msg = string.format("  * %s's %s army retreated to %s"
                                , playerColorBB(player)
                                , faction_poss[faction]
-                               , city)
+                               , tgtCity)
       say(msg)
+      doMoveArmy(game,player,faction,tgtCity)
       chooseArmyCasualties(game,player,faction,cost,k)
     end
   end
@@ -306,8 +306,8 @@ function doSingleBattle(game,player,faction,city,opponent,result)
                       attackerHits = dstate.levy
                   end
                   changeLevy(game,player,cstate.faction,-attackerHits)
-                  say("The %s levy suffered %d casualties",
-                        whoDefends, attackerHits)
+                  say(string.format("  * %s suffered %d casualties",
+                                    whoDefends, attackerHits))
                   checkOutcome()
 
                 else
@@ -352,7 +352,7 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
           end
         else
           local menu =
-            { { text = "Defend City"
+            { { text = "Defend city"
               , val  = function()
                          anyArmies = push(opponents,{ opponent = thisP
                                                     , retreat = true})
@@ -363,7 +363,7 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
               , val  = ||chooseRetreat(game,thisP,cstate.faction,city,q.next)
               }
             }
-          q.enQ(||ask(game,thisP,"Choose Army Action", { menu = menu }, apply))
+          q.enQ(||ask(game,thisP,"Defender action", { menu = menu }, apply))
         end
       end
       p = playerAfter(game,thisP)
@@ -392,17 +392,17 @@ function doWar(game,player,faction,city,usingBulgars,ifLost)
     if fstate.levy <= 0 then q.next(); return end
 
     local menu =
-      { { text = "Defend with Levy"
+      { { text = "Defend with levy"
         , val  = function()
                    push(opponents,{opponent=defender,retreat=false});
                    q.next()
                  end
         }
-      , { text = "Do not Defend"
+      , { text = "Do not defend"
         , val  = q.next
         }
      }
-    ask(game,defender,"Use Levy?",{menu=menu},apply)
+    ask(game,defender,"Use levy?",{menu=menu},apply)
   end)
 
   local function doBattles()
@@ -489,6 +489,8 @@ function attackCity(game,player,fromCity,attackedCity)
   function()
     if getPlayerState(game,player).factions[faction].fieldArmy ~= nil then
       doMoveArmy(game,player,faction,fromCity)  -- or retreat??
+      local msg = string.format("  * Attack failed, moved back to %s",fromCity)
+      say(msg)
     end
     nextTurn(game)
   end)
@@ -606,8 +608,18 @@ function makeMove(game,player,city,moveInfo)
 
   doMoveArmy(game,player,moveInfo.faction,moveInfo.to)
   if moveInfo.attack then
+    local msg = string.format("  * %s army attacks %s from %s"
+                             , faction_poss[moveInfo.faction]
+                             , moveInfo.to
+                             , city
+                             )
+    say(msg)
     attackCity(game,player,city,moveInfo.to)
   else
+    local msg = string.format("  * moved from %s to %s"
+                             , city, moveInfo.to
+                             )
+    say(msg)
     chooseArmyAction(game,player,moveInfo.to,moveInfo.moveNo,true)
   end
 end

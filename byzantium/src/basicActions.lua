@@ -98,9 +98,6 @@ function doMoveArmy(g,player,faction,city)
   local newLoc = armyPos(g,player,city)
   local o = GUI.players[player].factions[faction].fieldArmy
   o.setPositionSmooth(newLoc,false,false)
-
-  local lab = string.format("  * moved from %s to %s", curCity,city)
-  say(lab)
 end
 
 function doRemoveArmy(g,player,faction)
