@@ -488,8 +488,8 @@ end
 -- XXX: can't see pips on arab dice
 function rollDice(color,who,n,k)
   local x = 20
-  local y = 3
-  if who == defender then y = -1 end
+  local y = 9
+  if who == defender then y = 5 end
   local sem = newSem()
   local dice = {}
 
