@@ -129,20 +129,41 @@ function spawnPlayer(g,player,k)
   local bg = playerColor(p)
   local function info(id,tip,msg)
     sem.up()
-    local c = bg
-    if id == "fortifications" then c = nil end
-    spawnBox(x,y,c,fg,bg,tip,msg,function(o)
-      ui[id] = o
-      sem.down()
-    end)
+    if id == "fortifications" then
+      local s = 0.5
+      spawnDisc({x,0.3,y},s,function(o)
+        o.setLock(true)
+        o.setColorTint(playerColor(p))
+        o.setName(tip)
+        o.createButton(
+          { font_size      = 300/s
+          , font_color     = fg
+          , hover_color    = bg
+          , press_color    = bg
+          , color          = bg
+          , label          = msg
+          , click_function = "nop"
+          , position       = { 0, 0.5, 0 }
+          , rotation       = { 0, 180, 0 }
+          , width          = 0
+          , height         = 0
+          , tooltip        = tip
+          })
+        sem.down()
+      end)
+    else
+      spawnBox(x,y,bg,fg,bg,tip,msg,function(o)
+        ui[id] = o
+        sem.down()
+      end)
+    end
   end
 
   -- ids should match the fields in the model
   label("Available","[00FF00]✓[-]");                          x = x + w
   info("available",      "Available",      pstate.available); x = x + 1.5 * w
   label("Casualty", "[FF0000]✗[-]");                          x = x + w
-  info("casualty",       "Casualty",       pstate.casualty);  x = x + 1.5 * w
-  label("Fortifications", "F")                                x = x + w
+  info("casualty",       "Casualty",       pstate.casualty);  x = x + 2.5 * w
   info("fortifications", "Fortifications", pstate.fortifications)
 
   -- taxes
@@ -227,6 +248,8 @@ function spawnFaction(g,player,faction,x,y,k)
       sem.down()
     end)
   end
+
+  -- XXX: spawn religion cubes
 
   sem.wait(k)
   return ui
@@ -412,18 +435,23 @@ function spawnCity(name,city,k)
     )
   else
     s = 0.75
-    local o = spawnObject({
-      type = "Custom_Model",
-      scale = { s,s,s },
-      position = loc,
-      sound = false,
-      callback_function = spawned
-    })
-    o.setCustomObject({
-      mesh = disc_url,
-      material = 1
-    })
+    spawnDisc(loc,s,spawned)
   end
+end
+
+function spawnDisc(loc,s,k)
+  local o = spawnObject({
+    type = "Custom_Model",
+    scale = { s,s,s },
+    position = loc,
+    sound = false,
+    callback_function = k
+  })
+  o.setCustomObject({
+    mesh = disc_url,
+    material = 1
+  })
+  return o
 end
 
 
