@@ -244,8 +244,10 @@ function checkRoyalty(game, opts)
                 pay()
                 markAction(game,player,action)
                 changeRoyalty(game,player,faction,true)
+                changeVP(game,player,faction,2)
                 local name = faction == arabs and "Caliph" or "Emperor"
                 say("  * to influence the " .. name)
+                say("  * +2 %s VP", faction_poss[faction])
                 nextTurn(game)
               end)
             end
