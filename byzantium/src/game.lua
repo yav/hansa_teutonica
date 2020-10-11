@@ -103,6 +103,7 @@ function newFaction()
     , fieldArmy = nil     -- location of field army
     , firstArmyPlacement = true
     , royalty = false
+    , religion = 0        -- number of churches/mosks
     }
 end
 
