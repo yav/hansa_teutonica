@@ -400,13 +400,13 @@ function checkTaxes(game,opts)
   local pstate = getPlayerState(game,player)
   if pstate.taxed > 0 or pstate.available == 0 then return end
 
-  local choices = { { text = "Get $2 " .. faction_currency[byzantium]
+  local choices = { { text = "$2 " .. faction_currency[byzantium]
                     , val  = {2,0}
                     }
-                  , { text = "Get $2 " .. faction_currency[arabs]
+                  , { text = "$2 " .. faction_currency[arabs]
                     , val  = {0,2}
                     }
-                  , { text = "Get $1 " .. faction_currency[byzantium]
+                  , { text = "$1 " .. faction_currency[byzantium]
                           .. " and $1 " .. faction_currency[arabs]
                     , val = {1,1}
                     }
