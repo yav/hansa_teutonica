@@ -504,7 +504,7 @@ function friendlyArmyActions(game,player,city,movedNo,endActOk)
 
   local moveOpts = {}
   if movedNo < 2 then
-    moveOpts = armyDestinationOptions(game,player,city,movedNo,{})
+    moveOpts = armyDestinationOptions(game,player,city,movedNo,{},false)
     hasOpts = next(moveOpts) ~= nil
   end
 
@@ -574,9 +574,12 @@ function chooseArmyToMove(game,player)
   if next(startOpts) == nil then return nil end
 
   return function()
-    say(string.format("\n%s is using an army", playerColorBB(player)))
     ask(game,player,"Choose army",{ cities = startOpts },
     function(info)
+      say(string.format("\n%s is using the %s army"
+                       , playerColorBB(player)
+                       , faction_poss[info.faction]
+                       ))
       if info.place then
         doPlaceArmy(game,player,info.city,
           ||chooseArmyActionFrom(game,player,info.city,info.armyActs))
@@ -614,17 +617,6 @@ end
 
 
 
---[[
-Note on the Byzantine Fleet
-===========================
-
-If an activation of the Byzantine fleet makes is so that the player
-cannot afford the move then they can pick a different route and there is
-no attack on the Arab army.  If there isn't another option, then their action
-ends.  See: https://boardgamegeek.com/thread/108294/byzantine-fleet
---]]
-
-
 
 
 -- Try to move an army.  Handles interaction between the byzantium
@@ -637,42 +629,60 @@ function tryMoveArmy(game,player,city,moveInfo)
      byzFleet ~= nil           and
      byzFleet ~= player
   then
-    local opts = { { text = "Activate fleet!", val = true }
-                 , { text = "Let them pass.", val = false }
+    if moveInfo.withByzNavy then
+      navalAttack(game,byzFleet,player,city,moveInfo)
+      return
+    end
+
+
+    local opts = { { text = "Use to " .. moveInfo.to, val = false }
+                 , { text = "Use on all sea",         val = nil }
+                 , { text = "Let them pass",          val = true }
                  }
-    local q = string.format("Activate %s fleet?",faction_poss[byzantium])
-    ask(game,byzFleet,q,{menu=opts},function(use)
-      if use then
-        local newCost   = 2 * moveInfo.cost
-        local fstate    = getPlayerState(game,player).factions[arabs]
-        moveInfo.cost   = newCost
-        moveInfo.perish = factionArmySize(fstate) == newCost
 
-        local opts = {}
-        if fstate.movement >= newCost then
-          push(opts, { text = "Proceed with movement"
-                     , val = ||makeMove(game,player,city,moveInfo)
-                            -- XXX: do attack
-                     })
-        end
+    local q = string.format("Use %s fleet?",faction_poss[byzantium])
+    ask(game,byzFleet,q,{menu=opts},function(noFleet)
+      local msg
+      if noFleet then msg = "allowed free passage"
+      elseif noFleet == nil then msg = "will use fleet on all sea routes"
+      else msg = "wil use fleet to " .. moveInfo.to
+      end
+      say(string.format("  * %s %s", playerColorBB(byzFleet),msg))
 
-        local banned = moveInfo.banned
-        banned[moveInfo.to] = true
-        local moveNo = moveInfo.moveNo - 1
-        local otherOpts = armyDestinationOptions(game,player,city,moveNo,banned)
-        if next(otherOpts) == nil then
-          push(opts, { text = "End action"
-                     , val  = ||nextTurn(game)
-                     })
-        else
-          push(opts, { text = "Different destination"
-                     , val = ||ask(game,player,"New destination",
-                                                  {cities=otherOpts}, apply)
-                     })
-        end
-        ask(game,player,"What now?",{menu=opts},apply)
+      if noFleet then makeMove(game,player,city,moveInfo); return end
+
+      local newCost   = 2 * moveInfo.cost
+      local fstate    = getPlayerState(game,player).factions[arabs]
+      moveInfo.cost   = newCost
+      moveInfo.perish = factionArmySize(fstate) == newCost
+
+      local opts = {}
+      if fstate.movement >= newCost then
+        push(opts, { text = "Proceed to " .. moveInfo.to
+                   , val = ||navalAttack(game,byzFleet,player,city,moveInfo)
+                   })
+      end
+
+      local banned = moveInfo.banned
+      banned[moveInfo.to] = true
+      local moveNo = moveInfo.moveNo - 1
+      local otherOpts =
+        armyDestinationOptions(game,player,city,moveNo,banned,noFleet == nil)
+      if next(otherOpts) == nil then
+        push(opts, { text = "End action"
+                   , val  = ||nextTurn(game)
+                   })
       else
-        makeMove(game,player,city,moveInfo)
+      -- See: https://boardgamegeek.com/thread/108294/byzantine-fleet
+        push(opts, { text = "Different destination"
+                   , val = ||ask(game,player,"New destination",
+                                                {cities=otherOpts}, apply)
+                   })
+      end
+      if #opts == 1 then
+        opts[1].val()
+      else
+        ask(game,player,"What now?",{menu=opts},apply)
       end
     end)
   else
@@ -682,9 +692,29 @@ function tryMoveArmy(game,player,city,moveInfo)
 end
 
 
+function navalAttack(game,byzPlayer,movingPlayer,city,moveInfo)
+  local cost = moveInfo.cost
+  changeMovement(game,movingPlayer,arabs,-cost)
+  if moveInfo.perish then nextTurn(game); return end
+
+  moveInfo.cost   = 0 -- already paid
+  moveInfo.perish = false
+  say(string.format("  * %s naval attack", playerColorBB(byzPlayer)))
+  rollDice(playerColor(byzPlayer),attacker,cost,function(hits)
+    chooseArmyCasualties(game,movingPlayer,arabs,hits,function()
+      removeDice();
+      if getPlayerState(game,movingPlayer).factions[arabs].fieldArmy ~= nil then
+        makeMove(game,movingPlayer,city,moveInfo)
+      else
+        nextTurn(game)
+      end
+    end)
+  end)
+end
+
 
 -- What cities are reachable from the given city for the army of the player.
-function armyDestinationOptions(game,player,city,movedNo,banned)
+function armyDestinationOptions(game,player,city,movedNo,banned,withByz)
   local cstate  = game.map.cities[city]
   local faction = cstate.faction
   local pstate  = getPlayerState(game,player)
@@ -703,6 +733,7 @@ function armyDestinationOptions(game,player,city,movedNo,banned)
         else
           local hasArabFleet = game.actionSpaces[arab_fleet] == player
           cost = hasArabFleet and 1 or 2
+          if withByz then cost = 2 * cost end
           if tgtS.constantinople then cost = cost * 2 end
         end
       elseif terrain == desert then
@@ -721,6 +752,7 @@ function armyDestinationOptions(game,player,city,movedNo,banned)
                          , perish  = perish
                          , attack  = attack
                          , moveNo  = 1 + movedNo
+                         , withByzNavy = withByz
                          , banned  = banned
                          }
         local q = cost
