@@ -21,6 +21,7 @@ function changePlayerStat(stat)
     function(game,player,diff)
       local pstate      = getPlayerState(game,player)
       local a           = pstate[stat] + diff
+      if a < 0 then a = 0 end
       pstate[stat]      = a
 
       editBox(GUI.players[player][stat], a)
@@ -34,10 +35,11 @@ function changeFactionStat(stat)
       local pstate      = getPlayerState(game,player)
       local f           = pstate.factions[faction]
       local a           = f[stat] + diff
+      if a < 0 then a = 0 end
       f[stat]           = a
       editBox(GUI.players[player].factions[faction][stat],
                                                 factionValueLabel(stat,f))
-      if factionArmySize(f) <= 0 then
+      if factionArmySize(f) == 0 then
         doRemoveArmy(game,player,faction)
       end
     end
@@ -64,8 +66,37 @@ function changeTaxes(game,player,diff)
   local pstate = getPlayerState(game,player)
   local newVal = pstate.taxed + diff
   pstate.taxed = newVal
-  editTaxes(player,newVal)
+  local ui = GUI.players[player].taxed
+  editColorCube(ui,player,newVal)
 end
+
+function changeReligion(game,player,faction,diff)
+  local fstate = getPlayerState(game,player).factions[faction]
+  local newVal = fstate.religion + diff
+  fstate.religion = newVal
+  local ui = GUI.players[player].factions[faction].religion
+  editColorCube(ui,player,newVal)
+end
+
+function setPass(game,player,k)
+  local pstate = getPlayerState(game,player)
+  local n = game.nextToPass
+  pstate.passed = n
+  n = n + 1
+  game.nextToPass = n
+  spawnPass(game,player,k)
+end
+
+function resetPass(game,player)
+  local pstate = getPlayerState(game,player)
+  if pstate.passed == 0 then return end
+  pstate.passed = 0
+  changeAvailableWorkers(game,player,1)
+  GUI.players[player].passed.destroy()
+end
+
+
+
 
 
 --------------------------------------------------------------------------------

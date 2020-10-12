@@ -12,6 +12,7 @@ function newGUI(g,k)
   local sem = newSem()
   local citiesDone = false
   sem.up(); spawnBoard(sem.down)
+  sem.up(); spawnRoundMarker(g, sem.down)
   sem.up(); spawnBulgarStats(g,sem.down)
   sem.up(); spawnActions(g,sem.down)
   sem.up(); spawnCities(g, function()
@@ -25,6 +26,34 @@ end
 
 
 --------------------------------------------------------------------------------
+
+function spawnRoundMarker(game,k)
+  local r = game.curRound
+  spawnObject(
+    { type      = "PlayerPawn"
+    , position  = roundMarkerPos(r)
+    , sound     = false
+    , callback_function = function(o)
+        GUI.round = o
+        o.setLock(true)
+        o.setColorTint(Color(0,0,0))
+        o.setName("Round " .. r)
+        k(o)
+      end
+    })
+end
+
+function moveRoundMarker(game)
+  local r = game.curRound
+  local ui = GUI.round
+  ui.setName("Round " .. r)
+  ui.setPositionSmooth(roundMarkerPos(r),false,false)
+end
+
+function roundMarkerPos(r)
+  return { 19 + 2.2 * (r-1), 0, -16 }
+end
+
 function spawnBoard(k)
   local sem = newSem()
   sem.up()
@@ -192,27 +221,31 @@ function spawnPlayer(g,player,k)
   -- passed
   if pstate.passed > 0 then
     sem.up()
-    local bg = playerColor(player)
-    local fg = playerFontColor(player)
-    spawnBox( 8.4 + 1.5 * pstate.passed
-            , -12.3
-            , bg, fg, bg
-            , playerColorBB(player) .. " passed"
-            , ""
-            , function(o)
-                ui.passed = o
-                sem.down()
-              end)
+    spawnPass(game,player,sem.down)
   end
 
   sem.wait(k)
 end
 
-function editTaxes(player,val)
+function spawnPass(game,player,k)
+  local pstate = getPlayerState(game,player)
+  local bg = playerColor(player)
+  local fg = playerFontColor(player)
+  spawnBox( 8.4 + 1.5 * pstate.passed
+          , -12.3
+          , bg, fg, bg
+          , playerColorBB(player) .. " passed"
+          , ""
+          , function(o)
+              GUI.players[player].passed = o
+              k()
+            end)
+end
+
+function editColorCube(ui,player,val)
   local fg = playerFontColor(player)
   local bg = playerColor(player)
   if val == 0 then fg = Color(0,0,0,0); bg = Color(0,0,0,0) end
-  local ui = GUI.players[player].taxed
   ui.setColorTint(bg)
   ui.editButton(
     { index       = 0
@@ -271,7 +304,25 @@ function spawnFaction(g,player,faction,x,y,k)
     end)
   end
 
-  -- XXX: spawn religion cubes
+  do
+    sem.up()
+    local x = 17
+    if faction == arabs then x = -6 end
+    x = x + pstate.order * 1.5
+    local y = -10.5
+    if faction == arabs then y = -12.5 end
+    local bg = playerColor(player)
+    local fg = playerFontColor(player)
+    if f.religion == 0 then
+      bg = Color(0,0,0,0)
+      fg = bg
+    end
+    local lab = playerColorBB(player) .. " " .. faction_temple[faction]
+    spawnBox(x,y,bg,fg,bg,lab,f.religion,function(o)
+      ui.religion = o
+      sem.down()
+    end)
+  end
 
   sem.wait(k)
   return ui
@@ -556,7 +607,7 @@ function spawnActions(g,k)
 end
 
 function spawnAction(action,owner,k)
-  local color = owner and playerColor(owner) or Color(0,0,0,0)
+  local color = owner and playerColor(owner) or Color(0,0,0,0.5)
   spawnCube(color, actionLoc(action), function(o)
     o.setName(action_name[action])
     o.setDescription(action_text[action])
@@ -566,7 +617,7 @@ function spawnAction(action,owner,k)
 end
 
 function updateActionOwner(action,owner)
-  local color = owner and playerColor(owner) or Color(0,0,0,0)
+  local color = owner and playerColor(owner) or Color(0,0,0,0.5)
   GUI.actions[action].setColorTint(color)
 end
 
@@ -587,8 +638,10 @@ function spawnCube(color,loc,k)
 end
 
 function actionLoc(act)
-  if act == taxes then
-    return { -22.25, 2.7 }
+  if act == taxes       then return { -22.25, 2.7 }
+  elseif act == mosk    then return { -2.2, -14 }
+  elseif act == church  then return { 20.5, -12 }
+  elseif act == pass    then return { 9.75, -14 }
   end
 
   local x0 = -23.44

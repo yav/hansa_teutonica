@@ -110,7 +110,6 @@ function ask(game,player,quest,options,answer)
     --      | pstat   = ui
     --
     -- ui = { q, val }
-
     local ui = GUI.players[player]
     for stat,val in pairs(options.cubes) do
       if stat == byzantium or stat == arabs then

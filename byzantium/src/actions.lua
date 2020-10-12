@@ -1,11 +1,93 @@
 
-function nextTurn(game)
-  local n = game.curPlayer
-  n = n + 1
-  if n > #game.players then n = 1 end
-  game.curPlayer = n
+function endGame(game)
+  log("Game over")
+end
 
-  -- XXX: check for passed, end of round etc
+function endRound(game)
+
+  -- income
+  for city,cstate in pairs(game.map.cities) do
+    local owner = cstate.controlledBy
+    if owner ~= nil then
+      changeTreasury(game,owner,cstate.faction,2 * cstate.strength)
+    end
+  end
+
+  -- maintenance
+  log("Maintenance")
+  local cost = { eliteArmy = 3, mainArmy = 1, movement = 1, levy = 2 }
+  for _,player in ipairs(game.players) do
+    local pstate = getPlayerState(game,player)
+    for _,faction in ipairs({arabs,byzantium}) do
+      local fstate = pstate.factions[faction]
+      for _,stat in ipairs({"eliteArmy","mainArmy","movement","levy"}) do
+        local have = fstate.treasury
+        local unit = cost[stat]
+        local need = fstate[stat] * unit
+        if have >= need then
+          changeTreasury(game,player,faction,-need)
+        else
+          changeTreasury(game,player,faction,-have)
+          local penalty = math.ceil((need - have) / unit)
+          changeVP(game,player,faction,-penalty)
+          changeFactionStat(stat)(game,player,faction,-penalty)
+          say(playerColorBB(player) .. " " .. penalty .. " for " ..
+              faction_poss[faction] .. " " .. faction_stat_name[stat])
+
+        end
+      end
+    end
+  end
+
+  -- Return action cubes
+  for act,owner in pairs(game.actionSpaces) do
+    log("Owners")
+    changeAvailableWorkers(game,owner,1)
+    updateActionOwner(act,nil)
+  end
+  game.actionSpaces = {}
+
+  -- Retrun from taxes, pass, and casualty/2
+  for player,pstate in pairs(game.playerState) do
+    local n = pstate.taxed
+    changeTaxes(game,player,-n)
+    changeAvailableWorkers(game,player,n)
+    local p = pstate.passed
+    if p == 1 then game.curPlayer = pstate.order end
+    resetPass(game,player)
+
+    local hires = math.ceil(pstate.casualty / 2)
+    changeCasualties(game,player,-hires)
+    changeAvailableWorkers(game,player,hires)
+  end
+
+
+  game.nextToPass = 1
+  game.endOfRound = false
+
+  local r = game.curRound
+  if r == 3 then endGame(); return end
+  game.curRound = r + 1
+  moveRoundMarker(game,k)
+  takeTurn(game)
+end
+
+function nextTurn(game)
+  local pnum = #game.players
+  local nextPass = game.nextToPass
+
+  if     game.endOfRound         then endRound(game); return
+  elseif game.nextToPass == pnum then game.endOfRound = true
+  end
+
+  local n = game.curPlayer
+  local pstate
+  repeat
+    n = n + 1
+    if n > pnum then n = 1 end
+    pstate = getPlayerState(game,game.players[n])
+  until pstate.passed == 0
+  game.curPlayer = n
 
   takeTurn(game)
 end
@@ -21,6 +103,8 @@ function takeTurn(game)
   checkImproveCity(game,opts)
   checkFortifyCity(game,opts)
   checkTaxes(game,opts)
+  checkTemple(game,opts)
+  checkPass(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
   ask(game,player,quest,opts,apply)
@@ -39,18 +123,6 @@ function addActOption(opts,x)
 end
 
 
-function checkTest(game,opts)
-  local player = getCurrentPlayer(game)
-
-  local function test()
-    doSingleBattle(game,player,byzantium,"Athens","bulgars",function(r)
-      log(r)
-      nextTurn(game)
-    end)
-  end
-
-  addTextOption(opts,{ text = "Test", val = test })
-end
 
 
 function checkControlAction(game, opts)
@@ -431,3 +503,77 @@ function checkTaxes(game,opts)
   addActOption(opts, { action = taxes, val = doTaxes })
 end
 
+
+function checkPass(game,opts)
+  local player = getCurrentPlayer(game)
+  local pstate = getPlayerState(game,player)
+  if pstate.passed > 0 then return end
+
+  addActOption(opts,
+    { action = pass
+    , val = function()
+        if pstate.casualty > 0 then
+          changeCasualties(game,player,-1)
+          setPass(game,player,||nextTurn(game))
+        else
+          local opts = {}
+          local function using(f)
+            return { q = "?"
+                   , val = function()
+                             f()
+                             changePass(game,player,true,||nextTurn(game))
+                           end
+                   }
+          end
+          if pstate.available > 0 then
+            opts.available = using(||changeAvailableWorkers(game,player,-1))
+          end
+          for _,faction in ipairs({arabs,byzantium}) do
+            local fstat = pstate.factions[faction]
+            local ents = {}
+            opts[faction] = ents
+            for _,stat in ipairs({"eliteArmy","mainArmy","movement","levy"}) do
+              if fstat[stat] > 0 then
+                ents[stat] =
+                   using(||changeFactionStat(stat)(game,player,faction,-1))
+              end
+            end
+          end
+          ask(game,player,"Worker to pass with",{cubes=opts},apply)
+        end
+      end
+    })
+end
+
+
+function checkTemple(game,opts)
+  local player  = getCurrentPlayer(game)
+  local pstate  = getPlayerState(game,player)
+  for _,faction in ipairs({arabs,byzantium}) do
+    local fstate = pstate.factions[faction]
+    local treasury = fstate.treasury
+    if treasury >= 6 then
+      fstate.treasury = treasury - 6
+      wopts = workerOptions(game,player,faction)
+      fstate.treasury = treasury
+      if next(wopts) ~= nil then
+        local act = church
+        if faction == arabs then act = mosk end
+        addActOption(opts,
+          { action = act
+          , val = function()
+                    ask(game,player,"Choose Worker",{cubes=wopts},function(pay)
+                      pay()
+                      changeTreasury(game,player,faction,-6)
+                      changeVP(game,player,faction,2)
+                      changeReligion(game,player,faction,1)
+                      say("  * to build a " .. faction_temple[faction])
+                      nextTurn(game)
+                    end)
+                  end
+          })
+      end
+    end
+  end
+
+end

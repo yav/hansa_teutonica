@@ -22,6 +22,8 @@ function newGame(controlledBy)
     , bulgarArmy    = 7
     , playerState   = pstates
     , actionSpaces  = as
+    , nextToPass    = 1   -- to remember in what order people passed
+    , endOfRound    = false
 
     -- player order
     , players     = ps
