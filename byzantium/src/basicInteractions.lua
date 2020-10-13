@@ -829,4 +829,40 @@ function conquerCity(game,player,city,faction,usingBulgars)
 end
 
 
+function maintenanceWithPenalty(game,player,faction,amount,k)
+  say(string.format("%s %s penalties:", playerColorBB(player)
+                                      , faction_poss[faction]))
+  local fstate = getPlayerState(game,player).factions[faction]
+  local have   = fstate.treasury
+  local owe    = amount
 
+  local function pickPenalty()
+    local opts = {}
+    local qopts = {}
+    qopts[faction] = opts
+    for _,stat in ipairs({"eliteArmy","mainArmy","movement","levy"}) do
+      if fstate[stat] > 0 then
+        opts[stat] = { q = "☠", val = stat }
+      end
+    end
+    local lab = string.format("Destory %s unit ($%d %s short)"
+                             , faction_poss[faction]
+                             , owe - have
+                             , faction_currency[faction])
+    ask(game,player,lab,{cubes=qopts},function(stat)
+      say(string.format("  * %s decreased, -1 VP", faction_stat_name[stat]))
+      changeFactionStat(stat)(game,player,faction,-1)
+      changeVP(game,player,faction,-1)
+      owe = owe - stat_cost[stat]
+      if have >= owe then
+        changeTreasury(game,player,faction,-owe)
+        k()
+      else
+        pickPenalty()
+      end
+    end)
+  end
+
+  pickPenalty()
+
+end

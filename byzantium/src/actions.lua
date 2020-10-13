@@ -14,62 +14,61 @@ function endRound(game)
   end
 
   -- maintenance
-  log("Maintenance")
-  local cost = { eliteArmy = 3, mainArmy = 1, movement = 1, levy = 2 }
+  local q = actQ()
   for _,player in ipairs(game.players) do
     local pstate = getPlayerState(game,player)
     for _,faction in ipairs({arabs,byzantium}) do
       local fstate = pstate.factions[faction]
+      local have   = fstate.treasury
+      local need   = 0
       for _,stat in ipairs({"eliteArmy","mainArmy","movement","levy"}) do
-        local have = fstate.treasury
-        local unit = cost[stat]
-        local need = fstate[stat] * unit
-        if have >= need then
-          changeTreasury(game,player,faction,-need)
-        else
-          changeTreasury(game,player,faction,-have)
-          local penalty = math.ceil((need - have) / unit)
-          changeVP(game,player,faction,-penalty)
-          changeFactionStat(stat)(game,player,faction,-penalty)
-          say(playerColorBB(player) .. " " .. penalty .. " for " ..
-              faction_poss[faction] .. " " .. faction_stat_name[stat])
-
-        end
+        need = need + fstate[stat] * stat_cost[stat]
+      end
+      if have >= need then
+        changeTreasury(game,player,faction,-need)
+      else
+        -- we just do these in a somewhat arbitrary order
+        q.enQ(||maintenanceWithPenalty(game,player,faction,need,q.next))
       end
     end
   end
 
-  -- Return action cubes
-  for act,owner in pairs(game.actionSpaces) do
-    log("Owners")
-    changeAvailableWorkers(game,owner,1)
-    updateActionOwner(act,nil)
-  end
-  game.actionSpaces = {}
+  q.enQ(function()
 
-  -- Retrun from taxes, pass, and casualty/2
-  for player,pstate in pairs(game.playerState) do
-    local n = pstate.taxed
-    changeTaxes(game,player,-n)
-    changeAvailableWorkers(game,player,n)
-    local p = pstate.passed
-    if p == 1 then game.curPlayer = pstate.order end
-    resetPass(game,player)
+    -- Return action cubes
+    for act,owner in pairs(game.actionSpaces) do
+      log("Owners")
+      changeAvailableWorkers(game,owner,1)
+      updateActionOwner(act,nil)
+    end
+    game.actionSpaces = {}
 
-    local hires = math.ceil(pstate.casualty / 2)
-    changeCasualties(game,player,-hires)
-    changeAvailableWorkers(game,player,hires)
-  end
+    -- Retrun from taxes, pass, and casualty/2
+    for player,pstate in pairs(game.playerState) do
+      local n = pstate.taxed
+      changeTaxes(game,player,-n)
+      changeAvailableWorkers(game,player,n)
+      changeRoyalty(game,player,arabs,false)
+      changeRoyalty(game,player,byzantium,false)
+      local p = pstate.passed
+      if p == 1 then game.curPlayer = pstate.order end
+      resetPass(game,player)
+
+      local hires = math.ceil(pstate.casualty / 2)
+      changeCasualties(game,player,-hires)
+      changeAvailableWorkers(game,player,hires)
+    end
 
 
-  game.nextToPass = 1
-  game.endOfRound = false
+    game.nextToPass = 1
+    game.endOfRound = false
 
-  local r = game.curRound
-  if r == 3 then endGame(); return end
-  game.curRound = r + 1
-  moveRoundMarker(game,k)
-  takeTurn(game)
+    local r = game.curRound
+    if r == 3 then endGame(); return end
+    game.curRound = r + 1
+    moveRoundMarker(game,k)
+    takeTurn(game)
+  end)
 end
 
 function nextTurn(game)
@@ -317,7 +316,7 @@ function checkRoyalty(game, opts)
                 changeVP(game,player,faction,2)
                 local name = faction == arabs and "Caliph" or "Emperor"
                 say("  * to influence the " .. name)
-                say("  * +2 %s VP", faction_poss[faction])
+                say(string.format("  * +2 %s VP", faction_poss[faction]))
                 nextTurn(game)
               end)
             end

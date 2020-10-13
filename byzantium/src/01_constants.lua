@@ -4,6 +4,8 @@ local arabs     = 2
 local bulgars   = 3
 local persians  = 4
 
+local stat_cost = { eliteArmy = 3, mainArmy = 1, movement = 1, levy = 2 }
+
 local faction_name =
   { "Byzantium"
   , "Arabs"

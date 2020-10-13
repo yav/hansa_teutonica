@@ -37,7 +37,7 @@ function ask(game,player,quest,options,answer)
 
   local function cleanup()
     for _,o in ipairs(toCleanActions) do
-      o.setColorTint(Color(0,0,0,0))
+      o.setColorTint(Color(0,0,0,0.5))
       o.removeButton(0)
     end
 
