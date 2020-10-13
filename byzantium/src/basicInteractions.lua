@@ -305,7 +305,7 @@ function doSingleBattle(game,player,faction,city,opponent,result)
                   if attackerHits > dstate.levy then
                       attackerHits = dstate.levy
                   end
-                  changeLevy(game,player,cstate.faction,-attackerHits)
+                  changeLevy(game,opponent,cstate.faction,-attackerHits)
                   say(string.format("  * %s suffered %d casualties",
                                     whoDefends, attackerHits))
                   checkOutcome()
