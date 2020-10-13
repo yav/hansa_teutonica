@@ -85,6 +85,15 @@ If a player cannot pay for a cube:
   * after 3 rounds, or
   * immediatly after Constantionple falls.
 
+[b]End of Game Scoring[b]
+If the game ended after 3 round (i.e., Constantinople didn't fall),
+then players score points for the city they control:
+  * a city scores VP equal to its strength (fortifications are ignore)
+  * the VP go to the city's faciton
+
+If Constantinople falls, then players are evaluated based only
+what they've scored so far.
+
 [b]Player Score[/b]
   * If one faction's score is more than double the other,
     then a player only scores the higher faction.

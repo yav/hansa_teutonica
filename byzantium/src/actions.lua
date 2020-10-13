@@ -1,6 +1,91 @@
 
-function endGame(game)
-  log("Game over")
+function endGame(game,normalEnd)
+
+  local controlledCities = {}
+  for _,p in ipairs(game.players) do
+    controlledCities[p] = 0
+  end
+
+  for city,cstate in pairs(game.map.cities) do
+    local player = cstate.controlledBy
+    if player ~= nil then
+      if normalEnd then
+        changeVP(game,player,cstate.faction,cstate.strength)
+      end
+      if normalEnd or cstate.faction == arabs then
+        local n = controlledCities[player]
+        controlledCities[player] = n + 1
+      end
+    end
+  end
+
+  local score      = {}
+  local totalVP    = {}
+  local totalMoney = {}
+  for player,pstate in pairs(game.playerState) do
+    local a   = pstate.factions[arabs]
+    local b   = pstate.factions[byzantium]
+    local aVP     = a.vp
+    local aMoney  = a.treasury
+    local bVP     = b.vp
+    local bMoney  = b.treasury
+    if not normalEnd then
+      bVP = 0
+      bMoney = 0
+    end
+
+    local bigVP   = math.max(aVP,bVP)
+    local smallVP = math.min(aVP,bVP)
+    if 2 * smallVP < bigVP then smallVP = 0 end
+    score[player]      = bigVP + smallVP
+    totalVP[player]    = aVP + bVP
+    totalMoney[player] = aMoney + bMoney
+  end
+
+  local function largest(stat)
+    local ps = {}
+    local m  = 0
+    for p,v in pairs(stat) do
+      if v > m        then ps = { p }; m = v
+      elseif v == m   then push(ps,p)
+      end
+    end
+    return ps
+  end
+
+  local pt = 0.5
+  for _,p in ipairs(largest(totalVP)) do
+    local s = score[p]
+    score[p] = s + pt
+  end
+
+  pt = pt / 2
+  for _,p in ipairs(largest(controlledCities)) do
+    local s = score[p]
+    score[p] = s + pt
+  end
+
+  pt = pt / 2
+  for _,p in ipairs(largest(totalMoney)) do
+    local s = score[p]
+    score[p] = s + pt
+  end
+
+  local finalScore = {}
+  for p,s in pairs(score) do
+    push(finalScore, { player = p, score = s })
+  end
+
+  table.sort(finalScore, |x,y| x.score > y.score)
+  spawnMenu(25,12,function(menu)
+    spawnMenuItem(nil,menu,0,"Final Score",nil)
+    for i,info in pairs(finalScore) do
+      local lab = string.format("%s %.3f VP", playerColorBB(info.player)
+                                            , info.score)
+      spawnMenuItem(nil,menu,i,lab,nil)
+    end
+  end)
+
 end
 
 function endRound(game)
@@ -37,7 +122,6 @@ function endRound(game)
 
     -- Return action cubes
     for act,owner in pairs(game.actionSpaces) do
-      log("Owners")
       changeAvailableWorkers(game,owner,1)
       updateActionOwner(act,nil)
     end
@@ -64,7 +148,7 @@ function endRound(game)
     game.endOfRound = false
 
     local r = game.curRound
-    if r == 3 then endGame(); return end
+    if r == 1 then endGame(game,true); return end
     game.curRound = r + 1
     moveRoundMarker(game,k)
     takeTurn(game)

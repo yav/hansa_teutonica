@@ -805,8 +805,9 @@ function conquerCity(game,player,city,faction,usingBulgars)
     cstate.strength = newStrength
     cstate.faction  = usingBulgars and bulgars or faction
 
-    -- XXX: check for fall of Constantinople
-    redrawCity(game,city,||nextTurn(game))
+    redrawCity(game,city,function()
+      if cstate.constantinople then endGame(game,false) else nextTurn(game) end
+    end)
   end
 
   if usingBulgars then
