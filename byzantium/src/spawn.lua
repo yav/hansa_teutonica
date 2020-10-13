@@ -178,6 +178,7 @@ function spawnPlayer(g,player,k)
           , height         = 0
           , tooltip        = tip
           })
+        ui[id] = o
         sem.down()
       end)
     else
@@ -531,6 +532,7 @@ end
 
 function redrawCity(g,name,k)
   GUI.cities[name].destroy()
+  GUI.cities[name] = nil
   spawnCity(name,g.map.cities[name], k)
 end
 --------------------------------------------------------------------------------
