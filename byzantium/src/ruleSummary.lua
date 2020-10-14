@@ -49,9 +49,7 @@ The attacker fights defenders one at a time, in any order.
   ruleSection("End of Round",
 [[
 [b]End of Round[/b]
-* The round ends when all players pass.
-* If [i]all but one[/i] player have passed, then this player may take
-  1 last action, after which the round ends.
+The round ends [i]after[/i] a player's turn, if all other players have passed.
 
 [b]Income[/b]
 * Each city generates income for its corresponding faction.
@@ -85,14 +83,14 @@ If a player cannot pay for a cube:
   * after 3 rounds, or
   * immediatly after Constantionple falls.
 
-[b]End of Game Scoring[b]
+[b]End of Game Scoring[/b]
 If the game ended after 3 round (i.e., Constantinople didn't fall),
-then players score points for the city they control:
-  * a city scores VP equal to its strength (fortifications are ignore)
+then players score points for the cities they control:
+  * a city scores VP equal to its strength (fortifications are ignored)
   * the VP go to the city's faciton
 
 If Constantinople falls, then players are evaluated based only
-what they've scored so far.
+on what they've scored so far.
 
 [b]Player Score[/b]
   * If one faction's score is more than double the other,
@@ -101,7 +99,7 @@ what they've scored so far.
 
 [b]Fall of Constantinople[/b]
   If Constantinople falls, then only Arab statistics are used for scoring.
-  Byzantine VP, money, and controlled cities are all 0 for all players.
+  Byzantine VP, money, and controlled cities are not used.
 
 [b]Tiebreakers[/b]
    1. highest total score, no matter faction differences

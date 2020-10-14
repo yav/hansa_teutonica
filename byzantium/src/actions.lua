@@ -1,4 +1,5 @@
 
+
 function endGame(game,normalEnd)
 
   local controlledCities = {}
@@ -176,6 +177,7 @@ function nextTurn(game)
 end
 
 function takeTurn(game)
+  local save = doSave(game)
   local opts = {}
   checkControlAction(game,opts)
   checkIncreaseArmy(game,opts)
@@ -190,7 +192,10 @@ function takeTurn(game)
   checkPass(game,opts)
   local player = getCurrentPlayer(game)
   local quest = string.format("%s's turn:",playerColorBB(player))
-  ask(game,player,quest,opts,apply)
+  ask(game,player,quest,opts,function(f)
+    pushUndo(player,save)
+    apply(f)
+  end)
 end
 
 function addTextOption(opts,x)

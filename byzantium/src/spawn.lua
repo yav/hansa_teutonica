@@ -5,7 +5,6 @@ function newGUI(g,k)
   end
   -- if 1 == 1 then return end
 
-  addRuleSummary()
 
   GUI = {}
 
@@ -20,6 +19,7 @@ function newGUI(g,k)
     sem.down()
   end)
   sem.up(); when(||citiesDone, ||spawnPlayers(g,sem.down))
+  sem.up(); spawnUndo(sem.down)
   sem.wait(k)
 end
 
@@ -673,4 +673,25 @@ function spawnBulgarStats(game,k)
   end)
 end
 
+--------------------------------------------------------------------------------
 
+function spawnUndo(k)
+  spawnMenu(25,4,function(menu)
+    GUI.undo = menu
+    spawnMenuItem(nil,menu,0,"Undo","undo")
+    disableUndo()
+    k()
+  end)
+end
+
+
+function disableUndo()
+  local lab = "Undo"
+  GUI.undo.editButton({index=0,font_color={0.5,0.5,0.5},hover_color={0,0,0}})
+end
+
+function enableUndo(player)
+  local lab = clickablePlayerText(player,"Undo")
+  GUI.undo.editButton({index=0,label=lab
+                      , font_color={1,1,1},hover_color={0.5,0.5,0.5}})
+end

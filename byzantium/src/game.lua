@@ -16,7 +16,8 @@ function newGame(controlledBy)
   local as = {}
 
   return
-    { controlledBy  = controlledBy
+    { version       = versonMaj
+    , controlledBy  = controlledBy
     , map           = newMap()
     , finished      = false
     , bulgarArmy    = 7
