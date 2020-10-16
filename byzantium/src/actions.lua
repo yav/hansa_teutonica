@@ -149,7 +149,7 @@ function endRound(game)
     game.endOfRound = false
 
     local r = game.curRound
-    if r == 1 then endGame(game,true); return end
+    if r == 3 then endGame(game,true); return end
     game.curRound = r + 1
     moveRoundMarker(game,k)
     takeTurn(game)
