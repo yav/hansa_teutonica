@@ -2,6 +2,9 @@
 
 function endGame(game,normalEnd)
 
+  disableUndo()
+  undo_state = nil
+
   local controlledCities = {}
   for _,p in ipairs(game.players) do
     controlledCities[p] = 0
@@ -90,6 +93,8 @@ function endGame(game,normalEnd)
 end
 
 function endRound(game)
+  disableUndo()
+  undo_state = nil
 
   -- income
   for city,cstate in pairs(game.map.cities) do
