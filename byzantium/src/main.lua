@@ -1,6 +1,6 @@
 function onLoad(s)
   addRuleSummary()
-  if false and s ~= nil then
+  if s ~= nil then
     g = JSON.decode(s)
     if g ~= nil and g.version == versonMaj then
       resumeGame(g)
