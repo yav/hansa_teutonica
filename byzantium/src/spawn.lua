@@ -11,7 +11,7 @@ function newGUI(g,k)
   local sem = newSem()
   local citiesDone = false
   sem.up(); spawnBoard(sem.down)
-  sem.up(); spawnRoundMarker(g, sem.down)
+  sem.up(); spawnRoundMarker(g,sem.down)
   sem.up(); spawnBulgarStats(g,sem.down)
   sem.up(); spawnActions(g,sem.down)
   sem.up(); spawnCities(g, function()
@@ -222,7 +222,7 @@ function spawnPlayer(g,player,k)
   -- passed
   if pstate.passed > 0 then
     sem.up()
-    spawnPass(game,player,sem.down)
+    spawnPass(g,player,sem.down)
   end
 
   sem.wait(k)
