@@ -595,6 +595,7 @@ end
 -- Move an army
 function makeMove(game,player,city,moveInfo)
   changeMovement(game,player,moveInfo.faction,-moveInfo.cost)
+  changeCasualties(game,player,moveInfo.cost)
   if moveInfo.perish then nextTurn(game); return end
 
   doMoveArmy(game,player,moveInfo.faction,moveInfo.to)
@@ -695,6 +696,7 @@ end
 function navalAttack(game,byzPlayer,movingPlayer,city,moveInfo)
   local cost = moveInfo.cost
   changeMovement(game,movingPlayer,arabs,-cost)
+  changeCasualties(game,movingPlayer,moveInfo.cost)
   if moveInfo.perish then nextTurn(game); return end
 
   moveInfo.cost   = 0 -- already paid
@@ -816,7 +818,7 @@ function conquerCity(game,player,city,faction,usingBulgars)
     local wopts = workerOptions(game,player,faction)
     if next(wopts) == nil then
       chooseArmyCasualties(game,player,faction,2,function()
-        changeCasualties(game,player,-1)
+        changeCasualties(game,player,-1)    -- the cube controlling the city
         doGaintControl()
       end)
     else

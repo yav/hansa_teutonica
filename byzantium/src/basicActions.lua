@@ -153,9 +153,11 @@ end
 
 function doDestroyArmy(game,player,faction)
   local fstate = getPlayerState(game,player).factions[faction]
+  local tot = fstate.eliteArmy + fstate.mainArmy + fstate.movement
   changeEliteArmy(game,player,faction,-fstate.eliteArmy)
   changeMainArmy(game,player,faction,-fstate.mainArmy)
   changeMovement(game,player,faction,-fstate.movement)
+  changeCasualties(game,player,tot)
   changeRoyalty(game,player,faction,false)
   doRemoveArmy(game,player,faction)
 end

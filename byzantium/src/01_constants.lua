@@ -1,5 +1,5 @@
 local versonMaj  = 1
-local versonMin  = 3
+local versonMin  = 5
 local saved_game = nil
 local undo_state = nil
 local undoing    = false
