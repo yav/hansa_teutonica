@@ -31,6 +31,12 @@ function changeFactionStat(stat)
       local f           = pstate.factions[faction]
       local a           = f[stat] + diff
       if a < 0 then a = 0 end
+      local cost = stat_cost[stat]
+      if cost ~= nil then
+        local oldCost = cost * f[stat]
+        f.maintenance = f.maintenance + a * cost - oldCost
+      end
+
       f[stat]           = a
       editBox(GUI.players[player].factions[faction][stat],
                                                 factionValueLabel(stat,f))
@@ -166,8 +172,12 @@ function doGainControl(game,player,city,k)
   say(string.format("  * to claim %s", city))
 
   local cstate = game.map.cities[city]
+  local pstate = getPlayerState(game,player)
+  local fstate = pstate.factions[cstate.faction]
+  fstate.totalCityStrength = fstate.totalCityStrength + cstate.strength
 
   -- VP equal to the city's strength
+  changeTreasury(game,player,cstate.faction,0)  -- to redraw
   changeVP(game,player,cstate.faction,cstate.strength)
   say(string.format("  * +%d %s VP"
                    , cstate.strength
@@ -179,8 +189,6 @@ function doGainControl(game,player,city,k)
 
     -- check to see if we should place byzantium's army
     if cstate.faction == byzantium then
-      local pstate = getPlayerState(game,player)
-      local fstate = pstate.factions[byzantium]
       if fstate.fieldArmy == nil and
          factionArmySize(fstate) > 0 and
          fstate.firstArmyPlacement then

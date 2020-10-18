@@ -72,7 +72,7 @@ function spawnBoard(k)
   })
 
   sem.up(); spawnBlocker(-15.7,-12.5,18,10.5,sem.down)
-  sem.up(); spawnBlocker(24.5,4.3,18,23.5,sem.down)
+  sem.up(); spawnBlocker(27,4.3,19.5,23.5,sem.down)
   sem.wait(k)
 end
 
@@ -120,7 +120,7 @@ function spawnPlayer(g,player,k)
   local dx = ({0,1,1,0})[o]
   local dy = ({0,0,1,1})[o]
 
-  local x = 16.5 + dx * 9
+  local x = 18.5 + dx * 10
   local y = 2    - dy * 5
 
   local h = 1
@@ -129,7 +129,7 @@ function spawnPlayer(g,player,k)
   local function label(tip,msg,maint)
     if maint then tip = string.format("%s\nmaintenance: $%d",tip,maint) end
     sem.up()
-    spawnBox(x,y,nil,Color(0.5,0.5,0.5),blocker_color,
+    spawnBox(x,y,false,nil,Color(0.5,0.5,0.5),blocker_color,
                 tip,msg,sem.down)
   end
   local x0 = x
@@ -137,8 +137,10 @@ function spawnPlayer(g,player,k)
   label(faction_stat_name.mainArmy,  "A",  1);   x = x + w
   label(faction_stat_name.movement,  "M",  1);   x = x + w
   label(faction_stat_name.levy,      "L",  2);   x = x + 2   * w
-  label(faction_stat_name.treasury,  "$",  nil); x = x + 1.5 * w
-  label(faction_stat_name.vp,        "VP", nil); x = x + 1.5 * w
+  label(faction_stat_name.treasury
+        .. " (end of round)",        "$",  nil); x = x + 2.2 * w
+  label(faction_stat_name.vp
+        .. " (end of game)",         "VP", nil); x = x + 1.5 * w
 
   x = x0; y = y - h
 
@@ -182,7 +184,7 @@ function spawnPlayer(g,player,k)
         sem.down()
       end)
     else
-      spawnBox(x,y,bg,fg,bg,tip,msg,function(o)
+      spawnBox(x,y,false,bg,fg,bg,tip,msg,function(o)
         ui[id] = o
         sem.down()
       end)
@@ -206,6 +208,7 @@ function spawnPlayer(g,player,k)
   end
   spawnBox( -23  +  1.5 * dx
           ,  5.5 + -1.5 * dy
+          , false
           , taxBG
           , taxFG
           , taxBG
@@ -234,6 +237,7 @@ function spawnPass(game,player,k)
   local fg = playerFontColor(player)
   spawnBox( 8.4 + 1.5 * pstate.passed
           , -12.3
+          , false
           , bg, fg, bg
           , playerColorBB(player) .. " passed"
           , ""
@@ -281,7 +285,8 @@ function spawnFaction(g,player,faction,x,y,k)
       c = nil
     end
     sem.up()
-    spawnBox(x,y,c,fg,bg,tip,factionValueLabel(id,f),function(o)
+    local wide = id == "treasury" or id == "vp"
+    spawnBox(x,y,wide,c,fg,bg,tip,factionValueLabel(id,f),function(o)
       ui[id] = o
       sem.down()
     end)
@@ -292,8 +297,8 @@ function spawnFaction(g,player,faction,x,y,k)
   info("eliteArmy"); x = x + w
   info("mainArmy");  x = x + w
   info("movement");  x = x + w
-  info("levy");      x = x + 2   * w
-  info("treasury");  x = x + 1.5 * w
+  info("levy");      x = x + 2 * w
+  info("treasury");  x = x + 2.2 * w
   info("vp")
 
   ui.fieldArmy = nil
@@ -319,7 +324,7 @@ function spawnFaction(g,player,faction,x,y,k)
       fg = bg
     end
     local lab = playerColorBB(player) .. " " .. faction_temple[faction]
-    spawnBox(x,y,bg,fg,bg,lab,f.religion,function(o)
+    spawnBox(x,y,false,bg,fg,bg,lab,f.religion,function(o)
       ui.religion = o
       sem.down()
     end)
@@ -331,11 +336,18 @@ end
 
 function factionValueLabel(stat,f)
   local lab = f[stat]
-  if stat == "eliteArmy" and f.royalty then lab = lab .. "+1" end
+  if stat == "eliteArmy" and f.royalty then lab = lab .. "+1"
+  elseif stat == "treasury" then
+    local tot = f.treasury + 2 * f.totalCityStrength - f.maintenance
+    lab = lab .. "(" .. tot .. ")"
+  elseif stat == "vp" then
+    local tot = f.vp + f.totalCityStrength
+    lab = lab .. "(" .. tot .. ")"
+  end
   return lab
 end
 
-function spawnBox(x,y,boxColor,fg,bg,tip,msg,k)
+function spawnBox(x,y,wide,boxColor,fg,bg,tip,msg,k)
   local noBox = false
   local z     = 0.5
   if boxColor == nil then
@@ -355,7 +367,7 @@ function spawnBox(x,y,boxColor,fg,bg,tip,msg,k)
       , click_function = "nop"
       , position       = { 0, z, 0 }
       , rotation       = { 0, 180, 0 }
-      , width          = 500
+      , width          = wide and 1000 or 500
       , height         = 500
       , tooltip        = tip
       }
@@ -667,7 +679,7 @@ function spawnBulgarStats(game,k)
   local bg  = faction_bg_color[bulgars]
   local tip = "Bulgar Army Strength"
   local msg = game.bulgarArmy .. ""
-  spawnBox(x,y,bg,fg,bg,tip,msg,function(o)
+  spawnBox(x,y,false,bg,fg,bg,tip,msg,function(o)
     GUI.bulgarArmy = o
     k(o)
   end)
@@ -676,7 +688,7 @@ end
 --------------------------------------------------------------------------------
 
 function spawnUndo(k)
-  spawnMenu(25,4,function(menu)
+  spawnMenu(27,4,function(menu)
     GUI.undo = menu
     spawnMenuItem(nil,menu,0,"Undo","undo")
     disableUndo()

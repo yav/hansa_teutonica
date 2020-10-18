@@ -23,7 +23,7 @@ function question(g,player,quest,cleanup,answer,menuOpts)
     return f
   end
 
-  menu = spawnMenu(25,12,function(menu)
+  menu = spawnMenu(27,12,function(menu)
     spawnMenuItem(p,menu,0,quest,nil)
     menuOpts(menu,click)
   end)

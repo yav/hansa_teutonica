@@ -55,6 +55,7 @@ function getCity(game,city)
   return game.map.cities[city]
 end
 
+
 --------------------------------------------------------------------------------
 
 
@@ -107,7 +108,19 @@ function newFaction()
     , firstArmyPlacement = true
     , royalty = false
     , religion = 0        -- number of churches/mosks
+
+    -- computed
+    , maintenance = 0         -- maintenance at end of round
+    , totalCityStrength = 0
     }
+end
+
+function factionMaintenance(f)
+  local tot = 0
+  for stat,cost in pairs(stat_cost) do
+    tot = tot + f[stat] * cost
+  end
+  f.maintenance = tot
 end
 
 function factionArmySize(f)
@@ -125,6 +138,7 @@ function newPlayer(color,order)
   a.movement = 5
   a.treasury = 5
   a.vp = 10
+  factionMaintenance(a)
   factions[arabs] = a
 
   local b = newFaction()
@@ -134,6 +148,7 @@ function newPlayer(color,order)
   b.movement = 2
   b.treasury = 15
   b.vp = 10
+  factionMaintenance(b)
   factions[byzantium] = b
 
   return

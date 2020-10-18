@@ -777,6 +777,10 @@ function conquerCity(game,player,city,faction,usingBulgars)
   local cstate = getCity(game,city)
   local owner = cstate.controlledBy
   if owner ~= nil then
+    local fstate = getPlayerState(game,owner).factions[cstate.faction]
+    fstate.totalCityStrength = fstate.totalCityStrength - cstate.strength
+    changeTreasury(game,owner,cstate.faction,0)  -- redraw
+    changeVP(game,owner,cstate.faction,0)        -- redraw
     if cstate.fortified then
       cstate.fortified = false
       changeFortifications(game,owner,1)
@@ -796,6 +800,8 @@ function conquerCity(game,player,city,faction,usingBulgars)
 
     local newStrength = cstate.strength - 1
     if not usingBulgars then
+      local fstate = getPlayerState(game,player).factions[faction]
+      fstate.totalCityStrength = fstate.totalCityStrength + newStrength
       changeTreasury(game,player,faction,newStrength)
       say(string.format("  * +%d %s", newStrength,
                                             faction_currency[faction]))
