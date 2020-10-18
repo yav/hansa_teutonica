@@ -283,7 +283,7 @@ function checkIncreaseArmy(game, opts)
                    ask(game,player,"Choose worker to reassign",{cubes=wopts},
                    function(pay)
                      pay()
-                     placedElite = stat == "eliteArmy"
+                     placedElite = placedElite or stat == "eliteArmy"
                      changeFactionStat(stat)(game,player,faction,1)
                      num = num + 1
                      local msg = string.format("  * %s %s increased"
