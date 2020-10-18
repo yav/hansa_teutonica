@@ -24,9 +24,7 @@ local act_fortify_text = table.concat(
     }, "\n")
 
 local act_byz_improve_text = table.concat(
-    { "Improve City (Byzantium)"
-    , ""
-    , "Add +1 strength to a Byzantine city."
+    { "Add +1 strength to a Byzantine city."
     , ""
     , "* No need to control the city."
     , ""
@@ -34,17 +32,30 @@ local act_byz_improve_text = table.concat(
     , "  (fortifications do not count)."
     }, "\n")
 
-local act_emperor_text = table.concat(
-    {
-    }, "\n")
+local act_emperor_text =
+[[
+Gain control of the Emperor's Guard.
+* +1 byzantine elite troop
+* +2 byzantine VP
+* May use levy to defend Constantinople.
+]]
 
-local act_byz_civil_war_text = table.concat(
-    {
-    }, "\n")
+local act_byz_civil_war_text =
+[[
+Use byzantine army to start a battle in
+a byzantine city.
 
-local act_byz_fleet_text = table.concat(
-    {
-    }, "\n")
+* If you loose you must retreat.
+]]
+
+local act_byz_fleet_text =
+[[
+May be activated when an Arab army
+moves via a sea route.  If activated:
+* double the cost of movement
+* deal X d6 hits, where X is
+  the cost of movement.
+]]
 
 local act_arab_improve_text = table.concat(
     { "Add +1 strength to an Arab city."
@@ -55,17 +66,26 @@ local act_arab_improve_text = table.concat(
     , "  (fortifications do not count)."
     }, "\n")
 
-local act_caliph_text = table.concat(
-    { "Caliph (Arab)"
-    }, "\n")
+local act_caliph_text =
+[[
+Gain control of the Caliph's Guard.
+* +1 arab elite troop
+* +2 arab VP
+]]
 
-local arab_civil_war_text = table.concat(
-    { "Civil War (Arab)"
-    }, "\n")
+local act_arab_civil_war_text =
+[[
+Use arab army to start a battle in
+an arab city.
 
-local arab_fleet_text = table.concat(
-    { "Fleet (Arab)"
-    }, "\n")
+* If you loose you must retreat.
+]]
+
+local act_arab_fleet_text =
+[[
+The cost of moving via sea routes is
+halved for the arab army.
+]]
 
 local act_taxes_text =
 [[
