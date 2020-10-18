@@ -37,7 +37,7 @@ function ask(game,player,quest,options,answer)
 
   local function cleanup()
     for _,o in ipairs(toCleanActions) do
-      o.setColorTint(Color(0,0,0,0.5))
+      o.setColorTint(inv_color)
       o.removeButton(0)
     end
 
@@ -73,7 +73,7 @@ function ask(game,player,quest,options,answer)
       local o = GUI.actions[opt.action]
       push(toCleanActions,o)
       local c = playerColor(player)
-      c.a = 0.7
+      c.a = ghost_alpha
       o.setColorTint(c)
       o.createButton(
         { hover_color    = bg

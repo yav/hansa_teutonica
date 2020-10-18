@@ -609,7 +609,7 @@ function spawnActions(g,k)
 end
 
 function spawnAction(action,owner,k)
-  local color = owner and playerColor(owner) or Color(0,0,0,0.5)
+  local color = owner and playerColor(owner) or inv_color
   spawnCube(color, actionLoc(action), function(o)
     o.setName(action_name[action])
     o.setDescription(action_text[action])
@@ -619,7 +619,7 @@ function spawnAction(action,owner,k)
 end
 
 function updateActionOwner(action,owner)
-  local color = owner and playerColor(owner) or Color(0,0,0,0.5)
+  local color = owner and playerColor(owner) or inv_color
   GUI.actions[action].setColorTint(color)
 end
 

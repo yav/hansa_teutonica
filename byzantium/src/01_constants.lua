@@ -116,3 +116,5 @@ local blocker_color = Color(0.2,0.2,0.2)
 
 --------------------------------------------------------------------------------
 local GUI
+local ghost_alpha = 0.4
+local inv_color = Color(0,0,0,0)

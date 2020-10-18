@@ -7,11 +7,6 @@ function markAction(game,player,action)
   GUI.actions[action].setColorTint(playerColor(player))
 end
 
-function unmarkAction(g,action)
-  g.actions[action] = nil
-  GUI.actions[action].setColorTint(Color(0,0,0,0))
-end
-
 
 --------------------------------------------------------------------------------
 -- Player stats
