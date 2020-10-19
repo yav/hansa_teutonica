@@ -14,7 +14,7 @@ function endGame(game,normalEnd)
     local player = cstate.controlledBy
     if player ~= nil then
       if normalEnd then
-        changeVP(game,player,cstate.faction,cstate.strength)
+        changeVP(game,player,cstate.faction,cstate.strength,"vpEnd")
       end
       if normalEnd or cstate.faction == arabs then
         local n = controlledCities[player]
@@ -80,13 +80,55 @@ function endGame(game,normalEnd)
     push(finalScore, { player = p, score = s })
   end
 
+
+  endGameClear()
+
   table.sort(finalScore, |x,y| x.score > y.score)
-  spawnMenu(25,12,function(menu)
+  spawnMenu(27,12,function(menu)
     spawnMenuItem(nil,menu,0,"Final Score",nil)
     for i,info in pairs(finalScore) do
       local lab = string.format("%s %.3f VP", playerColorBB(info.player)
                                             , info.score)
       spawnMenuItem(nil,menu,i,lab,nil)
+    end
+
+    local start = #game.players + 2
+    local x = -7
+    local w = 1250
+
+    local order = { "vpStart","vpClaim","vpConquer", "vpRoyalty","vpReligion"
+                  , "vpMaintenance","vpEnd" }
+    local labelFor =
+      { vpStart       = "Starting"
+      , vpClaim       = "Claimed"
+      , vpConquer     = "Conqured"
+      , vpRoyalty     = "Royalty"
+      , vpReligion    = "Religion"
+      , vpMaintenance = "Maintenance"
+      , vpEnd         = "Eng Game"
+      }
+
+    for i,stat in ipairs(order) do
+      local lab = labelFor[stat]
+      spawnMenuLabel(menu,x,start+i,2000,lab)
+    end
+    x = x + 4
+
+    for p,pstate in pairs(game.playerState) do
+      spawnMenuLabel(menu,x,start,w,playerColorBB(p))
+
+      local as = pstate.factions[arabs].vpStats
+      local bs = pstate.factions[byzantium].vpStats
+      for i,stat in ipairs({ "vpStart","vpClaim","vpConquer"
+                           , "vpRoyalty","vpReligion"
+                           , "vpMaintenance","vpEnd"
+                           }) do
+        local lab = colorNote(faction_bg_color[arabs],as[stat])
+                 .. " / " ..
+                 colorNote(faction_bg_color[byzantium],bs[stat])
+        spawnMenuLabel(menu,x,start+i,w,lab)
+      end
+      x = x + 3
     end
   end)
 
@@ -407,7 +449,7 @@ function checkRoyalty(game, opts)
                 pay()
                 markAction(game,player,action)
                 changeRoyalty(game,player,faction,true)
-                changeVP(game,player,faction,2)
+                changeVP(game,player,faction,2,"vpRoyalty")
                 local name = faction == arabs and "Caliph" or "Emperor"
                 say("  * to influence the " .. name)
                 say(string.format("  * +2 %s VP", faction_poss[faction]))
@@ -658,7 +700,7 @@ function checkTemple(game,opts)
                     ask(game,player,"Choose Worker",{cubes=wopts},function(pay)
                       pay()
                       changeTreasury(game,player,faction,-6)
-                      changeVP(game,player,faction,2)
+                      changeVP(game,player,faction,2,"vpReligion")
                       changeReligion(game,player,faction,1)
                       say("  * to build a " .. faction_temple[faction])
                       nextTurn(game)

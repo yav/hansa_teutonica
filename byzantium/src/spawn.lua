@@ -115,6 +115,7 @@ function spawnPlayer(g,player,k)
   local pstate = getPlayerState(g,player)
   local ui = {}
   GUI.players[player] = ui
+  ui.labels = {}
 
   local o = pstate.order
   local dx = ({0,1,1,0})[o]
@@ -129,8 +130,11 @@ function spawnPlayer(g,player,k)
   local function label(tip,msg,maint)
     if maint then tip = string.format("%s\nmaintenance: $%d",tip,maint) end
     sem.up()
-    spawnBox(x,y,false,nil,Color(0.5,0.5,0.5),blocker_color,
-                tip,msg,sem.down)
+    spawnBox(x,y,false,nil,Color(0.5,0.5,0.5),blocker_color, tip,msg,
+      function(o)
+        push(ui.labels,o)
+        sem.down()
+      end)
   end
   local x0 = x
   label(faction_stat_name.eliteArmy, "E",  3);   x = x + w
@@ -706,4 +710,29 @@ function enableUndo(player)
   local lab = clickablePlayerText(player,"Undo")
   GUI.undo.editButton({index=0,label=lab
                       , font_color={1,1,1},hover_color={0.5,0.5,0.5}})
+end
+
+
+
+function endGameClear()
+  GUI.undo.destroy()
+  GUI.undo = nil
+  for p,ui in pairs(GUI.players) do
+    for _,fact in pairs(ui.factions) do
+      for _,o in pairs(fact) do
+        o.destroy()
+      end
+    end
+    ui.factions = nil
+
+    for _,o in ipairs(ui.labels) do
+      o.destroy()
+    end
+    ui.labels = nil
+
+    for _,o in pairs(ui) do
+      o.destroy()
+    end
+    GUI.players[p] = nil
+  end
 end

@@ -96,6 +96,16 @@ end
 
 --------------------------------------------------------------------------------
 function newFaction()
+  local vpStats =
+    { vpStart = 0
+    , vpEnd   = 0
+    , vpClaim = 0
+    , vpRoyalty = 0
+    , vpReligion = 0
+    , vpConquer = 0
+    , vpMaintenance = 0
+    }
+
   return
     { mainArmy = 0
     , eliteArmy = 0
@@ -112,6 +122,7 @@ function newFaction()
     -- computed
     , maintenance = 0         -- maintenance at end of round
     , totalCityStrength = 0
+    , vpStats = vpStats
     }
 end
 
@@ -138,6 +149,7 @@ function newPlayer(color,order)
   a.movement = 5
   a.treasury = 5
   a.vp = 10
+  a.vpStats.vpStart = 10
   factionMaintenance(a)
   factions[arabs] = a
 
@@ -148,6 +160,7 @@ function newPlayer(color,order)
   b.movement = 2
   b.treasury = 15
   b.vp = 10
+  b.vpStats.vpStart = 10
   factionMaintenance(b)
   factions[byzantium] = b
 

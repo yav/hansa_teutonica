@@ -779,8 +779,8 @@ function conquerCity(game,player,city,faction,usingBulgars)
   if owner ~= nil then
     local fstate = getPlayerState(game,owner).factions[cstate.faction]
     fstate.totalCityStrength = fstate.totalCityStrength - cstate.strength
-    changeTreasury(game,owner,cstate.faction,0)  -- redraw
-    changeVP(game,owner,cstate.faction,0)        -- redraw
+    changeTreasury(game,owner,cstate.faction,0,"vpStart")  -- redraw
+    changeVP(game,owner,cstate.faction,0,"vpStart")        -- redraw
     if cstate.fortified then
       cstate.fortified = false
       changeFortifications(game,owner,1)
@@ -806,7 +806,7 @@ function conquerCity(game,player,city,faction,usingBulgars)
       say(string.format("  * +%d %s", newStrength,
                                             faction_currency[faction]))
     end
-    changeVP(game,player,faction,newStrength)
+    changeVP(game,player,faction,newStrength,"vpConquer")
     say(string.format("  * +%d %s VP", newStrength, faction_poss[faction]))
 
     if newStrength == 0 then newStrength = 1 end
@@ -861,7 +861,7 @@ function maintenanceWithPenalty(game,player,faction,amount,k)
     ask(game,player,lab,{cubes=qopts},function(stat)
       say(string.format("  * %s decreased, -1 VP", faction_stat_name[stat]))
       changeFactionStat(stat)(game,player,faction,-1)
-      changeVP(game,player,faction,-1)
+      changeVP(game,player,faction,-1,"vpMaintenance")
       owe = owe - stat_cost[stat]
       if have >= owe then
         changeTreasury(game,player,faction,-owe)

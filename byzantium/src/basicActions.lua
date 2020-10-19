@@ -55,7 +55,15 @@ changeMainArmy         = changeFactionStat("mainArmy")
 changeLevy             = changeFactionStat("levy")
 changeMovement         = changeFactionStat("movement")
 changeTreasury         = changeFactionStat("treasury")
-changeVP               = changeFactionStat("vp")
+function changeVP(game,player,faction,diff,source)
+  local fstate = getPlayerState(game,player).factions[faction]
+  local before = fstate.vp
+  changeFactionStat("vp")(game,player,faction,diff)
+  local after = fstate.vp
+  local diff = after - before
+  local cur = fstate.vpStats[source]
+  fstate.vpStats[source] = cur + diff
+end
 
 function changeRoyalty(game,player,faction,val)
   getPlayerState(game,player).factions[faction].royalty = val
@@ -178,7 +186,7 @@ function doGainControl(game,player,city,k)
 
   -- VP equal to the city's strength
   changeTreasury(game,player,cstate.faction,0)  -- to redraw
-  changeVP(game,player,cstate.faction,cstate.strength)
+  changeVP(game,player,cstate.faction,cstate.strength, "vpClaim")
   say(string.format("  * +%d %s VP"
                    , cstate.strength
                    , faction_poss[cstate.faction]))

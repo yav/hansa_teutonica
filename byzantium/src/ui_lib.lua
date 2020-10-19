@@ -60,7 +60,8 @@ function spawnMenu(x,y,k)
   )
 end
 
-function spawnMenuItem(p,menu,ix,lab,f)
+
+function spawnMenuItemW(w,p,menu,x,y,lab,f)
   local bg  = f and {0,0,0} or {0.1,0.1,0.1}
   local fg  = {1,1,1}
   local msg = lab
@@ -78,14 +79,22 @@ function spawnMenuItem(p,menu,ix,lab,f)
     , color          = bg
     , label          = msg
     , click_function = f or "nop"
-    , position       = { 0, 3.2, -ix }
+    , position       = { -x, 3.2, -y }
     , rotation       = { 0, 180, 0 }
-    , width          = 4000
+    , width          = w
     , height         = 400
     }
   )
 end
 
+
+function spawnMenuItem(p,menu,ix,lab,f)
+  spawnMenuItemW(4000,p,menu,0,ix,lab,f)
+end
+
+function spawnMenuLabel(menu,x,y,w,lab)
+  spawnMenuItemW(w,nil,menu,x,y,lab,nil)
+end
 
 function spawnLabel(x,y,l,k)
   return spawnMenu(x,y,function(menu)
