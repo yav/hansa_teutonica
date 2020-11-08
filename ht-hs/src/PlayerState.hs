@@ -15,6 +15,7 @@ data PlayerState = PlayerState
   , unavailableWorkers  :: Map Worker Int
   , availableBonuses    :: [Bonus]
   , usedBonuses         :: [Bonus]
+  , points              :: Int
   } deriving Show
 
 zeroState :: PlayerState
@@ -24,32 +25,26 @@ zeroState = PlayerState
   , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
   , availableBonuses    = []
   , usedBonuses         = []
+  , points              = 0
   }
 
 -- 0 based turn order
 initialPlayerState :: Int -> PlayerState
 initialPlayerState turnOrder =
      hireWorker (turnOrder + 1) Cube
-  $  returnUnavailable 7 Cube
+  $  changeUnavailable 7 Cube
   $ foldr levelUp zeroState enumAll
 
-changeAvailable :: (Int -> Int) -> Worker -> PlayerState -> PlayerState
-changeAvailable f w =
-  \s -> s { availableWorkers = Map.adjust f w (availableWorkers s) }
+changeAvailable :: Int -> Worker -> PlayerState -> PlayerState
+changeAvailable n w =
+  \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
 
-changeUnavailable :: (Int -> Int) -> Worker -> PlayerState -> PlayerState
-changeUnavailable f w =
-  \s -> s { unavailableWorkers = Map.adjust f w (unavailableWorkers s) }
-
-takeAvailable, returnAvailalbe, takeUnavailable, returnUnavailable ::
-  Int -> Worker -> PlayerState -> PlayerState
-takeAvailable     = changeAvailable . subtract
-returnAvailalbe   = changeAvailable . (+)
-takeUnavailable   = changeUnavailable . subtract
-returnUnavailable = changeUnavailable . (+)
+changeUnavailable :: Int -> Worker -> PlayerState -> PlayerState
+changeUnavailable n w =
+  \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
 
 hireWorker :: Int -> Worker -> PlayerState -> PlayerState
-hireWorker n w = returnAvailalbe n w . takeUnavailable n w
+hireWorker n w = changeAvailable n w . changeUnavailable (-n) w
 
 useBonus :: Bonus -> PlayerState -> PlayerState
 useBonus b s =
@@ -58,8 +53,9 @@ useBonus b s =
     }
 
 levelUp :: Stat -> PlayerState -> PlayerState
-levelUp stat = returnAvailalbe 1 (statWorker stat) . bumpLevel
+levelUp stat = changeAvailable 1 (statWorker stat) . bumpLevel
   where
   bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
-
+addVP :: Int -> PlayerState -> PlayerState
+addVP n = \s -> s { points = n + points s }
