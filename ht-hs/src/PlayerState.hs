@@ -26,10 +26,11 @@ zeroState = PlayerState
   , usedBonuses         = []
   }
 
+-- 0 based turn order
 initialPlayerState :: Int -> PlayerState
 initialPlayerState turnOrder =
-     turnOrder `times` hireWorker Cube
-  $  7         `times` returnUnavailable Cube
+     hireWorker (turnOrder + 1) Cube
+  $  returnUnavailable 7 Cube
   $ foldr levelUp zeroState enumAll
 
 changeAvailable :: (Int -> Int) -> Worker -> PlayerState -> PlayerState
@@ -41,14 +42,14 @@ changeUnavailable f w =
   \s -> s { unavailableWorkers = Map.adjust f w (unavailableWorkers s) }
 
 takeAvailable, returnAvailalbe, takeUnavailable, returnUnavailable ::
-  Worker -> PlayerState -> PlayerState
-takeAvailable     = changeAvailable (subtract 1)
-returnAvailalbe   = changeAvailable (+1)
-takeUnavailable   = changeUnavailable (subtract 1)
-returnUnavailable = changeUnavailable (+1)
+  Int -> Worker -> PlayerState -> PlayerState
+takeAvailable     = changeAvailable . subtract
+returnAvailalbe   = changeAvailable . (+)
+takeUnavailable   = changeUnavailable . subtract
+returnUnavailable = changeUnavailable . (+)
 
-hireWorker :: Worker -> PlayerState -> PlayerState
-hireWorker w = returnAvailalbe w . takeUnavailable w
+hireWorker :: Int -> Worker -> PlayerState -> PlayerState
+hireWorker n w = returnAvailalbe n w . takeUnavailable n w
 
 useBonus :: Bonus -> PlayerState -> PlayerState
 useBonus b s =
@@ -57,7 +58,7 @@ useBonus b s =
     }
 
 levelUp :: Stat -> PlayerState -> PlayerState
-levelUp stat = returnAvailalbe (statWorker stat) . bumpLevel
+levelUp stat = returnAvailalbe 1 (statWorker stat) . bumpLevel
   where
   bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
