@@ -1,10 +1,5 @@
 module Edge
-  ( -- * Workers
-    Player(..)
-  , Worker(..)
-
-    -- * Edge
-  , Edge
+  ( Edge
   , edge
   , edgeAddWorker
   , edgeRemoveWorker
@@ -19,16 +14,7 @@ import Control.Monad(guard)
 import Data.Set(Set)
 import qualified Data.Set as Set
 
-import Stats
-
-
-data Player = Blue | Red | Green | Yellow | Purple
-  deriving (Eq,Ord,Show,Enum,Bounded)
-
-data Worker = Worker
-  { workerOwner :: Player
-  , workerType  :: WorkerType
-  } deriving (Eq,Ord)
+import Basics
 
 data EdgeSpot = EdgeSpot
   { edgeSpotType    :: WorkerType

@@ -1,11 +1,9 @@
 module Stats where
 
+import Basics
+
 data Stat = Keys | Actions | Privilege | Movement | Hire
   deriving (Eq,Ord,Show,Bounded,Enum)
-
-data WorkerType = Cube | Circle
-  deriving (Eq,Ord,Show,Bounded,Enum)
-
 
 type Level = Int
 
