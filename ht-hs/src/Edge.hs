@@ -32,11 +32,16 @@ data Worker = Worker
 
 data EdgeSpot = EdgeSpot
   { edgeSpotType    :: WorkerType
-  , edgeSpotWorker  :: Maybe Worker
+  , edgeSpotWorker  :: Maybe Player
   }
 
-setSpotWorker :: Maybe Worker -> EdgeSpot -> EdgeSpot
+setSpotWorker :: Maybe Player -> EdgeSpot -> EdgeSpot
 setSpotWorker mb = \e -> e { edgeSpotWorker = mb }
+
+getSpotWorker :: EdgeSpot -> Maybe Worker
+getSpotWorker spot =
+  do p <- edgeSpotWorker spot
+     pure Worker { workerType = edgeSpotType spot, workerOwner = p }
 
 edgeSpot :: WorkerType -> EdgeSpot
 edgeSpot w = EdgeSpot { edgeSpotWorker = Nothing, edgeSpotType = w }
@@ -57,7 +62,7 @@ modifyEdge f (Edge es0) = Edge (search es0)
 edgeRemoveWorker :: Worker -> Edge -> Edge
 edgeRemoveWorker w = modifyEdge match
   where
-  match spot = do w1 <- edgeSpotWorker spot
+  match spot = do w1 <- getSpotWorker spot
                   guard (w == w1)
                   pure (setSpotWorker Nothing spot)
 
@@ -66,7 +71,7 @@ edgeAddWorker w = modifyEdge match
   where
   match spot = case edgeSpotWorker spot of
                  Nothing | edgeSpotType spot == workerType w ->
-                   Just (setSpotWorker (Just w) spot)
+                   Just (setSpotWorker (Just (workerOwner w)) spot)
                  _ -> Nothing
 
 edgeFreeSpots :: Edge -> Set WorkerType
@@ -76,7 +81,7 @@ edgeFreeSpots (Edge es) = Set.unions (map getFree es)
                    Nothing -> Set.singleton (edgeSpotType spot)
 
 edgeWorkers :: Edge -> [Worker]
-edgeWorkers (Edge es) = mapMaybe edgeSpotWorker es
+edgeWorkers (Edge es) = mapMaybe getSpotWorker es
 
 edgeReset :: Edge -> Edge
 edgeReset (Edge es) = Edge (map (setSpotWorker Nothing) es)
