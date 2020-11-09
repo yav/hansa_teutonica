@@ -38,8 +38,8 @@ import Bonus
 
 data PlayerState = PlayerState
   { playerStats         :: Map Stat Level
-  , availableWorkers    :: Map Worker Int
-  , unavailableWorkers  :: Map Worker Int
+  , availableWorkers    :: Map WorkerType Int
+  , unavailableWorkers  :: Map WorkerType Int
   , availableBonuses    :: [Bonus]
   , usedBonuses         :: [Bonus]
   , points              :: Int
@@ -66,21 +66,21 @@ initialPlayerState turnOrder =
 
 
 --------------------------------------------------------------------------------
-changeAvailable :: Int -> Worker -> PlayerState -> PlayerState
+changeAvailable :: Int -> WorkerType -> PlayerState -> PlayerState
 changeAvailable n w =
   \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
 
-getAvailable :: Worker -> PlayerState -> Int
+getAvailable :: WorkerType -> PlayerState -> Int
 getAvailable w = \s -> availableWorkers s Map.! w
 
-changeUnavailable :: Int -> Worker -> PlayerState -> PlayerState
+changeUnavailable :: Int -> WorkerType -> PlayerState -> PlayerState
 changeUnavailable n w =
   \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
 
-getUnavailable :: Worker -> PlayerState -> Int
+getUnavailable :: WorkerType -> PlayerState -> Int
 getUnavailable w = \s -> unavailableWorkers s Map.! w
 
-hireWorker :: Int -> Worker -> PlayerState -> PlayerState
+hireWorker :: Int -> WorkerType -> PlayerState -> PlayerState
 hireWorker n w = changeAvailable n w . changeUnavailable (-n) w
 
 

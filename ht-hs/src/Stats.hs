@@ -3,7 +3,7 @@ module Stats where
 data Stat = Keys | Actions | Privilege | Movement | Hire
   deriving (Eq,Ord,Show,Bounded,Enum)
 
-data Worker = Cube | Circle
+data WorkerType = Cube | Circle
   deriving (Eq,Ord,Show,Bounded,Enum)
 
 
@@ -16,7 +16,7 @@ maxStat s =
     Actions   -> 6
     _         -> 4
 
-statWorker :: Stat -> Worker
+statWorker :: Stat -> WorkerType
 statWorker s =
   case s of
     Movement -> Circle
