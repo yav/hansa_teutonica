@@ -1,6 +1,6 @@
 module Main where
 
-import PlayerState
+import Player
 
 main :: IO ()
-main = print (initialPlayerState 1)
+main = print (initialPlayer 1)

@@ -49,10 +49,10 @@ nodeNextFree = listToMaybe . emptySpots
 nodeWorkers :: Node -> [Worker]
 nodeWorkers = fullSpots
 
-nodeRightMost :: Node -> Maybe Player
+nodeRightMost :: Node -> Maybe PlayerColor
 nodeRightMost = fmap workerOwner . listToMaybe . fullSpots
 
-nodeControlledBy :: Node -> Maybe Player
+nodeControlledBy :: Node -> Maybe PlayerColor
 nodeControlledBy n =
   case vals of
     [] -> Nothing

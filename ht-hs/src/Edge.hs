@@ -1,11 +1,16 @@
 module Edge
   ( Edge
   , edge
+  , EdgeSpotType(..)
   , edgeAddWorker
   , edgeRemoveWorker
   , edgeReset
   , edgeWorkers
   , edgeFreeSpots
+  , BonusSpot
+  , edgeBonus
+  , edgeRemoveBonus
+  , edgeSetBonus
   ) where
 
 import qualified Data.List as List
@@ -15,27 +20,55 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 
 import Basics
+import Bonus
+
+data EdgeSpotType = AnyWorker | Require WorkerType
+  deriving (Eq,Ord,Show)
+
 
 data EdgeSpot = EdgeSpot
-  { edgeSpotType    :: WorkerType
-  , edgeSpotWorker  :: Maybe Player
-  }
+  { edgeSpotType    :: EdgeSpotType
+  , edgeSpotWorker  :: Maybe Worker
+  } deriving Show
 
-setSpotWorker :: Maybe Player -> EdgeSpot -> EdgeSpot
+setSpotWorker :: Maybe Worker -> EdgeSpot -> EdgeSpot
 setSpotWorker mb = \e -> e { edgeSpotWorker = mb }
 
-getSpotWorker :: EdgeSpot -> Maybe Worker
+getSpotWorker :: EdgeSpot -> Maybe (EdgeSpotType, Worker)
 getSpotWorker spot =
-  do p <- edgeSpotWorker spot
-     pure Worker { workerType = edgeSpotType spot, workerOwner = p }
+  do w <- edgeSpotWorker spot
+     pure (edgeSpotType spot, w)
 
-edgeSpot :: WorkerType -> EdgeSpot
+edgeSpot :: EdgeSpotType -> EdgeSpot
 edgeSpot w = EdgeSpot { edgeSpotWorker = Nothing, edgeSpotType = w }
 
-newtype Edge = Edge [EdgeSpot]
+data BonusSpot =
+    FixedBonus FixedBonus
+  | Bonus BonusToken
+  | NoBonus
+    deriving Show
+
+data Edge = Edge
+  { edgeSpots :: [EdgeSpot]
+  , edgeBonus :: BonusSpot
+  } deriving Show
+
+edgeBonusSpot :: Edge -> BonusSpot
+edgeBonusSpot = edgeBonus
+
+edgeRemoveBonus :: Edge -> Edge
+edgeRemoveBonus ed = case edgeBonus ed of
+                       Bonus _ -> ed { edgeBonus = NoBonus }
+                       _       -> ed
+
+edgeSetBonus :: BonusToken -> Edge -> Edge
+edgeSetBonus b ed = case edgeBonus ed of
+                      NoBonus -> ed { edgeBonus = Bonus b }
+                      _       -> ed
+
 
 modifyEdge :: (EdgeSpot -> Maybe EdgeSpot) -> Edge -> Edge
-modifyEdge f (Edge es0) = Edge (search es0)
+modifyEdge f ed = ed { edgeSpots = search (edgeSpots ed) }
   where
   search es =
     case es of
@@ -45,32 +78,38 @@ modifyEdge f (Edge es0) = Edge (search es0)
           Just e1 -> e1 : more
           Nothing -> e : search es
 
-edgeRemoveWorker :: Worker -> Edge -> Edge
-edgeRemoveWorker w = modifyEdge match
+edgeRemoveWorker :: EdgeSpotType -> Worker -> Edge -> Edge
+edgeRemoveWorker t w = modifyEdge match
   where
   match spot = do w1 <- getSpotWorker spot
-                  guard (w == w1)
+                  guard ((t,w) == w1)
                   pure (setSpotWorker Nothing spot)
 
-edgeAddWorker :: Worker -> Edge -> Edge
-edgeAddWorker w = modifyEdge match
+edgeAddWorker :: EdgeSpotType -> Worker -> Edge -> Edge
+edgeAddWorker t w = modifyEdge match
   where
   match spot = case edgeSpotWorker spot of
-                 Nothing | edgeSpotType spot == workerType w ->
-                   Just (setSpotWorker (Just (workerOwner w)) spot)
+                 Nothing | edgeSpotType spot == t ->
+                   Just (setSpotWorker (Just w) spot)
                  _ -> Nothing
 
-edgeFreeSpots :: Edge -> Set WorkerType
-edgeFreeSpots (Edge es) = Set.unions (map getFree es)
+edgeFreeSpots :: Edge -> Set EdgeSpotType
+edgeFreeSpots = Set.unions . map getFree . edgeSpots
   where
   getFree spot = case edgeSpotWorker spot of
                    Nothing -> Set.singleton (edgeSpotType spot)
+                   Just _  -> Set.empty
 
-edgeWorkers :: Edge -> [Worker]
-edgeWorkers (Edge es) = mapMaybe getSpotWorker es
+edgeWorkers :: Edge -> [(EdgeSpotType, Worker)]
+edgeWorkers = mapMaybe getSpotWorker . edgeSpots
 
 edgeReset :: Edge -> Edge
-edgeReset (Edge es) = Edge (map (setSpotWorker Nothing) es)
+edgeReset ed = ed { edgeSpots = map (setSpotWorker Nothing) (edgeSpots ed) }
 
-edge :: [WorkerType] -> Edge
-edge = Edge . map edgeSpot
+edge :: Maybe FixedBonus -> [EdgeSpotType] -> Edge
+edge mb spots = Edge
+  { edgeSpots = map edgeSpot spots
+  , edgeBonus = case mb of
+                  Nothing -> NoBonus
+                  Just p  -> FixedBonus p
+  }

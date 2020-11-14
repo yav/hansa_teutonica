@@ -1,6 +1,6 @@
 module Bonus where
 
-data Bonus =
+data BonusToken =
     BonusUpgrade
   | BonusSwap
   | BonusMove
@@ -10,7 +10,7 @@ data Bonus =
   deriving (Eq,Ord,Show)
 
 
-tokenNumber :: Bonus -> Int
+tokenNumber :: BonusToken -> Int
 tokenNumber token =
   case token of
     BonusUpgrade -> 3
@@ -21,7 +21,7 @@ tokenNumber token =
     BonusAct3    -> 2
 
 
-data PrintedBonus =
+data FixedBonus =
     BonusPlace2
   | BonusMove2
   | BonusGainPrivilege

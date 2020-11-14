@@ -1,8 +1,8 @@
-module PlayerState
+module Player
   ( 
     -- * Initialization
-    PlayerState
-  , initialPlayerState
+    Player
+  , initialPlayer
 
 
     -- * Workers
@@ -37,17 +37,17 @@ import Stats
 import Bonus
 
 
-data PlayerState = PlayerState
+data Player = Player
   { playerStats         :: Map Stat Level
   , availableWorkers    :: Map WorkerType Int
   , unavailableWorkers  :: Map WorkerType Int
-  , availableBonuses    :: [Bonus]
-  , usedBonuses         :: [Bonus]
+  , availableBonuses    :: [BonusToken]
+  , usedBonuses         :: [BonusToken]
   , points              :: Int
   } deriving Show
 
-zeroState :: PlayerState
-zeroState = PlayerState
+zeroState :: Player
+zeroState = Player
   { playerStats         = Map.fromList [ (stat,0) | stat <- enumAll ]
   , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
   , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
@@ -58,8 +58,8 @@ zeroState = PlayerState
 
 
 -- 0 based turn order
-initialPlayerState :: Int -> PlayerState
-initialPlayerState turnOrder =
+initialPlayer :: Int -> Player
+initialPlayer turnOrder =
      hireWorker (turnOrder + 1) Cube
   $  changeUnavailable 7 Cube
   $ foldr levelUp zeroState enumAll
@@ -67,53 +67,53 @@ initialPlayerState turnOrder =
 
 
 --------------------------------------------------------------------------------
-changeAvailable :: Int -> WorkerType -> PlayerState -> PlayerState
+changeAvailable :: Int -> WorkerType -> Player -> Player
 changeAvailable n w =
   \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
 
-getAvailable :: WorkerType -> PlayerState -> Int
+getAvailable :: WorkerType -> Player -> Int
 getAvailable w = \s -> availableWorkers s Map.! w
 
-changeUnavailable :: Int -> WorkerType -> PlayerState -> PlayerState
+changeUnavailable :: Int -> WorkerType -> Player -> Player
 changeUnavailable n w =
   \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
 
-getUnavailable :: WorkerType -> PlayerState -> Int
+getUnavailable :: WorkerType -> Player -> Int
 getUnavailable w = \s -> unavailableWorkers s Map.! w
 
-hireWorker :: Int -> WorkerType -> PlayerState -> PlayerState
+hireWorker :: Int -> WorkerType -> Player -> Player
 hireWorker n w = changeAvailable n w . changeUnavailable (-n) w
 
 
 --------------------------------------------------------------------------------
-gainBonus :: Bonus -> PlayerState -> PlayerState
+gainBonus :: BonusToken -> Player -> Player
 gainBonus b = \s -> s { availableBonuses = b : availableBonuses s }
 
-useBonus :: Bonus -> PlayerState -> PlayerState
+useBonus :: BonusToken -> Player -> Player
 useBonus b = \s ->
   s { availableBonuses = List.delete b (availableBonuses s)
     , usedBonuses      = b : usedBonuses s
     }
 
-getBonuses :: PlayerState -> [Bonus]
+getBonuses :: Player -> [BonusToken]
 getBonuses = availableBonuses
 
-getUsedBonuses :: PlayerState -> [Bonus]
+getUsedBonuses :: Player -> [BonusToken]
 getUsedBonuses = usedBonuses
 
 --------------------------------------------------------------------------------
-levelUp :: Stat -> PlayerState -> PlayerState
+levelUp :: Stat -> Player -> Player
 levelUp stat = changeAvailable 1 (statWorker stat) . bumpLevel
   where
   bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
-getLevel :: Stat -> PlayerState -> Level
+getLevel :: Stat -> Player -> Level
 getLevel stat = \s -> playerStats s Map.! stat
 
 --------------------------------------------------------------------------------
 
-addVP :: Int -> PlayerState -> PlayerState
+addVP :: Int -> Player -> Player
 addVP n = \s -> s { points = n + points s }
 
-getVP :: PlayerState -> Int
+getVP :: Player -> Int
 getVP = points
