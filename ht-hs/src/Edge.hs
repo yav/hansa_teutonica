@@ -8,13 +8,12 @@ module Edge
   , edgeWorkers
   , edgeFreeSpots
   , BonusSpot
-  , edgeBonus
+  , edgeBonusSpot
   , edgeRemoveBonus
   , edgeSetBonus
   ) where
 
-import qualified Data.List as List
-import Data.Maybe(isJust,mapMaybe)
+import Data.Maybe(mapMaybe)
 import Control.Monad(guard)
 import Data.Set(Set)
 import qualified Data.Set as Set

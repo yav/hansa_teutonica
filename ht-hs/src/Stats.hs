@@ -17,7 +17,7 @@ maxStat s =
 statWorker :: Stat -> WorkerType
 statWorker s =
   case s of
-    Movement -> Circle
+    Movement -> Disc
     _        -> Cube
 
 maxStatePoints :: Stat -> Int

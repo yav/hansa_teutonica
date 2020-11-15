@@ -13,19 +13,24 @@ module Node
 import Data.Maybe(listToMaybe)
 import Data.List(maximumBy)
 import Data.Function(on)
-import Data.Map(Map)
 import qualified Data.Map as Map
 
 import Basics
 
 data Node = Node
-  { emptySpots  :: [(WorkerType,Int)]
-  , fullSpots   :: [Worker]
-  , nodeExtra   :: [Worker]
+  { emptySpots    :: [(WorkerType,Int)] -- ^ Left-most first
+  , fullSpots     :: [Worker]
+  , nodeExtra     :: [Worker]
   }
 
 node :: [(WorkerType,Int)] -> Node
-node ws = Node { fullSpots = [], emptySpots = ws, nodeExtra = [] }
+node ws =
+  Node { fullSpots = []
+       , emptySpots = ws
+       , nodeExtra = []
+       }
+
+
 
 nodeAddExtra :: Worker -> Node -> Node
 nodeAddExtra w = \n -> n { nodeExtra = w : nodeExtra n }
@@ -58,7 +63,7 @@ nodeControlledBy n =
     [] -> Nothing
     _  -> Just $ fst $ maximumBy (compare `on` snd) vals
   where
-  addVal (w,we) = Map.insertWith (+) (workerOwner w) (1+we)
+  addVal (w,we) = Map.insertWith (+) (workerOwner w) (1+we :: Double)
   vals  = Map.toList
         $ foldr addVal Map.empty
         $ zip (fullSpots n ++ reverse (nodeExtra n))
