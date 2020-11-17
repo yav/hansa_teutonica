@@ -1,14 +1,13 @@
 module Question where
 
 import Basics
-import Edge
 import Bonus
 
 data Choice =
     ChosseActiveWorker WorkerType
   | ChossePassiveWorker WorkerType
   | ChosseBonusToken BonusToken
-  | OnEdge EdgeId EdgeSpotType (Maybe Worker)
+  | OnEdge EdgeId RequireWorker (Maybe Worker)
   | InNode NodeId NodeChoice
   | ChooseDone
     deriving (Show,Eq,Ord)

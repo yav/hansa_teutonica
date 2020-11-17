@@ -10,6 +10,9 @@ data PlayerColor  = Blue | Red | Green | Yellow | Purple
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Bounded,Enum)
 
+data RequireWorker = AnyWorker | Require WorkerType
+  deriving (Eq,Ord,Show)
+
 data Worker = Worker
   { workerOwner :: PlayerColor
   , workerType  :: WorkerType

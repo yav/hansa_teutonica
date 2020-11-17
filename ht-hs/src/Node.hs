@@ -8,6 +8,9 @@ module Node
   , nodeWorkers
   , nodeRightMost
   , nodeControlledBy
+  , ActionSpace(..)
+  , nodeGetActions
+  , nodeAddActionWorker
   ) where
 
 import Data.Maybe(listToMaybe)
@@ -21,15 +24,37 @@ data Node = Node
   { emptySpots    :: [(WorkerType,Int)] -- ^ Left-most first
   , fullSpots     :: [Worker]
   , nodeExtra     :: [Worker]
+  , nodeActions   :: [ActionSpace]
   }
 
-node :: [(WorkerType,Int)] -> Node
-node ws =
+node :: [Maybe RequireWorker] -> [(WorkerType,Int)] -> Node
+node acts ws =
   Node { fullSpots = []
        , emptySpots = ws
        , nodeExtra = []
+       , nodeActions = map nodeActionSpace acts
        }
 
+data ActionSpace =
+    EmptyWorkerSpace RequireWorker
+  | FullWorkerSpace Worker
+  | NoWorkerSpace
+
+nodeActionSpace :: Maybe RequireWorker -> ActionSpace
+nodeActionSpace mb =
+  case mb of
+    Nothing -> NoWorkerSpace
+    Just r  -> EmptyWorkerSpace r
+
+nodeGetActions :: Node -> [ActionSpace]
+nodeGetActions = nodeActions
+
+
+nodeAddActionWorker :: Int -> Worker -> Node -> Node
+nodeAddActionWorker i w n =
+  n { nodeActions = case splitAt i (nodeActions n) of
+                      (as, _ : bs) -> (as ++ FullWorkerSpace w : bs)
+                      _ -> nodeActions n }
 
 
 nodeAddExtra :: Worker -> Node -> Node

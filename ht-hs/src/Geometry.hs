@@ -18,8 +18,8 @@ import           Data.Either(partitionEithers)
 import Basics
 
 data Geometry = Geometry
-  { nodeNeighbours :: IntMap [(EdgeId,NodeId)]
-  , edgeNeighbours :: IntMap (NodeId,NodeId)
+  { nodeNeighbours :: IntMap {-NodeId-} [(EdgeId,NodeId)]
+  , edgeNeighbours :: IntMap {-EdgeId-} (NodeId,NodeId)
   }
 
 geoEmpty :: Geometry
