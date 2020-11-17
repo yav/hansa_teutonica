@@ -9,17 +9,17 @@ module Geometry
   , geoLargestComponent
   ) where
 
-import           Data.Map(Map)
-import qualified Data.Map as Map
+import           Data.IntMap(IntMap)
+import qualified Data.IntMap as Map
 import qualified Data.Set as Set
-import           Data.List(nub)
+import           Data.List(nub,mapAccumL,maximumBy)
 import           Data.Either(partitionEithers)
 
 import Basics
 
 data Geometry = Geometry
-  { nodeNeighbours :: Map NodeId [(EdgeId,NodeId)]
-  , edgeNeighbours :: Map EdgeId (NodeId,NodeId)
+  { nodeNeighbours :: IntMap [(EdgeId,NodeId)]
+  , edgeNeighbours :: IntMap (NodeId,NodeId)
   }
 
 geoEmpty :: Geometry
@@ -81,6 +81,46 @@ geoHasPath geo usable from to = search Set.empty [from]
         | otherwise -> search visited more
 
 
-geoLargestComponent :: Geometry -> (NodeId -> Bool) -> [NodeId]
-geoLargestComponent _geo _belongs = undefined
+type Reps = IntMap NodeId
+
+geoLargestComponent :: Geometry -> (NodeId -> Bool) -> Int
+geoLargestComponent Geometry { edgeNeighbours, nodeNeighbours } belongs =
+     largest
+   $ Map.toList
+   $ Map.fromListWith (+)
+   $ snd
+   $ mapAccumL count classes
+   $ Map.keys nodeNeighbours
+
+  where
+  find :: NodeId -> Reps -> (NodeId,Reps)
+  find r reps =
+    case Map.lookup r reps of
+      Just r1 -> let (r2,reps1) = find r1 reps
+                 in (r2,Map.insert r r2 reps1)
+      Nothing -> (r,reps)
+
+  union :: NodeId -> NodeId -> Reps -> Reps
+  union x y reps =
+    let (rx,reps1) = find x reps
+        (ry,reps2) = find y reps1
+    in if rx == ry then reps2 else Map.insert rx ry reps2
+
+  maybeUnion :: (NodeId,NodeId) -> Reps -> Reps
+  maybeUnion (n1,n2) reps =
+    if belongs n1 && belongs n2
+      then union n1 n2 reps
+      else reps
+
+  classes :: Reps
+  classes = foldr maybeUnion Map.empty (Map.elems edgeNeighbours)
+
+  count :: Reps -> NodeId -> (Reps,(NodeId,Int))
+  count reps n = (reps1, (r, if belongs n then 1 else 0))
+    where (r,reps1) = find n reps
+
+  cmp (_,x) (_,y) = compare x y
+
+  largest xs = if null xs then 0 else snd (maximumBy cmp xs)
+
 
