@@ -56,11 +56,11 @@ provinceAccessible player used area provinceId =
 
 freeSpots :: Area -> [Choice]
 freeSpots g =
-  [ OnEdge nid s Nothing | (nid,e) <- Map.toList (areaRoutes g)
+  [ ChEdge nid s Nothing | (nid,e) <- Map.toList (areaRoutes g)
                          , s       <- Set.toList (edgeFreeSpots e) ]
 
 occupiedSpots :: Area -> [Choice]
 occupiedSpots g =
-  [ OnEdge nid s (Just w) | (nid, e) <- Map.toList (areaRoutes g)
+  [ ChEdge nid s (Just w) | (nid, e) <- Map.toList (areaRoutes g)
                           , (s,w)    <- nub (edgeWorkers e) ]
 

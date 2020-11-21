@@ -4,18 +4,18 @@ import Basics
 import Bonus
 
 data Choice =
-    ChosseActiveWorker WorkerType
-  | ChossePassiveWorker WorkerType
-  | ChosseBonusToken BonusToken
-  | OnEdge EdgeId RequireWorker (Maybe Worker)
-  | InNode NodeId NodeChoice
-  | ChooseDone
+    ChActiveWorker WorkerType
+  | ChPassiveWorker WorkerType
+  | ChBonusToken BonusToken
+  | ChEdge EdgeId RequireWorker (Maybe Worker)
+  | ChNode NodeId NodeChoice
+  | ChDone
     deriving (Show,Eq,Ord)
 
 data NodeChoice =
-    ChooseCity
-  | ChooseAction Int      -- ^ One of the yellow actions in a city
-  | ChooseOffice Int      -- ^ Index from the right
+    ChCity
+  | ChAction Int      -- ^ One of the yellow actions in a city
+  | ChOffice Int      -- ^ Index from the right
     deriving (Show,Eq,Ord)
 
 data Question = Question

@@ -24,4 +24,3 @@ data Turn = Turn
   , turnPlaceBonus    :: [BonusToken]
   }
 
-

@@ -1,15 +1,20 @@
 module Edge
-  ( Edge
+  ( -- * Construction
+    Edge
   , edge
+
+    -- * Manipulation
   , edgeAddWorker
   , edgeRemoveWorker
-  , edgeReset
-  , edgeWorkers
-  , edgeFreeSpots
-  , BonusSpot
-  , edgeBonusSpot
+  , edgeRemoveWorkers
   , edgeRemoveBonus
   , edgeSetBonus
+
+    -- * Queries
+  , edgeWorkers
+  , edgeFreeSpots
+  , edgeBonusSpot
+  , BonusSpot(..)
   ) where
 
 import Data.Maybe(mapMaybe)
@@ -36,25 +41,30 @@ getSpotWorker spot =
 edgeSpot :: RequireWorker -> EdgeSpot
 edgeSpot w = EdgeSpot { edgeSpotWorker = Nothing, edgeSpotType = w }
 
+-- | Information about the bonus spot associated with an edge.
 data BonusSpot =
     FixedBonus FixedBonus
   | Bonus BonusToken
   | NoBonus
     deriving Show
 
+-- | Information associated with an edge on the map.
 data Edge = Edge
   { edgeSpots :: [EdgeSpot]
   , edgeBonus :: BonusSpot
   } deriving Show
 
+-- | Information about the bonus spot on the edge.
 edgeBonusSpot :: Edge -> BonusSpot
 edgeBonusSpot = edgeBonus
 
+-- | Remove the bonus from this edge.
 edgeRemoveBonus :: Edge -> Edge
 edgeRemoveBonus ed = case edgeBonus ed of
                        Bonus _ -> ed { edgeBonus = NoBonus }
                        _       -> ed
 
+-- | Place the bonus token in the bonus spot of the edge.
 edgeSetBonus :: BonusToken -> Edge -> Edge
 edgeSetBonus b ed = case edgeBonus ed of
                       NoBonus -> ed { edgeBonus = Bonus b }
@@ -72,6 +82,8 @@ modifyEdge f ed = ed { edgeSpots = search (edgeSpots ed) }
           Just e1 -> e1 : more
           Nothing -> e : search es
 
+-- | Remove a worker of the given type, from one of the spots with
+-- the given requirements.
 edgeRemoveWorker :: RequireWorker -> Worker -> Edge -> Edge
 edgeRemoveWorker t w = modifyEdge match
   where
@@ -79,6 +91,7 @@ edgeRemoveWorker t w = modifyEdge match
                   guard ((t,w) == w1)
                   pure (setSpotWorker Nothing spot)
 
+-- | Add a worker to one of the spots with the given requirement.
 edgeAddWorker :: RequireWorker -> Worker -> Edge -> Edge
 edgeAddWorker t w = modifyEdge match
   where
@@ -87,6 +100,7 @@ edgeAddWorker t w = modifyEdge match
                    Just (setSpotWorker (Just w) spot)
                  _ -> Nothing
 
+-- | Compute the various types of free spots on the edge.
 edgeFreeSpots :: Edge -> Set RequireWorker
 edgeFreeSpots = Set.unions . map getFree . edgeSpots
   where
@@ -94,12 +108,16 @@ edgeFreeSpots = Set.unions . map getFree . edgeSpots
                    Nothing -> Set.singleton (edgeSpotType spot)
                    Just _  -> Set.empty
 
+-- | Get all workers on the edge.
 edgeWorkers :: Edge -> [(RequireWorker, Worker)]
 edgeWorkers = mapMaybe getSpotWorker . edgeSpots
 
-edgeReset :: Edge -> Edge
-edgeReset ed = ed { edgeSpots = map (setSpotWorker Nothing) (edgeSpots ed) }
+-- | Remove all workers from an edge.
+edgeRemoveWorkers :: Edge -> Edge
+edgeRemoveWorkers ed =
+                 ed { edgeSpots = map (setSpotWorker Nothing) (edgeSpots ed) }
 
+-- | A blank edge with the given requirements.
 edge :: Maybe FixedBonus -> [RequireWorker] -> Edge
 edge mb spots = Edge
   { edgeSpots = map edgeSpot spots

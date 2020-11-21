@@ -1,12 +1,16 @@
 {-# Language NamedFieldPuns #-}
 module Geometry
-  ( Geometry
+  ( -- * Building
+    Geometry
   , geoEmpty
   , geoConnect
-  , ConsiderEdge(..)
-  , geoEdgeNeighbours
+
+    -- * Queries
+  , geoEdgeNodes
   , geoHasPath
   , geoLargestComponent
+  , geoEdgeNeighbours
+  , ConsiderEdge(..)
   ) where
 
 import           Data.IntMap(IntMap)
@@ -17,17 +21,20 @@ import           Data.Either(partitionEithers)
 
 import Basics
 
+-- | A geometry desribes the relation between nodes and edges.
 data Geometry = Geometry
   { nodeNeighbours :: IntMap {-NodeId-} [(EdgeId,NodeId)]
   , edgeNeighbours :: IntMap {-EdgeId-} (NodeId,NodeId)
   }
 
+-- | A geometry with no nodes or edges.
 geoEmpty :: Geometry
 geoEmpty = Geometry
   { nodeNeighbours = Map.empty
   , edgeNeighbours = Map.empty
   }
 
+-- | Connect two nodes with an edge.
 geoConnect :: NodeId -> EdgeId -> NodeId -> Geometry -> Geometry
 geoConnect from via to Geometry { nodeNeighbours, edgeNeighbours } =
   Geometry { nodeNeighbours = Map.insertWith (++) from [(via,to)]
@@ -36,15 +43,25 @@ geoConnect from via to Geometry { nodeNeighbours, edgeNeighbours } =
            , edgeNeighbours = Map.insert via (from,to) edgeNeighbours
            }
 
+-- | Get the nodes associated with an edge.
+-- Assumes the edge is in the graph.
+geoEdgeNodes :: Geometry -> EdgeId -> (NodeId,NodeId)
+geoEdgeNodes Geometry { edgeNeighbours } edgeId = edgeNeighbours Map.! edgeId
+
 geoNodeNeighbours :: Geometry -> NodeId -> [(EdgeId,NodeId)]
 geoNodeNeighbours Geometry { nodeNeighbours } nodeId =
   Map.findWithDefault [] nodeId nodeNeighbours
 
-
-data ConsiderEdge = EdgeUsable | EdgeFull | EdgeDisabled
+-- | How to treat edges when searching for neighbouring edges.
+data ConsiderEdge =
+    EdgeUsable      -- ^ We look for such edges
+  | EdgeFull        -- ^ We may follow these edges
+  | EdgeDisabled    -- ^ These edges are to be ignored
   deriving Eq
 
 
+-- | Find closest usable neighbouring edges, without using disabled edges.
+-- Edges would be disabled if they are in a province that is not accessible.
 geoEdgeNeighbours :: Geometry -> (EdgeId -> ConsiderEdge) -> EdgeId -> [EdgeId]
 geoEdgeNeighbours geo consider edgeId =
   case Map.lookup edgeId (edgeNeighbours geo) of
@@ -66,7 +83,8 @@ geoEdgeNeighbours geo consider edgeId =
          (_,es) -> nub es
 
 
--- | There a path from one node to another, only using approved nodes
+-- | Check if there is a path from one node to another, only using the
+-- selected nodes.
 geoHasPath :: Geometry -> (NodeId -> Bool) -> NodeId -> NodeId -> Bool
 geoHasPath geo usable from to = search Set.empty [from]
   where
@@ -83,6 +101,8 @@ geoHasPath geo usable from to = search Set.empty [from]
 
 type Reps = IntMap NodeId
 
+-- | Compute the size of the largest connected component, when only
+-- considering the nodes selected by the predicate.
 geoLargestComponent :: Geometry -> (NodeId -> Bool) -> Int
 geoLargestComponent Geometry { edgeNeighbours, nodeNeighbours } belongs =
      largest
