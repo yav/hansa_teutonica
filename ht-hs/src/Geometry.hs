@@ -1,4 +1,3 @@
-{-# Language NamedFieldPuns #-}
 module Geometry
   ( -- * Building
     Geometry
@@ -9,6 +8,7 @@ module Geometry
   , geoEdgeNodes
   , geoHasPath
   , geoLargestComponent
+  , geoNodeEdges
   , geoEdgeNeighbours
   , ConsiderEdge(..)
   ) where
@@ -47,6 +47,10 @@ geoConnect from via to Geometry { nodeNeighbours, edgeNeighbours } =
 -- Assumes the edge is in the graph.
 geoEdgeNodes :: Geometry -> EdgeId -> (NodeId,NodeId)
 geoEdgeNodes Geometry { edgeNeighbours } edgeId = edgeNeighbours Map.! edgeId
+
+-- | Edges connects to the given node
+geoNodeEdges :: Geometry -> NodeId -> [EdgeId]
+geoNodeEdges geo nodeId = map fst (geoNodeNeighbours geo nodeId)
 
 geoNodeNeighbours :: Geometry -> NodeId -> [(EdgeId,NodeId)]
 geoNodeNeighbours Geometry { nodeNeighbours } nodeId =

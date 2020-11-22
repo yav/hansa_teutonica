@@ -1,0 +1,73 @@
+body {
+  background-color: gray;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.board {
+  padding: 0;
+  height: 800px;
+  vertical-align: top;
+  float: left;
+  position: relative;
+  z-index: 0;
+}
+
+.board-img {
+  height: 100%;
+}
+
+.blank { background-color: rgba(0,0,0,0); }
+
+.high {
+  animation: pulse 2s infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 2px 2px rbga(0,0,0,0) }
+  100% { box-shadow: 0 0 2px 2px red }
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+.worker {
+  z-index: 5;
+  position: absolute;
+  border: 2px solid black;
+}
+
+
+.cube {
+  border-radius: 15%;
+}
+
+.disc {
+  border-radius: 100%;
+}
+
+/* -------------------------------------------------------------------------- */
+
+.player {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  background-color: rgba(0,0,0,0);
+  position: relative;
+}
+
+.player-board {
+  height: 100%;
+}
+
+
+.blue   { background-color: #33c; }
+.red    { background-color: #c33; }
+.yellow { background-color: #fc3; }
+.green  { background-color: #6c3; }
+.purple { background-color: #936; }
+

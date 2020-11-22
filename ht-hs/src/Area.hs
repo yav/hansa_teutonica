@@ -1,4 +1,3 @@
-{-# Language BlockArguments, RecordWildCards #-}
 module Area where
 
 import Data.Map(Map)
@@ -6,6 +5,7 @@ import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.List(nub)
+import Data.Text(Text)
 import Control.Applicative((<|>))
 import Control.Monad(guard)
 
@@ -16,22 +16,52 @@ import Geometry
 import Question
 
 data Area = Area
-  { areaCities    :: Map NodeId Node
-  , areaRoutes    :: Map EdgeId Edge
-  , areaGeometry  :: Geometry
-  , areaProvinces :: Map ProvinceId Province
-  , areaCapital   :: Maybe ProvinceId
+  { areaNodes             :: Map NodeId Node
+  , areaEdges             :: Map EdgeId Edge
+  , areaGeometry          :: Geometry
+  , areaEdgeProvince      :: Map EdgeId ProvinceId
+  , areaProvinceCapitals  :: Map ProvinceId NodeId
+  , areaProvinceNodes     :: Map ProvinceId (Set NodeId)
+  , areaCapital           :: Maybe ProvinceId
   }
 
-data Province = Province
-  { provinceCities    :: Set NodeId   -- ^ Cities may be in more than 1 province
-  , provinceRoutes    :: Set EdgeId
-  , provinceCapital   :: Maybe NodeId
+data InitCapital = ProvinceCapital | AreaCapital
+
+data InitArea = InitArea
+  { initName      :: Text
+  , initNode      :: InitNode
+  , initProvinces :: [Text]
+  , initCapital   :: Maybe InitCapital
+  , initEdges     :: [InitAreaEdge]
   }
 
+data InitAreaEdge = InitAreaEdge
+  { initTarget    :: Text
+  , initProvince  :: Text
+  , initEdge      :: InitEdge
+  }
+
+emptyArea :: Area
+emptyArea = Area
+  { areaNodes = Map.empty
+  , areaEdges = Map.empty
+  , areaGeometry = geoEmpty
+  , areaEdgeProvince = Map.empty
+  , areaProvinceCapitals = Map.empty
+  , areaProvinceNodes = Map.empty
+  , areaCapital = Nothing
+  }
+
+
+--------------------------------------------------------------------------------
 
 data ProvinceAccess = UnrestrictedAccess | AccessVia NodeId
   deriving (Show)
+
+
+edgeProvince :: Area -> EdgeId -> Maybe ProvinceId
+edgeProvince area edgeId = Map.lookup edgeId (areaEdgeProvince area)
+
 
 provinceAccessible ::
   PlayerColor          {- ^ By this player -} ->
@@ -40,15 +70,14 @@ provinceAccessible ::
   ProvinceId           {- ^ Province in question -} ->
   Maybe ProvinceAccess {- ^ Is it accessible, and if so how -}
 provinceAccessible player used area provinceId =
-  case Map.lookup provinceId (areaProvinces area) of
-    Nothing -> pure UnrestrictedAccess
-    Just province ->
-      tryWith (provinceCapital province) <|> tryWith (areaCapital area)
+  case Map.lookup provinceId (areaProvinceCapitals area) of
+    Nothing      -> pure UnrestrictedAccess
+    Just capital -> tryWith (Just capital) <|> tryWith (areaCapital area)
       where
       tryWith candidate =
         do capitalId <- candidate
            guard (not (capitalId `Set.member` used))
-           city <- Map.lookup capitalId (areaCities area)
+           city <- Map.lookup capitalId (areaNodes area)
            rightPlayer <- nodeRightMost city
            guard (player == rightPlayer)
            pure (AccessVia capitalId)
@@ -56,11 +85,11 @@ provinceAccessible player used area provinceId =
 
 freeSpots :: Area -> [Choice]
 freeSpots g =
-  [ ChEdge nid s Nothing | (nid,e) <- Map.toList (areaRoutes g)
+  [ ChEdge nid s Nothing | (nid,e) <- Map.toList (areaEdges g)
                          , s       <- Set.toList (edgeFreeSpots e) ]
 
 occupiedSpots :: Area -> [Choice]
 occupiedSpots g =
-  [ ChEdge nid s (Just w) | (nid, e) <- Map.toList (areaRoutes g)
+  [ ChEdge nid s (Just w) | (nid, e) <- Map.toList (areaEdges g)
                           , (s,w)    <- nub (edgeWorkers e) ]
 

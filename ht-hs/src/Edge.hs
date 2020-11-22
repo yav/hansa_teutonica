@@ -2,6 +2,7 @@ module Edge
   ( -- * Construction
     Edge
   , edge
+  , InitEdge(..)
 
     -- * Manipulation
   , edgeAddWorker
@@ -117,11 +118,20 @@ edgeRemoveWorkers :: Edge -> Edge
 edgeRemoveWorkers ed =
                  ed { edgeSpots = map (setSpotWorker Nothing) (edgeSpots ed) }
 
+
+-- | Desription of an empty edge
+data InitEdge =
+  InitEdge
+    { initEdgeBonus :: Maybe FixedBonus
+    , initEdgeSpots :: [RequireWorker]
+    }
+
 -- | A blank edge with the given requirements.
-edge :: Maybe FixedBonus -> [RequireWorker] -> Edge
-edge mb spots = Edge
-  { edgeSpots = map edgeSpot spots
-  , edgeBonus = case mb of
-                  Nothing -> NoBonus
-                  Just p  -> FixedBonus p
-  }
+edge :: InitEdge-> Edge
+edge InitEdge { initEdgeBonus, initEdgeSpots } =
+  Edge
+    { edgeSpots = map edgeSpot initEdgeSpots
+    , edgeBonus = case initEdgeBonus of
+                    Nothing    -> NoBonus
+                    Just bonus -> FixedBonus bonus
+    }

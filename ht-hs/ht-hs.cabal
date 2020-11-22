@@ -22,6 +22,7 @@ executable ht-hs
   other-modules:       Basics, Player, Edge, Node, Stats, Bonus, Utils,
                        Question, Game, Area, Geometry
   build-depends:       base >=4.13 && <4.14,
-                       containers
+                       containers, text
+  extensions:          BlockArguments, NamedFieldPuns
   default-language:    Haskell2010
   ghc-options:         -Wall

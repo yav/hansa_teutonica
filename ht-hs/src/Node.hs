@@ -2,6 +2,7 @@ module Node
   ( -- * Construction
     Node
   , node
+  , InitNode(..)
   , NodeAction(..)
 
     -- * Manipulation
@@ -30,19 +31,25 @@ data NodeAction = UpdgradeStat Stat | GainEndGamePoints
 
 -- | A node on the map
 data Node = Node
-  { emptySpots    :: [(WorkerType,Int)] -- ^ Left-most first
+  { emptySpots    :: [(RequireWorker,Int)] -- ^ Left-most first
   , fullSpots     :: [Worker]
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
   }
 
+-- | Description of an empty node
+data InitNode = InitNode
+  { initNodeActions :: [NodeAction]
+  , initNodeSpaces  :: [(RequireWorker,Int)]
+  }
+
 -- | Build an empty node with the given action and office spaces.
-node :: [NodeAction] -> [(WorkerType,Int)] -> Node
-node acts ws =
+node :: InitNode -> Node
+node InitNode { initNodeActions, initNodeSpaces } =
   Node { fullSpots = []
-       , emptySpots = ws
+       , emptySpots = initNodeSpaces
        , nodeExtra = []
-       , nodeActions' = acts
+       , nodeActions' = initNodeActions
        }
 
 -- | Get the special actions associated with this node
@@ -71,7 +78,7 @@ nodeSwap i = \n -> n { fullSpots = case splitAt i (fullSpots n) of
                                      _ -> fullSpots n }
 
 -- | Get the next free worker space in this node.
-nodeNextFree :: Node -> Maybe (WorkerType,Int)
+nodeNextFree :: Node -> Maybe (RequireWorker,Int)
 nodeNextFree = listToMaybe . emptySpots
 
 -- | Get a list of the workers in this node, rightmost first.
