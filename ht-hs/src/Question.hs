@@ -18,11 +18,6 @@ data NodeChoice =
   | ChOffice Int      -- ^ Index from the right
     deriving (Show,Eq,Ord)
 
-data Question = Question
-  { questionPlayer  :: PlayerColor
-  , questoinAnswers :: [Choice]
-  } deriving Show
-
 
 
 

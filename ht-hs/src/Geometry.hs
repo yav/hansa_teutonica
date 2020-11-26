@@ -25,7 +25,7 @@ import Basics
 data Geometry = Geometry
   { nodeNeighbours :: IntMap {-NodeId-} [(EdgeId,NodeId)]
   , edgeNeighbours :: IntMap {-EdgeId-} (NodeId,NodeId)
-  }
+  } deriving Show
 
 -- | A geometry with no nodes or edges.
 geoEmpty :: Geometry

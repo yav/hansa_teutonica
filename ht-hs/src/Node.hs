@@ -28,6 +28,7 @@ import Stats
 
 -- | Special actions associated with a node
 data NodeAction = UpdgradeStat Stat | GainEndGamePoints
+  deriving Show
 
 -- | A node on the map
 data Node = Node
@@ -35,7 +36,7 @@ data Node = Node
   , fullSpots     :: [Worker]
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
-  }
+  } deriving Show
 
 -- | Description of an empty node
 data InitNode = InitNode
