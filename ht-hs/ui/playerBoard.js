@@ -56,16 +56,17 @@ function drawPlayer(opts) {
   if (opts.spentBonuses > 0) {
     let it = document.createElement('div')
     it.classList.add('bonus-spent')
+    it.setAttribute('title', 'Spent bonus tokens')
     let lab = document.createElement('span')
     lab.textContent = opts.spentBonuses
     it.appendChild(lab)
     let style = it.style
-    let dim = 0.3 * height
+    let dim = 0.2 * height
     style.width = dim
     style.height = dim
     style.fontSize = 0.5 * dim
-    style.left = 1.15 * height
-    style.top = 0.07 * height
+    style.left = 1.20 * height
+    style.top = 0.12 * height
     dom.appendChild(it)
   }
 
@@ -124,6 +125,7 @@ function drawPlayer(opts) {
       let b = pBox(n > 1 ? ('x' + n) : null)
       let it = drawBonusToken(size,bonus)
       it.setAttribute('id',color + '-bonus-' + bonus)
+      it.classList.add('high')
       b.appendChild(it)
       bar.appendChild(b)
     }

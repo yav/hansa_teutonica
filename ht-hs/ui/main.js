@@ -2,7 +2,7 @@ function main() {
   let body = document.getElementById('main')
   let ps = [ 'red','blue','green','yellow','purple' ]
   for (let i = 0; i < 5; ++i) {
-    let p = drawPlayer( { height: 300
+    let p = drawPlayer( { height: window.innerHeight / 4
                         , color: ps[i]
                         , book: 1
                         , privilege: 1

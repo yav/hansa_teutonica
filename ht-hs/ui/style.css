@@ -21,15 +21,10 @@ body {
 .blank { background-color: rgba(0,0,0,0); }
 
 .high {
-  animation: pulse 2s infinite;
-  animation-direction: alternate;
-  animation-timing-function: ease-in-out;
+  box-shadow: 0 0 4px 4px #fff;
+  cursor: pointer;
 }
 
-@keyframes pulse {
-  0%   { box-shadow: 0 0 2px 2px rbga(0,0,0,0) }
-  100% { box-shadow: 0 0 2px 2px red }
-}
 
 
 /* -------------------------------------------------------------------------- */
@@ -66,9 +61,10 @@ body {
 /* -------------------------------------------------------------------------- */
 
 .player {
+  user-select: none;
   display: inline-block;
   padding: 0;
-  margin: 0;
+  margin: 1em;
   background-color: rgba(0,0,0,0);
   position: relative;
 }
