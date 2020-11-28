@@ -1,6 +1,7 @@
 module Game where
 
 import Data.Map(Map)
+import Data.Text(Text)
 import qualified Data.Map as Map
 import Data.Set(Set)
 
@@ -33,7 +34,7 @@ data TargetedQuestion =
   Ask { askPlayer :: PlayerColor, askQuestion ::  Question }
 
 data Question = Question
-  { qAnswers  :: [Choice]        -- ^ What are their choices
+  { qAnswers  :: [(Choice,Text)]  -- ^ What are their choices
   , qContinue :: Choice -> Either Turn TargetedQuestion
     -- ^ What to do with the answer
   }
@@ -41,7 +42,7 @@ data Question = Question
 instance Semigroup Question where
   q1 <> q2 =
     Question { qAnswers = qAnswers q1 ++ qAnswers q2
-             , qContinue = \c -> if c `elem` qAnswers q1
+             , qContinue = \c -> if c `elem` map fst (qAnswers q1)
                                     then qContinue q1 c
                                     else qContinue q2 c
              }

@@ -25,6 +25,10 @@ data Worker = Worker
   } deriving (Show,Eq,Ord)
 
 
-
+replacementCost :: WorkerType -> Int
+replacementCost wt =
+  case wt of
+    Cube -> 1
+    Disc -> 2
 
 

@@ -20,7 +20,8 @@ executable ht-hs
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Basics, Player, Edge, Node, Stats, Bonus, Utils,
-                       Question, Game, Board, Geometry, Action
+                       Question, Game, Board, Geometry,
+                       Actions.Place
   build-depends:       base >=4.13 && <4.14,
                        containers, text
   extensions:          BlockArguments, NamedFieldPuns

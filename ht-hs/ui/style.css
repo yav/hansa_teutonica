@@ -34,11 +34,23 @@ body {
 
 
 /* -------------------------------------------------------------------------- */
+.bonus {
+  z-index: 5;
+  position: absolute;
+}
+.bonus:hover {
+  transform: scale(2);
+  z-index: 7;
+}
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
 
 .worker {
   z-index: 5;
   position: absolute;
   border: 2px solid black;
+  text-align: center;
 }
 
 
@@ -64,10 +76,28 @@ body {
   height: 100%;
 }
 
+.player-bar {
+  background-color: rgba(0,0,0,0.9);
+  width: 80%;
+  z-index: 1;
+  position: absolute;
+  border-radius: 10px;
+}
 
-.blue   { background-color: #33c; }
-.red    { background-color: #c33; }
-.yellow { background-color: #fc3; }
-.green  { background-color: #6c3; }
-.purple { background-color: #936; }
+
+.blue   { background-color: #06f; color: #fff; }
+.red    { background-color: #c03; color: #fff; }
+.yellow { background-color: #fc3; color: #000; }
+.green  { background-color: #6c3; color: #000; }
+.purple { background-color: #939; color: #fff; }
+
+
+.bonus-multiplier {
+  position:absolute;
+  z-index: 6;
+  color: #fff;
+  background-color: rgba(0,0,0,0.5);
+  border-radius: 10%;
+}
+
 
