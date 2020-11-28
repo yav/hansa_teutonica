@@ -12,13 +12,8 @@ function main() {
                         , available: { cube: 5, disc: 2 }
                         , unavailable: { cube: 3, disc: 0 }
                         , vp: 17
-                        , bonuses: { 'act_3': 1
-                                   , 'act_4': 2
-                                   , 'extra': 3
-                                   , 'move': 1
-                                   , 'swap': 1
-                                   , 'upgrade': 1
-                                   }
+                        , bonuses: { 'extra': 2, 'act_3': 1 }
+                        , spentBonuses: 3
                         })
     body.appendChild(p)
   }
