@@ -21,9 +21,15 @@ executable ht-hs
   main-is:             Main.hs
   other-modules:       Basics, Player, Edge, Node, Stats, Bonus, Utils,
                        Question, Game, Board, Geometry,
-                       Actions.Place
+                       Actions.Place,
+                       Board.Builder,
+                       Board.Britannia45,
+                       Board.Britannia3,
+                       Board.East,
+                       Board.Hansa45,
+                       Board.Hansa3
   build-depends:       base >=4.13 && <4.14,
                        containers, text
-  extensions:          BlockArguments, NamedFieldPuns
+  extensions:          BlockArguments, NamedFieldPuns, ParallelListComp
   default-language:    Haskell2010
   ghc-options:         -Wall

@@ -27,12 +27,12 @@ end
 
 
 function bonus(t)
-  if     t == bonusPrintedPlace2 then out("FixedBonus BonusPlace2")
-  elseif t == bonusPrintedMove2  then out("FixedBonus BonusMove2")
-  elseif t == bonusPrintedGainPrivilege then out("FixedBonus BonusGainPrivilege")
-  elseif t == bonusPrintedBuildInGreen then out("FixedBonus BonusBuildInGreen")
-  elseif t == bonusPrintedReuse2 then out("FixedBonus BonusReuse2")
-  elseif t == nil then out("NoBonus")
+  if     t == bonusPrintedPlace2 then out("Just BonusPlace2")
+  elseif t == bonusPrintedMove2  then out("Just BonusMove2")
+  elseif t == bonusPrintedGainPrivilege then out("Just BonusGainPrivilege")
+  elseif t == bonusPrintedBuildInGreen then out("Just BonusBuildInGreen")
+  elseif t == bonusPrintedReuse2 then out("Just BonusReuse2")
+  elseif t == nil then out("Nothing")
   else out("BadBonus %s",t)
   end
 end
@@ -69,10 +69,10 @@ function exportAction(n)
 end
 
 function office(o)
-  out("Office")
-  field("{","vp",o.vp,int)
-  field(",","shape",o.shape,exportShape)
-  field(",","level",o.level,int)
+  out("NodeSpot")
+  field("{","spotVP",o.vp,int)
+  field(",","spotRequires",o.shape,exportShape)
+  field(",","spotPrivilege",o.level,int)
   out("}")
 end
 
@@ -95,12 +95,13 @@ end
 
 
 function exportNode(node)
-  out("Node")
-  field("{","name",node.name,str)
+  out("NodeBuilder { nodeInit = InitNode")
+  field("{","initNodeName",node.name,str)
+  field(",","initNodeActions",node.action,list(exportAction))
+  field(",","initNodeSpots",node.offices,list(office))
+  out("}")
   field(",","provinces",onlyProvinces(node.region),list(region))
-  field(",","offices",node.offices,list(office))
   field(",","gateway",node.gateway,list(region))
-  field(",","actions",node.action,list(exportAction))
   out("}")
 end
 
@@ -109,13 +110,14 @@ function exportStop(stop)
 end
 
 function exportEdge(edge)
-  out("Edge")
-  field("{","province",edge.region,maybeRegion)
+  out("EdgeBuilder { initEdge = InitEdge")
+  field("{","initEdgeSpots",edge.stops,list(exportStop))
+  field(",","initEdgeBonus",edge.bonus,bonus)
+  out("}")
+  field(",","province",edge.region,maybeRegion)
   field(",","from",edge.from,str)
   field(",","to",edge.to,str)
-  field(",","stops",edge.stops,list(exportStop))
   field(",","startBonus",edge.startingBonus,bool)
-  field(",","bonus",edge.bonus,bonus)
   out("}")
 end
 
@@ -123,7 +125,7 @@ end
 function board(f)
   map = newMap()
   f(map)
-  out("Board")
+  out("BoardBuilder")
   field("{","nodes",map.nodes,list(exportNode))
   field(",","edges",map.edges,list(exportEdge))
   out("}")
@@ -137,4 +139,4 @@ local allMaps =
   , britaniaMap23
   }
 
-board(britaniaMap)
+board(originalMap23)

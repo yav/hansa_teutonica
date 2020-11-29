@@ -1,5 +1,6 @@
 module Board where
 
+import Data.Text(Text)
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
@@ -27,14 +28,18 @@ data Board = Board
   , boardEdgeProvince      :: Map EdgeId ProvinceId
     -- ^ Special edge restrictions.
 
-  , boardProvinceCapitals  :: Map ProvinceId NodeId
-    -- ^ This node gives access to the province
+  , boardProvinces         :: Map ProvinceId Province
 
   , boardCapital           :: Maybe ProvinceId
     -- ^ This node gives access to all provinces
 
-  , boardProvinceNodes     :: Map ProvinceId (Set NodeId)
-    -- ^ The cities in a province (for majority scoring)
+  , boardInitialTokens     :: Set EdgeId
+  } deriving Show
+
+data Province = Province
+  { provinceName    :: Text           -- ^ Name of the province
+  , provinceCapital :: NodeId         -- ^ This city gives access to province
+  , provinceNodes   :: Set NodeId     -- ^ These cities are in the province
   } deriving Show
 
 
@@ -44,9 +49,9 @@ emptyBoard = Board
   , boardEdges = Map.empty
   , boardGeometry = geoEmpty
   , boardEdgeProvince = Map.empty
-  , boardProvinceCapitals = Map.empty
-  , boardProvinceNodes = Map.empty
+  , boardProvinces = Map.empty
   , boardCapital = Nothing
+  , boardInitialTokens = Set.empty
   }
 
 modifyEdge :: EdgeId -> (Edge -> Edge) -> Board -> Board
@@ -65,10 +70,10 @@ provinceAccessible ::
   PlayerColor          {- ^ By this player -} ->
   Set NodeId           {- ^ Used up gateways -} ->
   Board                {- ^ Information about the current state -} ->
-  NodeId               {- ^ Capital of province -} ->
+  Province             {- ^ Info about the province -} ->
   Maybe NodeId         {- ^ Is it accessible, and if so using which gatweay. -}
-provinceAccessible player used board capital =
-  tryWith (Just capital) <|> tryWith (boardCapital board)
+provinceAccessible player used board prov =
+  tryWith (Just (provinceCapital prov)) <|> tryWith (boardCapital board)
   where
   tryWith candidate =
     do capitalId <- candidate
@@ -86,7 +91,7 @@ accessibleProvinces ::
   Map ProvinceId NodeId
 accessibleProvinces player used board =
   Map.mapMaybe (provinceAccessible player used board)
-               (boardProvinceCapitals board)
+               (boardProvinces board)
 
 
 -- | Find free spots satisfying the given restrictions.
