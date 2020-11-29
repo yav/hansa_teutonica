@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cat \
+  ../src/01_constants.lua \
+  ../src/game.lua \
+  ../src/britania.lua \
+  ../src/britania23.lua \
+  ../src/mapOriginal23.lua \
+  ../src/mapEast.lua \
+  ../src/mapOriginal.lua \
+  exportMap.lua \
+  > out.lua
+lua out.lua | ppsh > out.hs
