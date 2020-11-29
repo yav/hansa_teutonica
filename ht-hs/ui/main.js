@@ -1,8 +1,15 @@
 function main() {
   let body = document.getElementById('main')
+  let board = drawBoard(1000,'britannia-45')
+  body.appendChild(board)
+}
+
+function mainPlayer() {
+  let body = document.getElementById('main')
   let ps = [ 'red','blue','green','yellow','purple' ]
+  console.log(window.innerHeight)
   for (let i = 0; i < 5; ++i) {
-    let p = drawPlayer( { height: window.innerHeight / 4
+    let p = drawPlayer( { height: 300
                         , color: ps[i]
                         , book: 1
                         , privilege: 1

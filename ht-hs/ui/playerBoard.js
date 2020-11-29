@@ -97,7 +97,7 @@ function drawPlayer(opts) {
 
     return b
   }
-
+0
   function drawSupplyIn(b,which,shape,name) {
     let it = drawWorker(wsize,shape,color)
     it.setAttribute('id', color + '-' + which + '-' + shape)
@@ -125,7 +125,6 @@ function drawPlayer(opts) {
       let b = pBox(n > 1 ? ('x' + n) : null)
       let it = drawBonusToken(size,bonus)
       it.setAttribute('id',color + '-bonus-' + bonus)
-      it.classList.add('high')
       b.appendChild(it)
       bar.appendChild(b)
     }
@@ -139,8 +138,6 @@ function drawPlayer(opts) {
   }
 
   drawSupply('unavailable','Uvailable')
-
-
 
   return dom
 }
