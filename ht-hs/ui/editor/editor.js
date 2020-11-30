@@ -6,8 +6,8 @@ function movable(it) {
   })
 
   it.addEventListener('dragend', function(ev) {
-    it.style.left = ev.clientX
-    it.style.top  = ev.clientY
+    it.style.left = ev.pageX
+    it.style.top  = ev.pageY
   })
 }
 
