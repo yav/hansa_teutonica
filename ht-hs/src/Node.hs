@@ -12,9 +12,11 @@ module Node
   , nodeSwap
 
     -- * Queries
+  , nodeName
   , nodeActions
   , nodeWorkers
   , nodeNextFree
+  , nodeFreeSpots
   , nodeRightMost
   , nodeControlledBy
   ) where
@@ -34,7 +36,8 @@ data NodeAction = UpdgradeStat Stat | GainEndGamePoints
 
 -- | A node on the map
 data Node = Node
-  { emptySpots    :: [NodeSpot] -- ^ Left-most first
+  { name          :: Text
+  , emptySpots    :: [NodeSpot] -- ^ Left-most first
   , fullSpots     :: [Worker]
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
@@ -56,12 +59,17 @@ data InitNode = InitNode
 
 -- | Build an empty node with the given action and office spaces.
 node :: InitNode -> Node
-node InitNode { initNodeActions, initNodeSpots } =
-  Node { fullSpots = []
+node InitNode { initNodeName, initNodeActions, initNodeSpots } =
+  Node { name = initNodeName
+       , fullSpots = []
        , emptySpots = initNodeSpots
        , nodeExtra = []
        , nodeActions' = initNodeActions
        }
+
+-- | Name of this node
+nodeName :: Node -> Text
+nodeName = name
 
 -- | Get the special actions associated with this node
 nodeActions :: Node -> [NodeAction]
@@ -91,6 +99,10 @@ nodeSwap i = \n -> n { fullSpots = case splitAt i (fullSpots n) of
 -- | Get the next free worker space in this node.
 nodeNextFree :: Node -> Maybe NodeSpot
 nodeNextFree = listToMaybe . emptySpots
+
+-- | All free spots in a node
+nodeFreeSpots :: Node -> [NodeSpot]
+nodeFreeSpots = emptySpots
 
 -- | Get a list of the workers in this node, rightmost first.
 nodeWorkers :: Node -> [Worker]

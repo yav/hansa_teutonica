@@ -1,6 +1,8 @@
 module Main where
 
-import Player
+import Board
+import Board.Britannia45
+import Text.Show.Pretty(pPrint)
 
 main :: IO ()
-main = print (initialPlayer 1)
+main = putStrLn (exportLayout board)

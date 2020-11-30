@@ -11,32 +11,56 @@ function drawBoard(height,name) {
   dom.appendChild(img)
 
 
-  let offX = 350
-  let offY = h / 2
-  let scX  = 30
-  let scY  = -28
+  let sz = h/100
 
-  for (let i = 0; i < nodes.length; ++i) {
-    let node = nodes[i]
-    let it = drawWorkerAt( offX + scX * node.x
-                         , offY + scY * node.y
-                         , height/100,'disc','red')
-     it.style.cursor = 'pointer'
-     it.style.userSelect = 'auto'
-     it.setAttribute('draggable','true')
+  let nodeLocs = {}
 
-    it.addEventListener('drag', function(ev) {
-      // it.style.left = ev.clientX
-      // it.style.top  = ev.clientY
+  let x = 0
+  let y = 0
+  let prev = null
+  for (let i = 0; i < map.nodes.length; ++i) {
+    let node = map.nodes[i]
+    let id = "node-" + node.node + '-' + node.id
+
+    if (node.node == prev) {
+      x = x + 2 * sz
+    }
+    else {
+      x = 750; y = y + 3 * sz
+      let lab = document.createElement('div')
+      lab.classList.add('bonus-multiplier')
+      lab.textContent = node.name
+      lab.style.height = 20
+      lab.style.width = 100
+      lab.style.left = x
+      lab.style.top  = y
+      y = y + 3 * sz
+      dom.appendChild(lab)
+    }
+    prev = node.node
+
+    let it = drawWorkerAt(x, y, sz, node.req, 'red')
+    it.classList.remove('red')
+    it.setAttribute("id",id)
+    it.setAttribute("draggable","true")
+    it.setAttribute('title',node.name + ' ' + (node.id + 1))
+    if (node.vp > 0)
+      it.textContent = node.vp
+
+    let cols = [ "white", "orange", "pink", "black" ]
+    it.style.backgroundColor = cols[node.priv - 1]
+    it.addEventListener('dragstart', function(ev) {
+      ev.dataTransfer.setDragImage(it,0,0)
     })
 
     it.addEventListener('dragend', function(ev) {
-      it.style.left = ev.clientX - 10
-      it.style.top  = ev.clientY - 5
+      it.style.left = ev.clientX
+      it.style.top  = ev.clientY
     })
 
     dom.appendChild(it)
   }
+
 
 
 

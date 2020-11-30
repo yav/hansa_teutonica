@@ -49,8 +49,8 @@ buildBoard builder =
     , boardEdges = Map.fromList [ (i, edge e) | i <- [ 0 .. ] | e <- edgeInits ]
     , boardGeometry = foldr addCon geoEmpty (zip [ 0 .. ] (edges builder))
     , boardEdgeProvince = Map.fromList
-        [ (i, getProvince t) | i <- [ 0 .. ]
-                             | Just t <- map province (edges builder) ]
+        [ (i, getProvince t) | (i,Just t) <- [ 0 .. ]
+                                    `zip` map province (edges builder) ]
     , boardCapital = msum (map isBoardCapital (nodes builder))
 
     , boardProvinces = foldr addProvs capitals (nodes builder)

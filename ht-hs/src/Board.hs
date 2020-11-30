@@ -124,4 +124,45 @@ occupiedSpots board provinceOk workerT workerOk =
 
 
 
+exportLayout :: Board -> String
+exportLayout board = unlines $
+  [ "var map = { nodes:" ] ++
+  list [ exportNodeSpot nid sid (nodeName n) spot
+       | (nid,n) <- Map.toList (boardNodes board)
+       , (spot,sid)  <- nodeFreeSpots n `zip` [ 0 .. ]
+       ] ++
+
+  [ ", edges:" ] ++
+  list [ exportEdgeSpot eid spot sid
+       | (eid,ed) <- Map.toList (boardEdges board)
+       , (spot,sid) <- edgeRequires ed `zip` [ 0 .. ]
+       ] ++
+  [ "}" ]
+
+  where
+  -- assumes non-empty
+  list xs = [ sep ++ x | sep <- "[" : repeat ","
+                       | x   <- xs ] ++
+            ["]"]
+
+  exportNodeSpot nid sid name spot =
+    "{ node: " ++ show nid ++ ", name: " ++ show name ++
+    ", id: " ++ show sid ++
+    ", vp: " ++ show (spotVP spot) ++ ", priv: " ++ show (spotPrivilege spot) ++
+    ", req: " ++ req (spotRequires spot) ++
+    "}"
+
+  exportEdgeSpot eid spot sid =
+    let (from,to) = geoEdgeNodes (boardGeometry board) eid
+    in
+    "{ edge: " ++ show eid ++
+    ", from: " ++ lab from ++ ", to: " ++ lab to ++
+    ", spot: " ++ show sid ++ ", req: " ++ req spot ++
+    ", prov: " ++ maybe "-1" show (Map.lookup eid (boardEdgeProvince board)) ++
+    "}"
+
+  lab i = show (nodeName (boardNodes board Map.! i))
+  req x = show $ case x of
+                   Require Disc -> "disc"
+                   _ -> "cube"
 

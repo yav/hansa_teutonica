@@ -1,0 +1,18 @@
+<html>
+<head>
+<link rel="stylesheet" href="../style.css">
+<script src="../workers.js"></script>
+<script src="../bonus.js"></script>
+<script src="editor.js"></script>
+<script src="question.js"></script>
+<script src="answer.js"></script>
+<script>
+function main() {
+  let body = document.getElementById('main')
+  let board = editor(1000,'britannia-45')
+  body.appendChild(board)
+}
+</script>
+</head>
+<body id="main" onload="main()"></body></html>
+</html>

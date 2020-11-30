@@ -14,6 +14,7 @@ module Edge
     -- * Queries
   , edgeWorkers
   , edgeFreeSpots
+  , edgeRequires
   , edgeBonusSpot
   , BonusSpot(..)
   ) where
@@ -100,6 +101,9 @@ edgeAddWorker t w = modifyEdge match
                  Nothing | edgeSpotType spot == t ->
                    Just (setSpotWorker (Just w) spot)
                  _ -> Nothing
+
+edgeRequires :: Edge -> [RequireWorker]
+edgeRequires = map edgeSpotType . edgeSpots
 
 -- | Compute the various types of free spots on the edge.
 edgeFreeSpots :: Edge -> Set RequireWorker
