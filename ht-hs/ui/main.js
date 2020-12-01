@@ -1,6 +1,20 @@
 function main() {
   let body = document.getElementById('main')
-  let board = drawBoard(1000,'britannia-45')
+  let redCube = { owner: 'red', shape: 'cube' }
+  let greenDisc = { owner: 'green', shape: 'disc' }
+  let board = drawBoard( { height: 1000
+                         , map: 'britannia-45'
+                         , full: 0
+                         , fullMax: 8
+                         , nodes: { "23":
+                                    { annex: [redCube,redCube]
+                                    , office: [redCube,redCube]
+                                    }
+                                  }
+                         , edges: { "11": { bonus: 'act_3'
+                                          , workers: [ redCube,greenDisc ] } }
+                         , endVP: [ null, null, greenDisc, null ]
+                         })
   body.appendChild(board)
 }
 

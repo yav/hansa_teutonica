@@ -1,4 +1,4 @@
-var answer = {
+var layout = {
   "nodes": {
     "0": {
       "0": {

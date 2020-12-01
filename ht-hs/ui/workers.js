@@ -9,6 +9,9 @@ function drawWorker(size,shape,color) {
   return dom
 }
 
+function workerSize(size,shape) {
+  return (shape == 'disc') ? size * 1.5 : size
+}
 
 function drawWorkerAt(x,y,size,shape,color) {
   let dom = drawWorker(size,shape,color)
@@ -21,7 +24,5 @@ function drawWorkerAt(x,y,size,shape,color) {
 
 
 
-function workerSize(size,shape) {
-  return (shape == 'disc') ? size * 1.5 : size
-}
+
 
