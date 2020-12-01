@@ -20,6 +20,13 @@ body {
   user-select: none;
 }
 
+.fullMarker {
+  display: inline-block;
+  background-color: black;
+  position: absolute;
+  border-radius: 20%;
+}
+
 .blank { background-color: rgba(0,0,0,0); }
 
 .high {
@@ -34,6 +41,7 @@ body {
   z-index: 5;
   position: relative;
   display: inline-block;
+  border-radius: 100%;
 }
 .bonus:hover {
   transform: scale(2);

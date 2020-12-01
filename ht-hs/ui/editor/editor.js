@@ -15,7 +15,7 @@ function movable(it) {
 
 function editor(height,name) {
 
-  let h = 1000
+  let h = height
   let dom = document.createElement('div')
   dom.classList.add('board')
   dom.style.height = h
@@ -24,7 +24,6 @@ function editor(height,name) {
   img.classList.add('board-img')
   img.setAttribute('src','../img/board/' + name + '.jpg')
   dom.appendChild(img)
-
 
 //-- Save ----------------------------------------------------------------------
   let btn = document.createElement('button')
@@ -79,8 +78,10 @@ function editor(height,name) {
     { let el = document.getElementById('bonus')
       ans.bonus = { x: el.offsetLeft, y: el.offsetTop }
     }
-    { let el = document.getElementById('house')
-      ans.house = { x: el.offsetLeft, y: el.offsetTop }
+    { const el1 = document.getElementById('house1')
+      ans.house1 = { x: el1.offsetLeft, y: el1.offsetTop }
+      const el2 = document.getElementById('house2')
+      ans.house2 = { x: el2.offsetLeft, y: el2.offsetTop }
     }
 
     const blob = new Blob( [ 'var answer = ' + JSON.stringify(ans, null, 2) ]
@@ -94,7 +95,7 @@ function editor(height,name) {
   dom.appendChild(btn)
 //------------------------------------------------------------------------------
 
-  let sz = h/100
+  let sz = 13 // h/100
 
 
   let x0 = 750
@@ -251,7 +252,7 @@ function editor(height,name) {
 
   { let thisX = x
     let thisY = y
-    let ans = answer.house
+    let ans = answer.house1
     if (ans) {
       thisX = ans.x
       thisY = ans.y
@@ -260,8 +261,23 @@ function editor(height,name) {
     let it = drawWorkerAt(thisX,thisY,sz,'cube','green')
     it.classList.remove('green')
     it.style.backgroundColor = 'black'
-    it.setAttribute('id','house')
-    it.setAttribute('title','Full counter')
+    it.setAttribute('id','house1')
+    it.setAttribute('title','First sull counter')
+    movable(it)
+    dom.appendChild(it)
+    x = x + 2 * sz
+
+
+    ans = answer.house2
+    if (ans) {
+      thisX = ans.x
+      thisY = ans.y
+    }
+    it = drawWorkerAt(thisX,thisY,sz,'cube','green')
+    it.classList.remove('green')
+    it.style.backgroundColor = 'black'
+    it.setAttribute('id','house2')
+    it.setAttribute('title','Last sull counter')
     movable(it)
     dom.appendChild(it)
     x = x + 2 * sz

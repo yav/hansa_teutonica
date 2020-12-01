@@ -1,4 +1,4 @@
-var answer = {
+var layout = {
   "nodes": {
     "0": {
       "0": {
@@ -936,8 +936,12 @@ var answer = {
     "x": 597,
     "y": 128
   },
-  "house": {
-    "x": 415,
+  "house1": {
+    "x": 416,
+    "y": 71
+  },
+  "house2": {
+    "x": 573,
     "y": 67
   }
 }
