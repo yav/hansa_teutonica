@@ -129,7 +129,7 @@ exportLayout board = unlines $
   [ "var map = { nodes:" ] ++
   list [ exportNodeSpot nid sid (nodeName n) spot
        | (nid,n) <- Map.toList (boardNodes board)
-       , (spot,sid)  <- nodeFreeSpots n `zip` [ 0 .. ]
+       , (spot,sid)  <- addFake (nodeFreeSpots n) `zip` [ 0 .. ]
        ] ++
 
   [ ", edges:" ] ++
@@ -140,6 +140,12 @@ exportLayout board = unlines $
   [ "}" ]
 
   where
+  -- we do so that we know the locations of empty cities
+  addFake xs = case xs of
+                 [] -> [ NodeSpot { spotPrivilege = 1, spotVP = 0
+                                  , spotRequires = Require Cube } ]
+                 _  -> xs
+
   -- assumes non-empty
   list xs = [ sep ++ x | sep <- "[" : repeat ","
                        | x   <- xs ] ++
