@@ -1,17 +1,18 @@
 function main() {
+
   let body = document.getElementById('main')
   let redCube = { owner: 'red', shape: 'cube' }
   let greenDisc = { owner: 'green', shape: 'disc' }
-  let board = drawBoard( { height: 1000
+  let board = drawBoard( { size: null
                          , map: 'britannia-45'
-                         , full: 0
-                         , fullMax: 8
-                         , nodes: { "23":
+                         , full: 5
+                         , fullMax: 10
+                         , nodes: { 23:
                                     { annex: [redCube,redCube]
                                     , office: [redCube,redCube]
                                     }
                                   }
-                         , edges: { "11": { bonus: 'act_3'
+                         , edges: { 11: { bonus: 'act_3'
                                           , workers: [ redCube,greenDisc ] } }
                          , endVP: [ null, null, greenDisc, null ]
                          })

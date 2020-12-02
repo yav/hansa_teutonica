@@ -1,4 +1,8 @@
-var layout = {
+var britannia_45 = {
+  "width": 4941,
+  "height": 6910,
+  "worker": 80,
+  "url": "img/board/britannia-45.jpg",
   "nodes": {
     "0": {
       "0": {

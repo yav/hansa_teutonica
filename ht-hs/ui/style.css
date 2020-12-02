@@ -54,7 +54,7 @@ body {
 .worker {
   z-index: 5;
   position: relative;
-  border: 2px solid black;
+  border: solid black;
   text-align: center;
   display: inline-block;
 }

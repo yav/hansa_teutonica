@@ -19,6 +19,7 @@ function drawWorkerAt(x,y,size,shape,color) {
   style.position = 'absolute'
   style.left = x + 'px'
   style.top = y + 'px'
+  style.borderWidth = size / 5
   return dom
 }
 

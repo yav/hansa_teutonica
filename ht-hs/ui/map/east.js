@@ -1,4 +1,8 @@
-var answer = {
+var east = {
+  "width": 5594,
+  "height": 3949,
+  "worker": 50,
+  "url": "img/board/east.jpg",
   "nodes": {
     "0": {
       "0": {
@@ -865,8 +869,12 @@ var answer = {
     "x": 1129,
     "y": 168
   },
-  "house": {
+  "house1": {
     "x": 100,
     "y": 922
+  },
+  "house2": {
+    "x": 380,
+    "y": 922 
   }
 }

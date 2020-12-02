@@ -1,0 +1,631 @@
+Board
+  { nodes =
+      [ Node
+          { name = "Norwich"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = [ UpdgradeStat Movement ]
+          }
+      , Node
+          { name = "Nottingham"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Canterbury"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Isle of Man"
+          , regions = [ "Scotland" , "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Disc , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Durham"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 2 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Southampton"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Dunbar"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 4 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Edinburgh"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Glasgow"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 2 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Falkirk"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Richmond"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Carlisle"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              , Office { vp = 0 , shape = Require Disc , level = 4 }
+              ]
+          , gateway = [ 2 ]
+          , actions = []
+          }
+      , Node
+          { name = "Coventry"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Lancaster"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 3 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Chester"
+          , regions = [ "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              ]
+          , gateway = []
+          , actions = [ UpdgradeStat Actions ]
+          }
+      , Node
+          { name = "Conway"
+          , regions = [ "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Oxford"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Disc , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Ipswich"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 2 , shape = Require Cube , level = 2 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Cardiff"
+          , regions = [ "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              , Office { vp = 0 , shape = Require Disc , level = 4 }
+              ]
+          , gateway = [ 3 ]
+          , actions = []
+          }
+      , Node
+          { name = "Hereford"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Bristol"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 2 , shape = Require Cube , level = 2 } ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "London"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              , Office { vp = 0 , shape = Require Disc , level = 4 }
+              ]
+          , gateway = [ 3 , 2 ]
+          , actions = [ UpdgradeStat Privilege ]
+          }
+      , Node
+          { name = "Pembroke"
+          , regions = [ "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Disc , level = 4 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Calais"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Salisbury"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "York"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Disc , level = 2 }
+              ]
+          , gateway = []
+          , actions = [ UpdgradeStat Keys ]
+          }
+      , Node
+          { name = "Plymouth"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 2 , shape = Require Disc , level = 2 }
+              ]
+          , gateway = []
+          , actions = [ GainEndGamePoints ]
+          }
+      , Node
+          { name = "Cambridge"
+          , regions = [ "England" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Disc , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 4 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Montgomery"
+          , regions = [ "Wales" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Cube , level = 3 }
+              ]
+          , gateway = []
+          , actions = []
+          }
+      , Node
+          { name = "Newcastle"
+          , regions = [ "Scotland" ]
+          , offices =
+              [ Office { vp = 0 , shape = Require Cube , level = 1 }
+              , Office { vp = 0 , shape = Require Cube , level = 2 }
+              , Office { vp = 0 , shape = Require Disc , level = 3 }
+              ]
+          , gateway = []
+          , actions = [ UpdgradeStat Hire ]
+          }
+      ]
+  , edge =
+      [ Edge
+          { region = "England"
+          , from = "London"
+          , to = "Cambridge"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "London"
+          , to = "Oxford"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "London"
+          , to = "Canterbury"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Canterbury"
+          , to = "Calais"
+          , stops = [ AnyWorker , Require Disc , AnyWorker ]
+          , startBonus = False
+          , bonus = FixedBonus BonusMove2
+          }
+      , Edge
+          { region = "England"
+          , from = "Calais"
+          , to = "Southampton"
+          , stops = [ AnyWorker , Require Disc , Require Disc ]
+          , startBonus = False
+          , bonus = FixedBonus BonusPlace2
+          }
+      , Edge
+          { region = "England"
+          , from = "Salisbury"
+          , to = "Southampton"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = True
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Salisbury"
+          , to = "Plymouth"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Salisbury"
+          , to = "Bristol"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Salisbury"
+          , to = "Oxford"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Oxford"
+          , to = "Cardiff"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Coventry"
+          , to = "Cardiff"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Coventry"
+          , to = "Hereford"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Coventry"
+          , to = "Cambridge"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Coventry"
+          , to = "Nottingham"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = True
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Cambridge"
+          , to = "Ipswich"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Cambridge"
+          , to = "Norwich"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Nottingham"
+          , to = "Norwich"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Nottingham"
+          , to = "York"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Durham"
+          , to = "York"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Durham"
+          , to = "Lancaster"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Durham"
+          , to = "Carlisle"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Durham"
+          , to = "Newcastle"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Hereford"
+          , to = "Chester"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Hereford"
+          , to = "Lancaster"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Richmond"
+          , to = "Carlisle"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Richmond"
+          , to = "Lancaster"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = True
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "England"
+          , from = "Chester"
+          , to = "Carlisle"
+          , stops = [ Require Disc , Require Disc , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Montgomery"
+          , to = "Cardiff"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Montgomery"
+          , to = "Pembroke"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Montgomery"
+          , to = "Conway"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Montgomery"
+          , to = "Hereford"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Cardiff"
+          , to = "Pembroke"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Conway"
+          , to = "Chester"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Wales"
+          , from = "Conway"
+          , to = "Isle of Man"
+          , stops = [ Require Disc , Require Disc , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Carlisle"
+          , to = "Isle of Man"
+          , stops = [ AnyWorker , Require Disc , Require Disc ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Carlisle"
+          , to = "Falkirk"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Glasgow"
+          , to = "Falkirk"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Glasgow"
+          , to = "Edinburgh"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Dunbar"
+          , to = "Edinburgh"
+          , stops = [ AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      , Edge
+          { region = "Scotland"
+          , from = "Dunbar"
+          , to = "Newcastle"
+          , stops = [ AnyWorker , AnyWorker , AnyWorker ]
+          , startBonus = False
+          , bonus = NoBonus
+          }
+      ]
+  }

@@ -1,4 +1,8 @@
-var answer = {
+var ht_45 = {
+  "width": 4926,
+  "height": 3454,
+  "worker": 50,
+  "url": "img/board/ht-45.jpg",
   "nodes": {
     "0": {
       "0": {
@@ -925,8 +929,13 @@ var answer = {
     "x": 621,
     "y": 53
   },
-  "house": {
+  "house1": {
     "x": 107,
     "y": 87
+  },
+  "house2": {
+    "x": 390,
+    "y": 87
   }
+
 }
