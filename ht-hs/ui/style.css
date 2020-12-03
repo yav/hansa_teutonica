@@ -1,5 +1,5 @@
 body {
-  background-color: gray;
+  background-color: #110;
   height: 100%;
   width: 100%;
   padding: 0;
@@ -97,6 +97,7 @@ body {
 }
 
 
+.empty  { background-color: rgba(0,0,0,0); color: #fff; }
 .blue   { background-color: #06f; color: #fff; }
 .red    { background-color: #c03; color: #fff; }
 .yellow { background-color: #fc3; color: #000; }
