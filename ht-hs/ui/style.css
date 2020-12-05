@@ -27,11 +27,23 @@ body {
   border-radius: 20%;
 }
 
-.blank { background-color: rgba(0,0,0,0); }
 
-.high {
-  box-shadow: 0 0 4px 4px #fff;
+@keyframes pulse {
+  from { box-shadow: 0 0 2px 2px #333; }
+  to   { box-shadow: 0 0 2px 2px #fff; }
+}
+
+.question {
+  box-shadow: 0 0 4px 4px #333;
   cursor: pointer;
+  animation-name: pulse;
+  animation-duration: 5s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.question.new {
+  background-color: rgba(0,0,0,0);
 }
 
 
@@ -97,7 +109,6 @@ body {
 }
 
 
-.empty  { background-color: rgba(0,0,0,0); color: #fff; }
 .blue   { background-color: #06f; color: #fff; }
 .red    { background-color: #c03; color: #fff; }
 .yellow { background-color: #fc3; color: #000; }

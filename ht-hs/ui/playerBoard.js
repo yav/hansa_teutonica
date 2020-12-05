@@ -42,8 +42,11 @@ function drawPlayer(opts) {
       let n    = info.x.length
       let y    = height * info.y
       for (let i = opts[stat]; i < n; ++i) {
-        let basicShape = info.shape == 'disc' ? 'disc' : 'cube'
-        let b = drawWorkerAt(info.x[i]*height,y,wsize,basicShape,color)
+        const worker = { shape: info.shape == 'disc' ? 'disc' : 'cube'
+                       , owner: color
+                       }
+        const loc = { x: info.x[i]*height, y: y }
+        let b = drawWorkerAt(loc,wsize,worker)
         if (info.shape == 'rombus') b.style.transform = 'rotate(45deg)'
         if (i == opts[stat])
           b.setAttribute("id",opts.color + "-" + stat)

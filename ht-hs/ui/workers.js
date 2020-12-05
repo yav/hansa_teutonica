@@ -1,7 +1,7 @@
-function drawWorker(size,shape,color) {
+function drawWorker(size,worker) {
   let dom = document.createElement('div')
-  dom.classList.add('worker',shape,color)
-  size = workerSize(size,shape)
+  dom.classList.add('worker',worker.shape,worker.owner)
+  size = workerSize(size,worker.shape)
   let style = dom.style
   style.width = size + 'px'
   style.height = size + 'px'
@@ -13,12 +13,12 @@ function workerSize(size,shape) {
   return (shape == 'disc') ? size * 1.5 : size
 }
 
-function drawWorkerAt(x,y,size,shape,color) {
-  let dom = drawWorker(size,shape,color)
+function drawWorkerAt(loc,size,worker) {
+  let dom = drawWorker(size,worker)
   let style = dom.style
   style.position = 'absolute'
-  style.left = x + 'px'
-  style.top = y + 'px'
+  style.left = loc.x + 'px'
+  style.top = loc.y + 'px'
   style.borderWidth = size / 5
   return dom
 }

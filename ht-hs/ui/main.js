@@ -4,15 +4,15 @@ function sample() {
   const board = { size: 700
                 , map: 'britannia-45'
                 , full: 5
-                , fullMax: 10
-                , nodes: { 23:
+                , fullMax: 8
+                , nodes: { 1:
                            { annex: [redCube,redCube]
                            , office: [redCube,redCube]
                            }
                          }
-                , edges: { 11: { bonus: 'act_3'
+                , edges: { 17: { bonus: 'act_3'
                                  , workers: [ redCube,greenDisc ] } }
-                , endVP: [ null, null, greenDisc, null ]
+                , endVP: { 2: greenDisc }
                 }
   const ps = [ 'red','blue','green','yellow','purple' ]
   const players = {}
@@ -40,10 +40,16 @@ function main() {
 
   const body = document.getElementById('main')
   const state = sample()
-  body.appendChild(drawBoard(state.board))
+  const ui = drawBoardIn(body,state.board)
+  ui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
+  const purpleDisc = {owner:'purple', shape: 'disc'}
+  ui.askWorkerOnVP(0, purpleDisc)
+  ui.askFullEdgeSpot(17,0)
+  ui.askFullEdgeSpot(17,1)
+  for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
+
   for (const i in state.players) {
     body.appendChild(drawPlayer(state.players[i]))
   }
 
-  askEdgeFull(11,0);
 }

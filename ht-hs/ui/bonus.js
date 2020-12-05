@@ -8,11 +8,11 @@ function drawBonusToken(h,b) {
   return dom
 }
 
-function drawBonusTokenAt(x,y,h,b) {
+function drawBonusTokenAt(loc,h,b) {
   let dom = drawBonusToken(h,b)
   let style = dom.style
   style.position = 'absolute'
-  style.left = x + 'px'
-  style.top  = y + 'px'
+  style.left = loc.x + 'px'
+  style.top  = loc.y + 'px'
   return dom
 }
