@@ -51,6 +51,8 @@ function main() {
   ui.askOffice(23,0)
   ui.removeBonus(17)
   ui.removeWorkerFromEdge(17,1)
+  ui.askUpgrade('actions')
+  ui.askUpgrade('privilege')
   for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
 
   for (const i in state.players) {

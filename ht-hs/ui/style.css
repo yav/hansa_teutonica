@@ -27,23 +27,29 @@ body {
   border-radius: 20%;
 }
 
+.upgrade-action {
+  position: absolute;
+}
+
 
 @keyframes pulse {
-  from { color: #000; }
-  to   { color: #fff; }
+  from { background-color: rgba(255,255,255,0);   color: #000; }
+  80%  { background-color: rgba(255,255,255,0.2); color: #ccc; }
+  to   { background-color: rgba(0,0,0,0.5);       color: #fff; }
 }
 
 .question {
   box-shadow: 0 0 2px 2px;
   cursor: pointer;
-  animation-name: pulse;
+  color: white;
+  /* animation-name: pulse;
   animation-duration: 5s;
   animation-iteration-count: infinite;
-  animation-direction: alternate;
+  animation-direction: alternate; */
 }
 
 .question.new {
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(0,0,0,0.1);
 }
 
 .question:hover {

@@ -14,6 +14,7 @@ function boardCoord(name,size) {
          , workerSize: sz
          , bonusSize:  3 * sz
          , houseSize:  1.5 * sz
+         , upgradeSize: 4.5 * sz
 
          , nodeSpot: function(node,ix) {
              const it = map.nodes[node][ix]
@@ -43,6 +44,11 @@ function boardCoord(name,size) {
             return { x: cosc * (fullLoc1.x + ix * fullDiff)
                    , y: cosc * fullLoc1.y
                    }
+            }
+
+          , upgradeSpot: function(name) {
+              const loc = map[name]
+              return { x: cosc * loc.x, y: cosc * loc.y }
             }
          }
 }
@@ -308,6 +314,25 @@ function drawBoardIn(container,opts) {
     // exported:
     ui.placeWorkerOnVP = placeWorker
     ui.askWorkerOnVP = askWorker
+  }
+
+  { // upgrade actions
+    const askUpgrade = function (name) {
+      const loc = board.upgradeSpot(name)
+      const el = document.createElement('div')
+      el.classList.add('upgrade-action')
+      const style = el.style
+      style.width  = board.upgradeSize
+      style.height = board.upgradeSize
+      style.left   = loc.x
+      style.top    = loc.y
+      question.addEmpty(el,function() {
+        console.log('upgrade ' + name)
+      })
+    }
+
+    ui.askUpgrade = askUpgrade
+
   }
 
 
