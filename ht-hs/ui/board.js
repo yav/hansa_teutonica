@@ -145,6 +145,14 @@ function drawBoardIn(container,opts) {
       dom.appendChild(el)
     }
 
+    const askAnnex = function(node,worker) {
+      const loc = nextAnnexLoc(node,worker.shape)
+      const el  = drawWorkerAt(loc,board.workerSize,worker)
+      question.addEmpty(el,function() {
+        console.log('add annex on ' + node)
+      })
+    }
+
     const placedOffices = {} // info about offices in a node
 
     const nextOfficeLoc = function(node) {
@@ -162,6 +170,13 @@ function drawBoardIn(container,opts) {
       return loc
     }
 
+    const askOffice = function(node,ix) {
+      let info = placedOffices[node][ix]
+      question.addFull(info.dom,function() {
+        console.log('office in ' + node + ' at position ' + ix)
+      })
+    }
+
     const addOffice = function(node,worker) {
       const loc = nextOfficeLoc(node)
       const el  = drawWorkerAt(loc,board.workerSize,worker)
@@ -171,6 +186,8 @@ function drawBoardIn(container,opts) {
       dom.appendChild(el)
     }
 
+
+    // Initialize
     for (const i in opts.nodes) {
       const node = opts.nodes[i]
       for (let j = 0; j < node.annex.length; ++j) addAnnex(i,node.annex[j])
@@ -179,8 +196,10 @@ function drawBoardIn(container,opts) {
 
     // exported
     ui.placeWorkerInAnnex  = addAnnex
+    ui.askAnnex            = askAnnex
     ui.placeWorkerInOffice = addOffice
-    // XXX: swap office, questions
+    ui.placeWorkerInOffice = addOffice
+    ui.askOffice           = askOffice
   }
 
 
@@ -213,6 +232,13 @@ function drawBoardIn(container,opts) {
       })
     }
 
+    const removeWorker = function(edge,spot) {
+      const xs = placedWorkers[edge]
+      const el = xs[spot]
+      delete xs[spot]
+      el.remove()
+    }
+
     const placedBonuses = {}
 
     const placeBonus = function(edge,bonus) {
@@ -233,6 +259,12 @@ function drawBoardIn(container,opts) {
       })
     }
 
+    const removeBonus = function(edge) {
+      const el = placedBonuses[edge]
+      delete placedBonuses[edge]
+      el.remove()
+    }
+
 
     // Initialize board;  XXX: we should probably add questions too...
     // but the initialization could be factored out.
@@ -249,8 +281,10 @@ function drawBoardIn(container,opts) {
     ui.placeWorkerOnEdge = placeWorker
     ui.askEmptyEdgeSpot  = askEmptyWorker
     ui.askFullEdgeSpot   = askFullWorker
+    ui.removeWorkerFromEdge = removeWorker
     ui.placeBonus        = placeBonus
     ui.askBonus          = askBonus
+    ui.removeBonus       = removeBonus
   }
 
 

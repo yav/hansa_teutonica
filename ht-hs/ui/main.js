@@ -2,7 +2,7 @@ function sample() {
   const redCube = { owner: 'red', shape: 'cube' }
   const greenDisc = { owner: 'green', shape: 'disc' }
   const board = { size: 700
-                , map: 'britannia-45'
+                , map: 'britannia_45'
                 , full: 5
                 , fullMax: 8
                 , nodes: { 1:
@@ -47,6 +47,10 @@ function main() {
   ui.askFullEdgeSpot(17,0)
   ui.askFullEdgeSpot(17,1)
   ui.askBonus(17)
+  ui.askAnnex(23,purpleDisc)
+  ui.askOffice(23,0)
+  ui.removeBonus(17)
+  ui.removeWorkerFromEdge(17,1)
   for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
 
   for (const i in state.players) {

@@ -3,13 +3,20 @@
 <link rel="stylesheet" href="../style.css">
 <script src="../workers.js"></script>
 <script src="../bonus.js"></script>
+<script src="../map/britannia_45.js"></script>
+<script src="../map/britannia_23.js"></script>
+<script src="../map/east.js"></script>
+<script src="../map/ht_45.js"></script>
+<script src="../map/ht_23.js"></script>
+<script src="../map/layout.js"></script>
 <script src="editor.js"></script>
 <script src="question.js"></script>
 <script src="answer.js"></script>
 <script>
 function main() {
   let body = document.getElementById('main')
-  let board = editor(1000,'britannia-45')
+  body.style.backgroundColor = 'white'
+  let board = editor(1000,'britannia_45')
   body.appendChild(board)
 }
 </script>

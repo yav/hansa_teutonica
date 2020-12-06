@@ -15,6 +15,8 @@ function movable(it) {
 
 function editor(height,name) {
 
+  const info = layout[name]
+
   let h = height
   let dom = document.createElement('div')
   dom.classList.add('board')
@@ -22,7 +24,7 @@ function editor(height,name) {
 
   let img = document.createElement('img')
   img.classList.add('board-img')
-  img.setAttribute('src','../img/board/' + name + '.jpg')
+  img.setAttribute('src', info.url)
   dom.appendChild(img)
 
 //-- Save ----------------------------------------------------------------------
@@ -53,6 +55,7 @@ function editor(height,name) {
       let el = document.getElementById('node-' + node.node + '-' + node.id)
       me[node.id] = { x: el.offsetLeft, y: el.offsetTop }
     }
+    info.nodes = nodes
 
     let edges = {}
     for (let i = 0; i < map.edges.length; ++i) {
@@ -69,25 +72,26 @@ function editor(height,name) {
       let el = document.getElementById('edge-' + edge.edge + '-' + edge.spot)
       me[edge.spot] = { x: el.offsetLeft, y: el.offsetTop }
     }
+    info.edges = edges
 
-    let ans = { nodes: nodes, edges: edges, pts: [] }
     for (let i = 0; i < 4; ++i) {
       let el = document.getElementById('pts-' + i)
-      ans.pts[i] = { x: el.offsetLeft, y: el.offsetTop }
+      info.pts[i] = { x: el.offsetLeft, y: el.offsetTop }
     }
     { let el = document.getElementById('bonus')
-      ans.bonus = { x: el.offsetLeft, y: el.offsetTop }
+      info.bonus = { x: el.offsetLeft, y: el.offsetTop }
     }
     { const el1 = document.getElementById('house1')
-      ans.house1 = { x: el1.offsetLeft, y: el1.offsetTop }
+      info.house1 = { x: el1.offsetLeft, y: el1.offsetTop }
       const el2 = document.getElementById('house2')
-      ans.house2 = { x: el2.offsetLeft, y: el2.offsetTop }
+      info.house2 = { x: el2.offsetLeft, y: el2.offsetTop }
     }
 
-    const blob = new Blob( [ 'var answer = ' + JSON.stringify(ans, null, 2) ]
+    const blob = new Blob( [ 'var ' + name + ' = ' +
+                                            JSON.stringify(info, null, 2) ]
                           , {type : 'text/javascript'});
     download.setAttribute('href',URL.createObjectURL(blob))
-    download.setAttribute('download','answer.js')
+    download.setAttribute('download',name + '.js')
     download.click()
 
 
@@ -138,12 +142,12 @@ function editor(height,name) {
 
     let thisX = x
     let thisY = y
-    let ans = answer.nodes
+    let ans = info.nodes
     if (ans) ans = ans[node.node]
     if (ans) ans = ans[node.id]
     if (ans) { thisX = ans.x; thisY = ans.y }
 
-    let it = drawWorkerAt(thisX, thisY, sz, node.req, 'red')
+    let it = drawWorkerAt({x:thisX, y:thisY}, sz, {shape:node.req, owner:'red'})
     it.classList.remove('red')
     it.setAttribute("id",id)
     it.setAttribute('title',node.name + ' ' + (node.id + 1))
@@ -170,7 +174,7 @@ function editor(height,name) {
       let thisX = x
       let thisY = y
       let thisR = 0
-      let ans = answer.edges
+      let ans = info.edges
       if (ans) ans = ans[edge.edge]
       if (ans) {
         thisX = ans.x
@@ -178,7 +182,7 @@ function editor(height,name) {
         thisR = ans.rotate
       }
 
-      let b = drawBonusTokenAt(thisX,thisY,3*sz,'act_3')
+      let b = drawBonusTokenAt({x:thisX,y:thisY},3*sz,'act_3')
       b.setAttribute('id', 'edge-' + edge.edge)
       b.dataset.rotate = thisR
       b.style.transform = 'rotate(' + thisR + 'deg'
@@ -199,12 +203,12 @@ function editor(height,name) {
 
     let thisX = x
     let thisY = y
-    let ans = answer.edges
+    let ans = info.edges
     if (ans) ans = ans[edge.edge]
     if (ans) ans = ans[edge.spot]
     if (ans) { thisX = ans.x; thisY = ans.y }
 
-    let it = drawWorkerAt(thisX, thisY, sz, edge.req, cols[edge.prov + 1])
+    let it = drawWorkerAt({x:thisX, y:thisY}, sz, {shape:edge.req, owner:cols[edge.prov + 1]})
 
     let id = "edge-" + edge.edge + '-' + edge.spot
     it.setAttribute("id",id)
@@ -219,13 +223,13 @@ function editor(height,name) {
   for(let i = 0; i < 4; ++i) {
     let thisX = x
     let thisY = y
-    let ans = answer.pts
+    let ans = info.pts
     if (ans) ans = ans[i]
     if (ans) {
       thisX = ans.x
       thisY = ans.y
     }
-    let it = drawWorkerAt(thisX,thisY,sz,'disc','yellow')
+    let it = drawWorkerAt({x:thisX,y:thisY},sz,{shape:'disc',owner:'yellow'})
     it.setAttribute('id','pts-' + i)
     let pts = [7,8,9,11]
     it.textContent = pts[i]
@@ -236,13 +240,13 @@ function editor(height,name) {
 
   { let thisX = x
     let thisY = y
-    let ans = answer.bonus
+    let ans = info.bonus
     if (ans) {
       thisX = ans.x
       thisY = ans.y
     }
 
-    let it = drawBonusTokenAt(thisX,thisY,3*sz,'act_3')
+    let it = drawBonusTokenAt({x:thisX,y:thisY},3*sz,'act_3')
     it.setAttribute('id','bonus')
     it.setAttribute('title','Location for restock')
     movable(it)
@@ -252,13 +256,13 @@ function editor(height,name) {
 
   { let thisX = x
     let thisY = y
-    let ans = answer.house1
+    let ans = info.house1
     if (ans) {
       thisX = ans.x
       thisY = ans.y
     }
 
-    let it = drawWorkerAt(thisX,thisY,sz,'cube','green')
+    let it = drawWorkerAt({x:thisX,y:thisY},sz,{shape:'cube',owner:'green'})
     it.classList.remove('green')
     it.style.backgroundColor = 'black'
     it.setAttribute('id','house1')
@@ -268,12 +272,12 @@ function editor(height,name) {
     x = x + 2 * sz
 
 
-    ans = answer.house2
+    ans = info.house2
     if (ans) {
       thisX = ans.x
       thisY = ans.y
     }
-    it = drawWorkerAt(thisX,thisY,sz,'cube','green')
+    it = drawWorkerAt({x:thisX,y:thisY},sz,{shape:'cube',owner:'green'})
     it.classList.remove('green')
     it.style.backgroundColor = 'black'
     it.setAttribute('id','house2')
