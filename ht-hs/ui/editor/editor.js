@@ -15,6 +15,8 @@ function movable(it) {
 
 function editor(height,name) {
 
+  const upgrades = [ 'actions', 'movement', 'hiring', 'privilege', 'keys' ]
+
   const info = layout[name]
 
   let h = height
@@ -85,6 +87,12 @@ function editor(height,name) {
       info.house1 = { x: el1.offsetLeft, y: el1.offsetTop }
       const el2 = document.getElementById('house2')
       info.house2 = { x: el2.offsetLeft, y: el2.offsetTop }
+    }
+
+    for (let i = 0; i < upgrades.length; ++i) {
+      const name = upgrades[i]
+      const el = document.getElementById('upgrade-' + name)
+      info[name] = { x: el.offsetLeft, y: el.offsetTop }
     }
 
     const blob = new Blob( [ 'var ' + name + ' = ' +
@@ -285,6 +293,39 @@ function editor(height,name) {
     movable(it)
     dom.appendChild(it)
     x = x + 2 * sz
+  }
+
+  { // upgrade locations
+
+    const it = newSection("Upgrades",200)
+    for (let i = 0; i < upgrades.length; ++i) {
+      let thisX = x
+      let thisY = y
+      const name = upgrades[i]
+      const ans = info[name]
+      if (ans) {
+        thisX = ans.x
+        thisY = ans.y
+      } else {
+        x = x + 5 * sz
+      }
+
+      const it = document.createElement('div')
+      it.setAttribute('id','upgrade-' + name)
+      const style = it.style
+      style.position = 'absolute'
+      style.width = 4 * sz
+      style.height = 4 * sz
+      style.left = thisX
+      style.top  = thisY
+      style.backgroundColor = 'rgba(255,255,0,0.8)'
+      style.color = 'black'
+      style.fontSize = sz
+      it.textContent = name
+      movable(it)
+      dom.appendChild(it)
+    }
+
   }
 
 
