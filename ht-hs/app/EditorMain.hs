@@ -6,7 +6,6 @@ import qualified Board.Britannia3  as B3
 import qualified Board.Hansa45 as H45
 import qualified Board.Hansa3  as H3
 import qualified Board.East as E
-import Text.Show.Pretty(pPrint)
 
 main :: IO ()
 main =
