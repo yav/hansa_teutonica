@@ -166,20 +166,28 @@ function drawBoardIn(container,opts) {
       if (placed === undefined) placed = []
       const spot = placed.length
 
-      let loc = board.nodeSpot(node,spot)
+      const loc = board.nodeSpot(node,spot)
       if (loc === undefined) {
         const last = placed[spot - 1]
-        loc = { x: last.loc.x + 1.5 * workerSize(board.workerSize,last.shape)
+        return { x: last.loc.x + 1.5 * workerSize(board.workerSize,last.shape)
               , y: last.loc.y
               }
       }
       return loc
     }
 
-    const askOffice = function(node,ix) {
-      let info = placedOffices[node][ix]
+    const askFullOffice = function(node,ix) {
+      const info = placedOffices[node][ix]
       question.addFull(info.dom,function() {
         console.log('office in ' + node + ' at position ' + ix)
+      })
+    }
+
+    const askEmptyOffice = function(node,worker) {
+      const loc = nextOfficeLoc(node)
+      const el = drawWorkerAt(loc,board.workerSize,worker)
+      question.addEmpty(el,function() {
+        console.log('new office in ' + node)
       })
     }
 
@@ -205,7 +213,8 @@ function drawBoardIn(container,opts) {
     ui.askAnnex            = askAnnex
     ui.placeWorkerInOffice = addOffice
     ui.placeWorkerInOffice = addOffice
-    ui.askOffice           = askOffice
+    ui.askFullOffice       = askFullOffice
+    ui.askEmptyOffice      = askEmptyOffice
   }
 
 

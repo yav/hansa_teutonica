@@ -1,5 +1,6 @@
 function sample() {
   const redCube = { owner: 'red', shape: 'cube' }
+  const purpleCube = { owner: 'purple', shape: 'cube' }
   const greenDisc = { owner: 'green', shape: 'disc' }
   const board = { size: 700
                 , map: 'britannia_45'
@@ -11,7 +12,7 @@ function sample() {
                            }
                          }
                 , edges: { 17: { bonus: 'act_3'
-                                 , workers: [ redCube,greenDisc ] } }
+                                 , workers: [ redCube,greenDisc,purpleCube ] } }
                 , endVP: { 2: greenDisc }
                 }
   const ps = [ 'red','blue','green','yellow','purple' ]
@@ -43,12 +44,14 @@ function main() {
   const ui = drawBoardIn(body,state.board)
   ui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
   const purpleDisc = {owner:'purple', shape: 'disc'}
+  const greenCube = {owner:'green', shape: 'cube'}
   ui.askWorkerOnVP(0, purpleDisc)
   ui.askFullEdgeSpot(17,0)
   ui.askFullEdgeSpot(17,1)
   ui.askBonus(17)
   ui.askAnnex(23,purpleDisc)
-  ui.askOffice(23,0)
+  ui.askFullOffice(23,0)
+  ui.askEmptyOffice(23,greenCube)
   ui.removeBonus(17)
   ui.removeWorkerFromEdge(17,1)
   ui.askUpgrade('actions')
