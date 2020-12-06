@@ -29,12 +29,12 @@ body {
 
 
 @keyframes pulse {
-  from { box-shadow: 0 0 2px 2px #333; }
-  to   { box-shadow: 0 0 2px 2px #fff; }
+  from { color: #000; }
+  to   { color: #fff; }
 }
 
 .question {
-  box-shadow: 0 0 4px 4px #333;
+  box-shadow: 0 0 2px 2px;
   cursor: pointer;
   animation-name: pulse;
   animation-duration: 5s;
@@ -43,7 +43,11 @@ body {
 }
 
 .question.new {
-  background-color: rgba(0,0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.question:hover {
+  box-shadow: 0 0 4px 4px;
 }
 
 
@@ -55,6 +59,12 @@ body {
   display: inline-block;
   border-radius: 100%;
 }
+
+.question.bonus {
+  background-color: rgba(0,0,0,0);
+  opacity: 0.85;
+}
+
 .bonus:hover {
   transform: scale(2);
   z-index: 7;

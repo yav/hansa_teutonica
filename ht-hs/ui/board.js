@@ -224,8 +224,18 @@ function drawBoardIn(container,opts) {
       placedBonuses[edge] = el
     }
 
+    const askBonus = function(edge) {
+      const loc = board.bonusSpot(edge)
+      const el = drawAskBonusAt(loc, board.bonusSize)
+      el.style.transform = 'rotate(' + loc.rotate + 'deg)'
+      question.addEmpty(el,function(ev) {
+        console.log('bonus space on ' + edge)
+      })
+    }
 
-    // Initialize board
+
+    // Initialize board;  XXX: we should probably add questions too...
+    // but the initialization could be factored out.
     for (const i in opts.edges) {
       const edge = opts.edges[i]
       if (edge.bonus) placeBonus(i,edge.bonus)
@@ -240,6 +250,7 @@ function drawBoardIn(container,opts) {
     ui.askEmptyEdgeSpot  = askEmptyWorker
     ui.askFullEdgeSpot   = askFullWorker
     ui.placeBonus        = placeBonus
+    ui.askBonus          = askBonus
   }
 
 

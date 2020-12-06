@@ -100,9 +100,9 @@ function drawPlayer(opts) {
 
     return b
   }
-0
+
   function drawSupplyIn(b,which,shape,name) {
-    let it = drawWorker(wsize,shape,color)
+    let it = drawWorker(wsize,{owner:color, shape: shape})
     it.setAttribute('id', color + '-' + which + '-' + shape)
     it.setAttribute('title',name)
     it.textContent = opts[which][shape]

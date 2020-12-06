@@ -46,6 +46,7 @@ function main() {
   ui.askWorkerOnVP(0, purpleDisc)
   ui.askFullEdgeSpot(17,0)
   ui.askFullEdgeSpot(17,1)
+  ui.askBonus(17)
   for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
 
   for (const i in state.players) {
