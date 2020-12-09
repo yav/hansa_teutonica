@@ -1,5 +1,7 @@
 module Basics where
 
+import qualified Data.Aeson as JS
+
 type NodeId       = Int      -- ^ Identifies a city
 type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
@@ -32,3 +34,5 @@ replacementCost wt =
     Disc -> 2
 
 
+instance JS.FromJSON PlayerColor where
+  parseJSON = undefined
