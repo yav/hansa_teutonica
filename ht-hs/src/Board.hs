@@ -129,13 +129,13 @@ exportLayout board = unlines $
   [ "var map = { nodes:" ] ++
   list [ exportNodeSpot nid sid (nodeName n) spot
        | (nid,n) <- Map.toList (boardNodes board)
-       , (spot,sid)  <- addFake (nodeFreeSpots n) `zip` [ 0 .. ]
+       , (spot,sid)  <- addFake (nodeFreeSpots n) `zip` [ 0 :: Int .. ]
        ] ++
 
   [ ", edges:" ] ++
   list [ exportEdgeSpot eid spot sid
        | (eid,ed) <- Map.toList (boardEdges board)
-       , (spot,sid) <- edgeRequires ed `zip` [ 0 .. ]
+       , (spot,sid) <- edgeRequires ed `zip` [ 0 :: Int .. ]
        ] ++
   [ "}" ]
 
@@ -169,6 +169,6 @@ exportLayout board = unlines $
 
   lab i = show (nodeName (boardNodes board Map.! i))
   req x = show $ case x of
-                   Require Disc -> "disc"
+                   Require Disc -> "disc" :: Text
                    _ -> "cube"
 

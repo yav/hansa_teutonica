@@ -21,6 +21,7 @@ library
   exposed-modules:
     Basics, Player, Edge, Node, Stats, Bonus, Utils,
     Question, Game, Board, Geometry,
+    Interact,
     Actions.Place,
     Board.Builder,
     Board.Britannia45,
@@ -28,7 +29,8 @@ library
     Board.East,
     Board.Hansa45,
     Board.Hansa3
-  extensions: BlockArguments, NamedFieldPuns, ParallelListComp
+  extensions: BlockArguments, NamedFieldPuns, ParallelListComp,
+              OverloadedStrings
   build-depends:
     base >=4.13,
     containers, text, pretty-show, aeson
@@ -39,12 +41,12 @@ library
 executable ht-hs
   hs-source-dirs:      app
   main-is:             Main.hs
-  other-modules:       Server
   extensions: BlockArguments, NamedFieldPuns, ParallelListComp,
                                                         OverloadedStrings
   build-depends:
     base >=4.13,
     containers,
+    bytestring,
     text,
     ht-hs,
     pretty-show,

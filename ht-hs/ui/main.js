@@ -38,6 +38,7 @@ function sample() {
 }
 
 function main() {
+  srvConnect('ws://0.0.0.0:8000')
 
   const body = document.getElementById('main')
   const state = sample()

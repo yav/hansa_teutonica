@@ -34,5 +34,39 @@ replacementCost wt =
     Disc -> 2
 
 
+
+--------------------------------------------------------------------------------
 instance JS.FromJSON PlayerColor where
-  parseJSON = undefined
+  parseJSON = JS.withText "player color" \txt ->
+    case txt of
+      "blue"    -> pure Blue
+      "red"     -> pure Red
+      "green"   -> pure Green
+      "yellow"  -> pure Yellow
+      "purple"  -> pure Purple
+      _         -> fail "Malformed color"
+
+instance JS.ToJSON PlayerColor where
+  toJSON color =
+    case color of
+      Blue    -> "blue"
+      Red     -> "red"
+      Green   -> "green"
+      Yellow  -> "yellow"
+      Purple  -> "purple"
+
+instance JS.FromJSON WorkerType where
+  parseJSON = JS.withText "worker type" \txt ->
+    case txt of
+      "cube" -> pure Cube
+      "disc" -> pure Disc
+      _      -> fail "Malformed worker type"
+
+instance JS.ToJSON WorkerType where
+  toJSON workerType =
+    case workerType of
+      Disc -> "disc"
+      Cube -> "cube"
+
+
+

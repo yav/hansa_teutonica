@@ -72,4 +72,5 @@ step answer i
   question       = iAsk i
 
 
-
+initialGameState :: Interaction
+initialGameState = undefined
