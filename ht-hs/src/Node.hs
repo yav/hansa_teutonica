@@ -27,6 +27,9 @@ import Data.List(maximumBy)
 import Data.Function(on)
 import qualified Data.Map as Map
 
+import qualified Data.Aeson as JS
+import Data.Aeson ((.=))
+
 import Basics
 import Stats
 
@@ -125,4 +128,12 @@ nodeControlledBy n =
         $ zip (fullSpots n ++ reverse (nodeExtra n))
         $ iterate (/2) (1/2)
 
+
+--------------------------------------------------------------------------------
+
+instance JS.ToJSON Node where
+  toJSON n =
+    JS.object [ "annex"  .= reverse (nodeExtra n)
+              , "office" .= reverse (fullSpots n)
+              ]
 

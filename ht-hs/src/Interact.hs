@@ -13,12 +13,12 @@ data SystemInMsg =
 
 data InMsg = System SystemInMsg | External ExternalInMsg
 
-data OutMsg = OutMsg
+data OutMsg = PlaceWorkerOnEdge EdgeId Worker
 
 data ExternalInMsg = InMsg
 
 instance JS.ToJSON OutMsg where
-  toJSON OutMsg = JS.object []
+  toJSON = undefined
 
 instance JS.FromJSON ExternalInMsg where
   parseJSON = undefined

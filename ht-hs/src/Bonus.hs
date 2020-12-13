@@ -1,5 +1,7 @@
 module Bonus where
 
+import qualified Data.Aeson as JS
+
 data BonusToken =
     BonusUpgrade
   | BonusSwap
@@ -29,4 +31,13 @@ data FixedBonus =
   | BonusReuse2
   deriving (Eq,Ord,Show)
 
+instance JS.ToJSON BonusToken where
+  toJSON token =
+    case token of
+      BonusUpgrade -> "upgrade"
+      BonusSwap    -> "swap"
+      BonusMove    -> "move"
+      BonusExtra   -> "extra"
+      BonusAct4    -> "act_4"
+      BonusAct3    -> "act_3"
 

@@ -288,7 +288,7 @@ function drawBoardIn(container,opts) {
       if (edge.bonus) placeBonus(i,edge.bonus)
 
       const workers = edge.workers
-      for (let j = 0; j < workers.length; ++j) placeWorker(i,j,workers[j])
+      for (const j in workers) placeWorker(i,j,workers[j])
     }
 
 
@@ -318,6 +318,7 @@ function drawBoardIn(container,opts) {
       })
     }
 
+    // Initialize
     for (const i in opts.endVP) placeWorker(i,opts.endVP[i])
 
     // exported:

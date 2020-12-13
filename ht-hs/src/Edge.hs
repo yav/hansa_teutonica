@@ -23,6 +23,10 @@ import Data.Maybe(mapMaybe)
 import Control.Monad(guard)
 import Data.Set(Set)
 import qualified Data.Set as Set
+import Data.String(fromString)
+
+import qualified Data.Aeson as JS
+import Data.Aeson ((.=))
 
 import Basics
 import Bonus
@@ -131,7 +135,7 @@ data InitEdge =
     }
 
 -- | A blank edge with the given requirements.
-edge :: InitEdge-> Edge
+edge :: InitEdge -> Edge
 edge InitEdge { initEdgeBonus, initEdgeSpots } =
   Edge
     { edgeSpots = map edgeSpot initEdgeSpots
@@ -139,3 +143,24 @@ edge InitEdge { initEdgeBonus, initEdgeSpots } =
                     Nothing    -> NoBonus
                     Just bonus -> FixedBonus bonus
     }
+
+
+--------------------------------------------------------------------------------
+
+
+instance JS.ToJSON Edge where
+  toJSON e = JS.object (optionalBonus [ "workers" .= JS.object workerFields ])
+     where
+     optionalBonus others =
+       case edgeBonus e of
+         Bonus b -> ("bonus" .= b) : others
+         _       -> others
+
+     keys = [ 0 :: Int .. ]
+
+     workerFields =
+       [ fromString (show i) .= w
+       | (i, EdgeSpot { edgeSpotWorker = Just w }) <- keys `zip` edgeSpots e
+       ]
+
+

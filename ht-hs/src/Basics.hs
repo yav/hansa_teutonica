@@ -1,5 +1,6 @@
 module Basics where
 
+import Data.Aeson ((.=))
 import qualified Data.Aeson as JS
 
 type NodeId       = Int      -- ^ Identifies a city
@@ -36,16 +37,6 @@ replacementCost wt =
 
 
 --------------------------------------------------------------------------------
-instance JS.FromJSON PlayerColor where
-  parseJSON = JS.withText "player color" \txt ->
-    case txt of
-      "blue"    -> pure Blue
-      "red"     -> pure Red
-      "green"   -> pure Green
-      "yellow"  -> pure Yellow
-      "purple"  -> pure Purple
-      _         -> fail "Malformed color"
-
 instance JS.ToJSON PlayerColor where
   toJSON color =
     case color of
@@ -55,6 +46,20 @@ instance JS.ToJSON PlayerColor where
       Yellow  -> "yellow"
       Purple  -> "purple"
 
+instance JS.ToJSON WorkerType where
+  toJSON workerType =
+    case workerType of
+      Disc -> "disc"
+      Cube -> "cube"
+
+instance JS.ToJSON Worker where
+  toJSON worker =
+    JS.object [ "owner" .= workerOwner worker
+              , "shape" .= workerType worker
+              ]
+
+
+
 instance JS.FromJSON WorkerType where
   parseJSON = JS.withText "worker type" \txt ->
     case txt of
@@ -62,11 +67,14 @@ instance JS.FromJSON WorkerType where
       "disc" -> pure Disc
       _      -> fail "Malformed worker type"
 
-instance JS.ToJSON WorkerType where
-  toJSON workerType =
-    case workerType of
-      Disc -> "disc"
-      Cube -> "cube"
-
+instance JS.FromJSON PlayerColor where
+  parseJSON = JS.withText "player color" \txt ->
+    case txt of
+      "blue"    -> pure Blue
+      "red"     -> pure Red
+      "green"   -> pure Green
+      "yellow"  -> pure Yellow
+      "purple"  -> pure Purple
+      _         -> fail "Malformed color"
 
 

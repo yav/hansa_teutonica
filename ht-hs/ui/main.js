@@ -12,7 +12,9 @@ function sample() {
                            }
                          }
                 , edges: { 17: { bonus: 'act_3'
-                                 , workers: [ redCube,greenDisc,purpleCube ] } }
+                               , workers: { 0: redCube, 2:purpleCube }
+                               }
+                         }
                 , endVP: { 2: greenDisc }
                 }
   const ps = [ 'red','blue','green','yellow','purple' ]
@@ -46,6 +48,7 @@ function main() {
   ui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
   const purpleDisc = {owner:'purple', shape: 'disc'}
   const greenCube = {owner:'green', shape: 'cube'}
+/*
   ui.askWorkerOnVP(0, purpleDisc)
   ui.askFullEdgeSpot(17,0)
   ui.askFullEdgeSpot(17,1)
@@ -58,6 +61,7 @@ function main() {
   ui.askUpgrade('actions')
   ui.askUpgrade('privilege')
   for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
+*/
 
   for (const i in state.players) {
     body.appendChild(drawPlayer(state.players[i]))
