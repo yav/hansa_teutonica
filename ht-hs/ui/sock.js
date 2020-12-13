@@ -1,3 +1,8 @@
+const handlers = {
+}
+
+
+
 function srvConnect(url) {
   let ws = new WebSocket(url)
 
@@ -8,7 +13,7 @@ function srvConnect(url) {
 
   ws.onmessage = function(e) {
     const msg = JSON.parse(e.data)
-    msg.fun(...msg.args)
+    handlers[msg.fun](ws,...msg.args)
   }
 
   ws.onclose = function(e) {
