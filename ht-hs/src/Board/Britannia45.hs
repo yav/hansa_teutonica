@@ -6,7 +6,9 @@ import Board.Builder
 board :: Board
 board = buildBoard
   BoardBuilder
-    { nodes =
+    { name = "britannia_45"
+    , maxFull = 8
+    , nodes =
         [ NodeBuilder
             { nodeInit =
                 InitNode

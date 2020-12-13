@@ -19,6 +19,7 @@ module Node
   , nodeFreeSpots
   , nodeRightMost
   , nodeControlledBy
+  , nodeIsFull
   ) where
 
 import Data.Text(Text)
@@ -44,6 +45,7 @@ data Node = Node
   , fullSpots     :: [Worker]
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
+  , nodeIsGreen   :: Bool
   } deriving Show
 
 -- | A spot in a node
@@ -68,6 +70,7 @@ node InitNode { initNodeName, initNodeActions, initNodeSpots } =
        , emptySpots = initNodeSpots
        , nodeExtra = []
        , nodeActions' = initNodeActions
+       , nodeIsGreen = null initNodeSpots
        }
 
 -- | Name of this node
@@ -128,6 +131,11 @@ nodeControlledBy n =
         $ zip (fullSpots n ++ reverse (nodeExtra n))
         $ iterate (/2) (1/2)
 
+-- | Is this node full, for the purposes of end-game counting
+nodeIsFull :: Node -> Bool
+nodeIsFull n
+  | nodeIsGreen n = not (null (fullSpots n))
+  | otherwise = null (nodeFreeSpots n)
 
 --------------------------------------------------------------------------------
 

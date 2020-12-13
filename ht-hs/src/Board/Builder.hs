@@ -38,14 +38,19 @@ data EdgeBuilder = EdgeBuilder
   }
 
 data BoardBuilder = BoardBuilder
-  { nodes :: [NodeBuilder]
-  , edges :: [EdgeBuilder]
+  { nodes   :: [NodeBuilder]
+  , edges   :: [EdgeBuilder]
+  , maxFull :: Int
+  , name    :: Text
   }
 
 buildBoard :: BoardBuilder -> Board
 buildBoard builder =
   Board
-    { boardNodes = Map.fromList [ (i, node n) | i <- [ 0 .. ] | n <- nodeInits ]
+    { boardName = name builder
+    , boardMaxFull = maxFull builder
+    , boardEndVP = Map.empty
+    , boardNodes = Map.fromList [ (i, node n) | i <- [ 0 .. ] | n <- nodeInits ]
     , boardEdges = Map.fromList [ (i, edge e) | i <- [ 0 .. ] | e <- edgeInits ]
     , boardGeometry = foldr addCon geoEmpty (zip [ 0 .. ] (edges builder))
     , boardEdgeProvince = Map.fromList

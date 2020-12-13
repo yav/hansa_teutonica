@@ -31,6 +31,9 @@ import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
 
+import qualified Data.Aeson as JS
+import Data.Aeson ((.=))
+
 import Basics
 import Utils
 import Stats
@@ -117,3 +120,23 @@ addVP n = \s -> s { points = n + points s }
 
 getVP :: Player -> Int
 getVP = points
+
+--------------------------------------------------------------------------------
+
+instance JS.ToJSON Player where
+  toJSON p = JS.object $
+    [ statAsKey s .= v | (s,v) <- Map.toList (playerStats p) ] ++
+    [ "available"     .= workerObject (availableWorkers p)
+    , "unavailable"   .= workerObject (unavailableWorkers p)
+    , "vp"            .= points p
+    , "bonuses"       .= bonusObj
+    , "spentBonusus"  .= length (usedBonuses p)
+    ]
+
+
+    where
+    workerObject mp =
+      JS.object [ workerTypeToKey w .= v | (w,v) <- Map.toList mp ]
+    usedBonusMap = Map.fromListWith (+) [ (b,1::Int) | b <- availableBonuses p ]
+    bonusObj = JS.object [bonusAsKey b .= v | (b,v) <- Map.toList usedBonusMap]
+

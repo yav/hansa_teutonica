@@ -304,8 +304,10 @@ function drawBoardIn(container,opts) {
 
 
   { // endVP
+
+    // first spot is 1 (required priv)
     const placeWorker = function(spot, worker) {
-      const loc = board.ptsSpot(spot)
+      const loc = board.ptsSpot(spot - 1)
       const el = drawWorkerAt(loc, board.workerSize, worker)
       dom.appendChild(el)
     }
@@ -319,7 +321,9 @@ function drawBoardIn(container,opts) {
     }
 
     // Initialize
-    for (const i in opts.endVP) placeWorker(i,opts.endVP[i])
+    for (const i in opts.endVP) placeWorker(i, { shape: 'disc'
+                                               , owner: opts.endVP[i]
+                                               })
 
     // exported:
     ui.placeWorkerOnVP = placeWorker

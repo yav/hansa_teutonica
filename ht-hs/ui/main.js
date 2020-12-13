@@ -1,3 +1,12 @@
+let gui
+
+function uiDrawBoard(ws,board) {
+  const body = document.getElementById('main')
+  const state = sample()
+  board.size = 700
+  gui = drawBoardIn(body,board)
+}
+
 function sample() {
   const redCube = { owner: 'red', shape: 'cube' }
   const purpleCube = { owner: 'purple', shape: 'cube' }
@@ -15,7 +24,7 @@ function sample() {
                                , workers: { 0: redCube, 2:purpleCube }
                                }
                          }
-                , endVP: { 2: greenDisc }
+                , endVP: { 2: 'green' }
                 }
   const ps = [ 'red','blue','green','yellow','purple' ]
   const players = {}
@@ -44,8 +53,8 @@ function main() {
 
   const body = document.getElementById('main')
   const state = sample()
-  const ui = drawBoardIn(body,state.board)
-  ui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
+  gui = drawBoardIn(body,state.board)
+  gui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
   const purpleDisc = {owner:'purple', shape: 'disc'}
   const greenCube = {owner:'green', shape: 'cube'}
 /*

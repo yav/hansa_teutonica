@@ -1,5 +1,7 @@
 module Stats where
 
+import Data.Text(Text)
+
 import Basics
 
 data Stat = Keys | Actions | Privilege | Movement | Hire
@@ -65,6 +67,21 @@ hireLimit level =
     3 -> Just 7
     _ -> Nothing
 
+endVPTrack :: Level -> Int
+endVPTrack priv =
+  case priv of
+    1 -> 7
+    2 -> 8
+    3 -> 9
+    4 -> 11
+    _ -> 0
 
-
-
+--------------------------------------------------------------------------------
+statAsKey :: Stat -> Text
+statAsKey stat =
+  case stat of
+    Keys      -> "keys"
+    Actions   -> "actions"
+    Privilege -> "privilege"
+    Movement  -> "movement"
+    Hire      -> "hire"

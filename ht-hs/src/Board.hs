@@ -6,17 +6,25 @@ import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.List(nub)
+import Data.String(fromString)
 import Control.Applicative((<|>))
 import Control.Monad(guard)
 
+import qualified Data.Aeson as JS
+import Data.Aeson ((.=))
+
 import Basics
+import Stats
 import Node
 import Edge
 import Geometry
 import Question
 
 data Board = Board
-  { boardNodes             :: Map NodeId Node
+  { boardName              :: Text
+    -- ^ Identifier for the map
+
+  , boardNodes             :: Map NodeId Node
     -- ^ State of the nodes on the board
 
   , boardEdges             :: Map EdgeId Edge
@@ -29,12 +37,21 @@ data Board = Board
     -- ^ Special edge restrictions.
 
   , boardProvinces         :: Map ProvinceId Province
+    -- ^ Informations about the special regions.
 
   , boardCapital           :: Maybe ProvinceId
     -- ^ This node gives access to all provinces
 
+  , boardMaxFull           :: Int
+    -- ^ This many full cities to end the game
+
   , boardInitialTokens     :: Set EdgeId
+    -- ^ Where to place initial tokens
+
+  , boardEndVP             :: Map Level PlayerColor
+    -- ^ Occupied spots on end-game point track, indexed by privilege
   } deriving Show
+
 
 data Province = Province
   { provinceName    :: Text           -- ^ Name of the province
@@ -42,17 +59,6 @@ data Province = Province
   , provinceNodes   :: Set NodeId     -- ^ These cities are in the province
   } deriving Show
 
-
-emptyBoard :: Board
-emptyBoard = Board
-  { boardNodes = Map.empty
-  , boardEdges = Map.empty
-  , boardGeometry = geoEmpty
-  , boardEdgeProvince = Map.empty
-  , boardProvinces = Map.empty
-  , boardCapital = Nothing
-  , boardInitialTokens = Set.empty
-  }
 
 modifyEdge :: EdgeId -> (Edge -> Edge) -> Board -> Board
 modifyEdge edgeId f board =
@@ -123,6 +129,9 @@ occupiedSpots board provinceOk workerT workerOk =
   ]
 
 
+countFull :: Board -> Int
+countFull = Map.size . Map.filter nodeIsFull . boardNodes
+
 
 exportLayout :: Board -> String
 exportLayout board = unlines $
@@ -171,4 +180,20 @@ exportLayout board = unlines $
   req x = show $ case x of
                    Require Disc -> "disc" :: Text
                    _ -> "cube"
+
+
+--------------------------------------------------------------------------------
+instance JS.ToJSON Board where
+  toJSON b =
+    JS.object
+      [ "map"     .= boardName b
+      , "nodes"   .= doMap (boardNodes b)
+      , "edges"   .= doMap (boardEdges b)
+      , "fullMax" .= boardMaxFull b
+      , "full"    .= countFull b
+      , "endVP"   .= doMap (boardEndVP b)
+      ]
+    where
+    doMap m = JS.object [ (fromString (show k) .= v) | (k,v) <- Map.toList m ]
+
 

@@ -1,5 +1,6 @@
 module Basics where
 
+import Data.Text(Text)
 import Data.Aeson ((.=))
 import qualified Data.Aeson as JS
 
@@ -46,11 +47,16 @@ instance JS.ToJSON PlayerColor where
       Yellow  -> "yellow"
       Purple  -> "purple"
 
+workerTypeToKey :: WorkerType -> Text
+workerTypeToKey workerType =
+  case workerType of
+    Disc -> "disc"
+    Cube -> "cube"
+
+
+
 instance JS.ToJSON WorkerType where
-  toJSON workerType =
-    case workerType of
-      Disc -> "disc"
-      Cube -> "cube"
+  toJSON = JS.toJSON . workerTypeToKey
 
 instance JS.ToJSON Worker where
   toJSON worker =
