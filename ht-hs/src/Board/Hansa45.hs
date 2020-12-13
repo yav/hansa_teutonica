@@ -1,4 +1,3 @@
-{-# Language OverloadedStrings #-}
 module Board.Hansa45 where
 
 import Board.Builder

@@ -1,4 +1,3 @@
-{-# Language OverloadedStrings #-}
 module Board.East where
 import Board.Builder
 

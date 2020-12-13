@@ -1,4 +1,3 @@
-{-# Language OverloadedStrings #-}
 module Actions.Place where
 
 import qualified Data.Set as Set

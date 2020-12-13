@@ -1,4 +1,3 @@
-{-# Language OverloadedStrings #-}
 module Board.Britannia3 where
 
 import Board.Builder
