@@ -21,7 +21,6 @@ library
   exposed-modules:
     Basics, Player, Edge, Node, Stats, Bonus, Utils,
     Question, Game, Board, Geometry,
-    Interact,
     Actions.Place,
     Board.Builder,
     Board.Britannia45,

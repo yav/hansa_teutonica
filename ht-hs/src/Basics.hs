@@ -38,22 +38,23 @@ replacementCost wt =
 
 
 --------------------------------------------------------------------------------
+playerColorToKey :: PlayerColor -> Text
+playerColorToKey color =
+  case color of
+    Blue    -> "blue"
+    Red     -> "red"
+    Green   -> "green"
+    Yellow  -> "yellow"
+    Purple  -> "purple"
+
 instance JS.ToJSON PlayerColor where
-  toJSON color =
-    case color of
-      Blue    -> "blue"
-      Red     -> "red"
-      Green   -> "green"
-      Yellow  -> "yellow"
-      Purple  -> "purple"
+  toJSON = JS.toJSON . playerColorToKey
 
 workerTypeToKey :: WorkerType -> Text
 workerTypeToKey workerType =
   case workerType of
     Disc -> "disc"
     Cube -> "cube"
-
-
 
 instance JS.ToJSON WorkerType where
   toJSON = JS.toJSON . workerTypeToKey

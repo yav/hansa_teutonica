@@ -13,6 +13,7 @@ import Edge
 import Question
 import Game
 
+{-
 tryPlace :: Turn -> WorkerType -> Maybe Question
 tryPlace turn workerT =
   do guard ( turnActionsDone turn < turnActionLimit turn &&
@@ -72,5 +73,5 @@ tryPlace turn workerT =
           }
 
 
-
+-}
 

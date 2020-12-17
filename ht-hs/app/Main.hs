@@ -17,7 +17,6 @@ import System.FastLogger(Logger,logMsg,newLogger)
 
 import Basics
 import Game
-import Interact
 
 main :: IO ()
 main =
@@ -35,7 +34,7 @@ data Server = Server
 
 data State = State
   { connected :: Map PlayerColor Connection
-  , gameState :: Interaction
+  , gameState :: Game
   }
 
 newServer :: IO Server
