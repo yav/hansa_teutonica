@@ -63,61 +63,79 @@ zeroState = Player
 -- 0 based turn order
 initialPlayer :: Int -> Player
 initialPlayer turnOrder =
-     hireWorker (turnOrder + 1) Cube
-  $  changeUnavailable 7 Cube
+     hireWorker Cube (turnOrder + 1)
+  $  changeUnavailable Cube 7
   $ foldr levelUp zeroState enumAll
 
 
 
 --------------------------------------------------------------------------------
-changeAvailable :: Int -> WorkerType -> Player -> Player
-changeAvailable n w =
+
+-- | Add this many workers to the pool of available worker.
+-- Use negative number to decrease the number of workers.
+changeAvailable :: WorkerType -> Int -> Player -> Player
+changeAvailable w n =
   \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
 
-getAvailable :: WorkerType -> Player -> Int
-getAvailable w = \s -> availableWorkers s Map.! w
+-- | How many workers of the given type we have.
+getAvailable :: Player -> WorkerType -> Int
+getAvailable s w = availableWorkers s Map.! w
 
-changeUnavailable :: Int -> WorkerType -> Player -> Player
-changeUnavailable n w =
+-- | Add this many workers to the pool of unavailable worker.
+-- Use negative number to decrease the number of workers.
+changeUnavailable :: WorkerType -> Int -> Player -> Player
+changeUnavailable w n =
   \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
 
-getUnavailable :: WorkerType -> Player -> Int
-getUnavailable w = \s -> unavailableWorkers s Map.! w
+-- | How many workers of the given type we have.
+getUnavailable :: Player -> WorkerType -> Int
+getUnavailable s w = unavailableWorkers s Map.! w
 
-hireWorker :: Int -> WorkerType -> Player -> Player
-hireWorker n w = changeAvailable n w . changeUnavailable (-n) w
+-- | Move the given number of workers from unavailable to available.
+hireWorker :: WorkerType -> Int -> Player -> Player
+hireWorker w n = changeAvailable w n . changeUnavailable w (-n)
 
 
 --------------------------------------------------------------------------------
+
+-- | Add a bonus token to the player.
 gainBonus :: BonusToken -> Player -> Player
 gainBonus b = \s -> s { availableBonuses = b : availableBonuses s }
 
+-- | Mark a bonus token as spent.
 useBonus :: BonusToken -> Player -> Player
 useBonus b = \s ->
   s { availableBonuses = List.delete b (availableBonuses s)
     , usedBonuses      = b : usedBonuses s
     }
 
+-- | Get available bonus tokens.
 getBonuses :: Player -> [BonusToken]
 getBonuses = availableBonuses
 
+-- | Get spent bonus tokens.
 getUsedBonuses :: Player -> [BonusToken]
 getUsedBonuses = usedBonuses
 
 --------------------------------------------------------------------------------
+
+-- | Increase a player's state.  This will also give them an extra worker.
 levelUp :: Stat -> Player -> Player
-levelUp stat = changeAvailable 1 (statWorker stat) . bumpLevel
+levelUp stat = changeAvailable (statWorker stat) 1 . bumpLevel
   where
   bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
-getLevel :: Stat -> Player -> Level
-getLevel stat = \s -> playerStats s Map.! stat
+-- | Get the level of the specified stat
+getLevel :: Player -> Stat -> Level
+getLevel s stat = playerStats s Map.! stat
 
 --------------------------------------------------------------------------------
 
+-- | Add so many VP to the player.
 addVP :: Int -> Player -> Player
 addVP n = \s -> s { points = n + points s }
 
+-- | Get the player's VP.
 getVP :: Player -> Int
 getVP = points
 

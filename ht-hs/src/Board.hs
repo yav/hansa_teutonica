@@ -5,7 +5,6 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import Data.List(nub)
 import Data.String(fromString)
 import Control.Applicative((<|>))
 import Control.Monad(guard)
@@ -110,8 +109,8 @@ freeSpots board provinceOk workerT =
   [ ChEdge edgeId spot Nothing
   | (edgeId,edgeState) <- Map.toList (boardEdges board)
   , provinceOk (edgeProvince board edgeId)
-  , spot <- Set.toList (edgeFreeSpots edgeState)
-  , accepts spot workerT
+  , (spotReq,spot) <- edgeFreeSpots edgeState
+  , accepts spotReq workerT
   ]
 
 occupiedSpots ::
@@ -124,8 +123,8 @@ occupiedSpots board provinceOk workerT workerOk =
   [ ChEdge edgeId spot (Just worker)
   | (edgeId, edgeState) <- Map.toList (boardEdges board)
   , provinceOk (edgeProvince board edgeId)
-  , (spot,worker) <- nub (edgeWorkers edgeState)
-  , accepts spot workerT && workerOk worker
+  , (spot,worker) <- edgeWorkers edgeState
+  , workerType worker == workerT && workerOk worker
   ]
 
 

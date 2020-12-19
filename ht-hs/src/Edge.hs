@@ -5,8 +5,7 @@ module Edge
   , InitEdge(..)
 
     -- * Manipulation
-  , edgeAddWorker
-  , edgeRemoveWorker
+  , edgeSetWorker
   , edgeRemoveWorkers
   , edgeRemoveBonus
   , edgeSetBonus
@@ -19,10 +18,8 @@ module Edge
   , BonusSpot(..)
   ) where
 
-import Data.Maybe(mapMaybe)
-import Control.Monad(guard)
-import Data.Set(Set)
-import qualified Data.Set as Set
+import Data.Map(Map)
+import qualified Data.Map as Map
 import Data.String(fromString)
 
 import qualified Data.Aeson as JS
@@ -38,11 +35,6 @@ data EdgeSpot = EdgeSpot
 
 setSpotWorker :: Maybe Worker -> EdgeSpot -> EdgeSpot
 setSpotWorker mb = \e -> e { edgeSpotWorker = mb }
-
-getSpotWorker :: EdgeSpot -> Maybe (RequireWorker, Worker)
-getSpotWorker spot =
-  do w <- edgeSpotWorker spot
-     pure (edgeSpotType spot, w)
 
 edgeSpot :: RequireWorker -> EdgeSpot
 edgeSpot w = EdgeSpot { edgeSpotWorker = Nothing, edgeSpotType = w }
@@ -76,50 +68,30 @@ edgeSetBonus b ed = case edgeBonus ed of
                       NoBonus -> ed { edgeBonus = Bonus b }
                       _       -> ed
 
+-- | Set the worker on the edge spot with the given index.
+edgeSetWorker :: Int -> Maybe Worker -> Edge -> Edge
+edgeSetWorker n w e =
+  case splitAt n (edgeSpots e) of
+    (as,b:bs) -> e { edgeSpots = as ++ b { edgeSpotWorker = w } : bs }
+    _         -> e
 
-modifyEdge :: (EdgeSpot -> Maybe EdgeSpot) -> Edge -> Edge
-modifyEdge f ed = ed { edgeSpots = search (edgeSpots ed) }
-  where
-  search es =
-    case es of
-      [] -> []
-      e : more ->
-        case f e of
-          Just e1 -> e1 : more
-          Nothing -> e : search es
-
--- | Remove a worker of the given type, from one of the spots with
--- the given requirements.
-edgeRemoveWorker :: RequireWorker -> Worker -> Edge -> Edge
-edgeRemoveWorker t w = modifyEdge match
-  where
-  match spot = do w1 <- getSpotWorker spot
-                  guard ((t,w) == w1)
-                  pure (setSpotWorker Nothing spot)
-
--- | Add a worker to one of the spots with the given requirement.
-edgeAddWorker :: RequireWorker -> Worker -> Edge -> Edge
-edgeAddWorker t w = modifyEdge match
-  where
-  match spot = case edgeSpotWorker spot of
-                 Nothing | edgeSpotType spot == t ->
-                   Just (setSpotWorker (Just w) spot)
-                 _ -> Nothing
-
+-- | Get the requiments for the various spots on the edge.
 edgeRequires :: Edge -> [RequireWorker]
 edgeRequires = map edgeSpotType . edgeSpots
 
 -- | Compute the various types of free spots on the edge.
-edgeFreeSpots :: Edge -> Set RequireWorker
-edgeFreeSpots = Set.unions . map getFree . edgeSpots
+-- We only return one free spot per requirement type.
+edgeFreeSpots :: Edge -> [(RequireWorker,Int)]
+edgeFreeSpots = Map.toList . Map.unions . zipWith getFree [ 0 .. ] . edgeSpots
   where
-  getFree spot = case edgeSpotWorker spot of
-                   Nothing -> Set.singleton (edgeSpotType spot)
-                   Just _  -> Set.empty
+  getFree n spot = case edgeSpotWorker spot of
+                     Nothing -> Map.singleton (edgeSpotType spot) n
+                     Just _  -> Map.empty
 
 -- | Get all workers on the edge.
-edgeWorkers :: Edge -> [(RequireWorker, Worker)]
-edgeWorkers = mapMaybe getSpotWorker . edgeSpots
+edgeWorkers :: Edge -> [(Int, Worker)]
+edgeWorkers e =
+  [ (n,w) | (n,Just w) <- zip [0..] (map edgeSpotWorker (edgeSpots e)) ]
 
 -- | Remove all workers from an edge.
 edgeRemoveWorkers :: Edge -> Edge

@@ -10,7 +10,7 @@ data Choice =
     ChActiveWorker WorkerType
   | ChPassiveWorker WorkerType
   | ChBonusToken BonusToken
-  | ChEdge EdgeId RequireWorker (Maybe Worker)
+  | ChEdge EdgeId Int (Maybe Worker)
   | ChAction NodeAction
   | ChDone
     deriving (Show)
