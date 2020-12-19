@@ -1,9 +1,21 @@
-module Game where
+module Game
+  ( GameState
+  , initialGameState
+  , getOutput
+
+    -- * Game State Manipulation
+  , Game
+  , runGame
+  , view
+  , update
+  , OutMsg(..)
+  ) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
+import Control.Monad(ap,liftM)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -12,21 +24,58 @@ import Basics
 import Bonus
 import Player
 import Board
-import Question
 
-import qualified Board.Britannia45 as B45
 
-data Game = Game
+newtype Game a = Game (GameState -> (a,GameState))
+
+data OutMsg = PlaceWorkerOnEdge EdgeId Worker
+  deriving Show
+
+runGame :: Game a -> GameState -> (a,GameState)
+runGame (Game m) s = m s
+
+instance Functor Game where
+  fmap = liftM
+
+instance Applicative Game where
+  pure a = Game \s -> (a,s)
+  (<*>)  = ap
+
+instance Monad Game where
+  Game m >>= f = Game \s -> case m s of
+                              (a,s1) ->
+                                 let Game m1 = f a
+                                 in m1 s1
+
+
+data GameState = GameState
   { gamePlayers   :: Map PlayerColor Player
   , gameTurnOrder :: [PlayerColor]
-  , gameBoard     :: Board
   , gameStatus    :: GameStatus
+  , gameOutput    :: [WithPlayer OutMsg]
   } deriving Show
+
+getOutput :: GameState -> ([WithPlayer OutMsg],GameState)
+getOutput i = (gameOutput i, i { gameOutput = [] })
+
+doUpdate :: (GameState -> GameState) -> Game ()
+doUpdate f = Game \s -> ((), f s)
+
+output :: WithPlayer OutMsg -> Game ()
+output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
+
+
+update :: OutMsg -> Game ()
+update = undefined
+
+view :: (GameState -> a) -> Game a
+view f = Game \s -> (f s, s)
 
 
 data GameStatus =
-    InProgress Turn
-  | Finished
+    GameStarting (Set PlayerColor) (Maybe Board)
+  | GameInProgress Turn
+  | GameFinished Board
     deriving Show
 
 data Turn = Turn
@@ -35,50 +84,32 @@ data Turn = Turn
   , turnActionLimit   :: Int
   , turnUsedGateways  :: Set ProvinceId
   , turnPlaceBonus    :: [BonusToken]
-  , turnContinue      :: Map Choice Game
   } deriving Show
 
-getPlayer :: Game -> PlayerColor -> Player
-getPlayer Game { gamePlayers } p = gamePlayers Map.! p
 
 
--- XXX: just testing
-initialGameState :: Game
-initialGameState = Game
-  { gamePlayers = Map.fromList [ (Yellow, initialPlayer 0)
-                               , (Red,    initialPlayer 1)
-                               ]
-  , gameTurnOrder = [ Yellow, Red ]
-  , gameBoard  = B45.board
-  , gameStatus = InProgress
-    Turn
-      { turnCurrentPlayer = Yellow
-      , turnActionsDone   = 0
-      , turnActionLimit   = 5
-      , turnUsedGateways  = Set.empty
-      , turnPlaceBonus    = []
-      , turnContinue      = Map.empty
-      }
+initialGameState :: GameState
+initialGameState = GameState
+  { gamePlayers = Map.empty
+  , gameTurnOrder = []
+  , gameStatus = GameStarting Set.empty Nothing
+  , gameOutput = []
   }
 
 
 
-instance JS.ToJSON Game where
+instance JS.ToJSON GameState where
   toJSON g = JS.object
     [ "players" .=
         JS.object [ playerColorToKey pId .= p
                   | (pId,p) <- Map.toList (gamePlayers g)
                   ]
     , "turnOrder" .= gameTurnOrder g
-    , "board"     .= gameBoard g
     , "status"    .= gameStatus g
     ]
 
 instance JS.ToJSON GameStatus where
-  toJSON status =
-    case status of
-      InProgress t -> JS.toJSON t
-      Finished     -> JS.Null
+  toJSON = undefined
 
 
 instance JS.ToJSON Turn where
@@ -88,3 +119,10 @@ instance JS.ToJSON Turn where
     , "actLimit" .= turnActionLimit t
     , "bonuses"  .= length (turnPlaceBonus t)
     ]
+
+
+--------------------------------------------------------------------------------
+instance JS.ToJSON OutMsg where
+  toJSON = undefined
+
+

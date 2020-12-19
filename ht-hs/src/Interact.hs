@@ -7,11 +7,7 @@ module Interact
   -- * Building Interactions
   , Interact
   , onInput
-  , output
   , game
-  , game_
-  , gameView
-  , gameGet
 
   -- * XXX
   , handleMessage
@@ -34,7 +30,7 @@ import Game
 
 data InteractState =
   InteractState
-    { iGame :: Game
+    { iGame :: GameState
     , iLog  :: [WithPlayer Choice]
     , iAsk  :: Map (WithPlayer Choice) InteractState
     , iSay  :: [WithPlayer OutMsg]
@@ -48,9 +44,6 @@ startState =
     , iAsk  = Map.empty
     , iSay  = []
     }
-
-getOutput :: InteractState -> ([WithPlayer OutMsg],InteractState)
-getOutput i = (iSay i, i { iSay = [] })
 
 continueWith :: WithPlayer Choice -> InteractState -> InteractState
 continueWith ch s =
@@ -84,24 +77,13 @@ onInput ch (Interact k) = Interact \curK ->
                            }
     in curS { iAsk = Map.insert ch cont (iAsk curS) }
 
-output :: WithPlayer OutMsg -> Interact ()
-output m = Interact \k s -> k () s { iSay = m : iSay s }
-
 interaction :: Interact () -> InteractState -> InteractState
 interaction (Interact k) = k \_ -> id
 
-game :: (Game -> (a,Game)) -> Interact a
-game f = Interact \k s -> case f (iGame s) of
+game :: Game a -> Interact a
+game g = Interact \k s -> case runGame g (iGame s) of
                             (a,g1) -> k a s { iGame = g1 }
 
-game_ :: (Game -> Game) -> Interact ()
-game_ f = game \g -> ((), f g)
-
-gameView :: (Game -> a) -> Interact a
-gameView f = game \g -> (f g, g)
-
-gameGet :: Interact Game
-gameGet = gameView id
 
 
 --------------------------------------------------------------------------------
@@ -111,8 +93,9 @@ handleMessage ::
 handleMessage (player :-> msg) s =
   case msg of
     External ch ->
-      let (out,s1) = getOutput (continueWith (player :-> ch) s)
-      in (s1,out)
+      let s1 = continueWith (player :-> ch) s
+          (out,g1) = getOutput (iGame s1)
+      in (s1 { iGame = g1 }, out)
 
     System {} -> error "XXX"
 
@@ -124,13 +107,8 @@ data SystemInMsg =
 
 data InMsg = System SystemInMsg | External Choice
 
-data OutMsg = PlaceWorkerOnEdge EdgeId Worker
 
 
-
---------------------------------------------------------------------------------
-instance JS.ToJSON OutMsg where
-  toJSON = undefined
 
 
 
