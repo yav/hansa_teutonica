@@ -35,6 +35,7 @@ data Turn = Turn
   , turnActionLimit   :: Int
   , turnUsedGateways  :: Set ProvinceId
   , turnPlaceBonus    :: [BonusToken]
+  , turnContinue      :: Map Choice Game
   } deriving Show
 
 getPlayer :: Game -> PlayerColor -> Player
@@ -56,34 +57,10 @@ initialGameState = Game
       , turnActionLimit   = 5
       , turnUsedGateways  = Set.empty
       , turnPlaceBonus    = []
+      , turnContinue      = Map.empty
       }
   }
 
-
-data SystemInMsg =
-    Disconnected
-  | Connected
-
-data InMsg = System SystemInMsg | External ExternalInMsg
-
-data OutMsg = PlaceWorkerOnEdge EdgeId Worker
-
-data ExternalInMsg = InMsg
-
-
---------------------------------------------------------------------------------
-handleMessage ::
-  (PlayerColor,InMsg) -> Game -> (Game, [(PlayerColor,OutMsg)])
-handleMessage (player,msg) s = (s,[])
-
-
-
---------------------------------------------------------------------------------
-instance JS.ToJSON OutMsg where
-  toJSON = undefined
-
-instance JS.FromJSON ExternalInMsg where
-  parseJSON = undefined
 
 
 instance JS.ToJSON Game where

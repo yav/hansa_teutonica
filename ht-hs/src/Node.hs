@@ -36,7 +36,7 @@ import Stats
 
 -- | Special actions associated with a node
 data NodeAction = UpdgradeStat Stat | GainEndGamePoints
-  deriving Show
+  deriving (Eq,Ord,Show)
 
 -- | A node on the map
 data Node = Node

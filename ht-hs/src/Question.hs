@@ -6,6 +6,8 @@ import Basics
 import Bonus
 import Node
 
+
+
 data Choice =
     ChActiveWorker WorkerType
   | ChPassiveWorker WorkerType
@@ -13,15 +15,10 @@ data Choice =
   | ChEdge EdgeId Int (Maybe Worker)
   | ChAction NodeAction
   | ChDone
-    deriving (Show)
+    deriving (Eq,Ord,Show)
 
 
-{-
 instance JS.FromJSON Choice where
-  parseJSON = JS.withObject "player choice" \fields ->
-    do choice <- fields .: "choose"
-       case choice of
-instance JS.FromJSON NodeChoice where
--}
+  parseJSON = error "XXX"
 
 

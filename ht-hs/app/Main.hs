@@ -16,7 +16,7 @@ import qualified Network.WebSockets.Snap as WS
 import System.FastLogger(Logger,logMsg,newLogger)
 
 import Basics
-import Game
+import Interact
 
 main :: IO ()
 main =
@@ -34,13 +34,13 @@ data Server = Server
 
 data State = State
   { connected :: Map PlayerColor Connection
-  , gameState :: Game
+  , gameState :: InteractState
   }
 
 newServer :: IO Server
 newServer =
   do ref <- newIORef State { connected = Map.empty
-                           , gameState = initialGameState }
+                           , gameState = startState }
      logger <- newLogger "-"
      pure Server { serverRef = ref, serverLogger = logger }
 
@@ -73,7 +73,7 @@ newClient srv conn =
                            , True
                            )
             if ok then do serverLog srv ("Player connected: " ++ show color)
-                          inMsg srv (color,System Connected)
+                          inMsg srv (color :-> System Connected)
                           clientLoop srv color conn
                   else do serverLog srv
                                 ("Player already connected: " ++ show color)
@@ -89,30 +89,29 @@ clientLoop srv who conn =
     do mb <- recvFromMaybe conn
        case mb of
          Nothing  -> askDisconnect srv conn
-         Just msg -> inMsg srv (who,External msg) >> loop
+         Just msg -> inMsg srv (who :-> External msg) >> loop
 
 removeClient :: Server -> PlayerColor -> IO ()
 removeClient srv who =
   do serverLog srv ("Removing client: " ++ show who)
      serverUpate_ srv \state ->
                        state { connected = Map.delete who (connected state) }
-     inMsg srv (who,System Disconnected)
+     inMsg srv (who :-> System Disconnected)
 
 askDisconnect :: Server -> Connection -> IO ()
 askDisconnect srv conn =
   do serverLog srv "Requesting disconnect"
      WS.sendClose conn ("Disconnected" :: Text)
 
-inMsg :: Server -> (PlayerColor,InMsg) -> IO ()
-inMsg srv (who,msg) =
+inMsg :: Server -> WithPlayer InMsg -> IO ()
+inMsg srv msg =
   do msgs <- serverUpate srv \srvState ->
-             let (newGameState,msgs) =
-                        handleMessage (who,msg) (gameState srvState)
+             let (newGameState,msgs) = handleMessage msg (gameState srvState)
              in (srvState { gameState = newGameState }, msgs)
      mapM_ (outMsg srv) msgs
 
-outMsg :: Server -> (PlayerColor,OutMsg) -> IO ()
-outMsg srv (tgt,msg) =
+outMsg :: Server -> WithPlayer OutMsg -> IO ()
+outMsg srv (tgt :-> msg) =
   do state <- serverState srv
      case Map.lookup tgt (connected state) of
        Just conn -> sendTo conn msg

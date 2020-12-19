@@ -21,6 +21,7 @@ library
   exposed-modules:
     Basics, Player, Edge, Node, Stats, Bonus, Utils,
     Question, Game, Board, Geometry,
+    Interact,
     Actions.Place,
     Board.Builder,
     Board.Britannia45,
@@ -57,7 +58,7 @@ executable ht-hs
 executable ht-editor
   hs-source-dirs:      app
   main-is:             EditorMain.hs
-  build-depends:       base >=4.13 && <4.14,ht-hs
+  build-depends:       base, ht-hs
   default-language:    Haskell2010
   ghc-options:         -Wall
 

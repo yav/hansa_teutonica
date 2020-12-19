@@ -11,6 +11,9 @@ type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 data PlayerColor  = Blue | Red | Green | Yellow | Purple
   deriving (Eq,Ord,Show,Enum,Bounded)
 
+data WithPlayer a = PlayerColor :-> a
+  deriving (Eq,Ord,Show)
+
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Bounded,Enum)
 
