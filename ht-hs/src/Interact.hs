@@ -6,22 +6,19 @@ module Interact
 
   -- * Building Interactions
   , Interact
-  , onInput
+  , askInput
   , game
 
   -- * XXX
   , handleMessage
   , InMsg(..)
-  , SystemInMsg(..)
+  , SystemMsg(..)
   , OutMsg(..)
   ) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Control.Monad(liftM,ap)
-
-import qualified Data.Aeson as JS
-import Data.Aeson ((.=))
 
 import Basics
 import Question
@@ -45,12 +42,6 @@ startState =
     , iSay  = []
     }
 
-continueWith :: WithPlayer Choice -> InteractState -> InteractState
-continueWith ch s =
-  case Map.lookup ch (iAsk s) of
-    Just s1 -> s1
-    Nothing -> s
-
 
 
 newtype Interact a = Interact ((a -> Result) -> Result)
@@ -68,18 +59,34 @@ instance Monad Interact where
                                             in m2 k
 
 
+-- | Perform an interaction
+interaction ::
+  Interact () -> InteractState -> (InteractState, [WithPlayer OutMsg])
+interaction (Interact k) s =
+  let s1      = k (\_ -> id) s
+      (out,g) = getOutput (iGame s1)
+  in (s1 { iGame = g }, out)
 
-onInput :: WithPlayer Choice -> Interact a -> Interact a
-onInput ch (Interact k) = Interact \curK ->
+
+-- | Ask a question from a specific player
+askInput :: PlayerColor -> [Choice] -> Interact Choice
+askInput p opts = Interact \curK ->
   \curS ->
-    let cont = k curK curS { iLog = ch : iLog curS
-                           , iAsk = Map.empty
-                           }
-    in curS { iAsk = Map.insert ch cont (iAsk curS) }
+     let cont ch = Map.insert (p :-> ch)
+                     (curK ch curS { iLog = p :-> ch
+                                          : iLog curS, iAsk = Map.empty })
+     in curS { iAsk = foldr cont (iAsk curS) opts }
 
-interaction :: Interact () -> InteractState -> InteractState
-interaction (Interact k) = k \_ -> id
+-- | Resume execution based on player input
+continueWith :: WithPlayer Choice -> Interact a
+continueWith ch =
+  Interact \_ s -> case Map.lookup ch (iAsk s) of
+                     Just s1 -> s1
+                     Nothing -> s
 
+
+
+-- | Do something with the game state
 game :: Game a -> Interact a
 game g = Interact \k s -> case runGame g (iGame s) of
                             (a,g1) -> k a s { iGame = g1 }
@@ -88,25 +95,16 @@ game g = Interact \k s -> case runGame g (iGame s) of
 
 --------------------------------------------------------------------------------
 
+data InMsg     = System SystemMsg | External Choice
+data SystemMsg = Disconnected | Connected
+
 handleMessage ::
   WithPlayer InMsg -> InteractState -> (InteractState, [WithPlayer OutMsg])
-handleMessage (player :-> msg) s =
+handleMessage (player :-> msg) =
+  interaction
   case msg of
-    External ch ->
-      let s1 = continueWith (player :-> ch) s
-          (out,g1) = getOutput (iGame s1)
-      in (s1 { iGame = g1 }, out)
-
-    System {} -> error "XXX"
-
-
-
-data SystemInMsg =
-    Disconnected
-  | Connected
-
-data InMsg = System SystemInMsg | External Choice
-
+    External ch -> continueWith (player :-> ch)
+    System {}   -> error "XXX"
 
 
 
