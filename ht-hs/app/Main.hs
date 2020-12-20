@@ -73,7 +73,6 @@ newClient srv conn =
                            , True
                            )
             if ok then do serverLog srv ("Player connected: " ++ show color)
-                          inMsg srv (color :-> System Connected)
                           clientLoop srv color conn
                   else do serverLog srv
                                 ("Player already connected: " ++ show color)
@@ -89,21 +88,20 @@ clientLoop srv who conn =
     do mb <- recvFromMaybe conn
        case mb of
          Nothing  -> askDisconnect srv conn
-         Just msg -> inMsg srv (who :-> External msg) >> loop
+         Just msg -> inMsg srv (who :-> msg) >> loop
 
 removeClient :: Server -> PlayerColor -> IO ()
 removeClient srv who =
   do serverLog srv ("Removing client: " ++ show who)
      serverUpate_ srv \state ->
                        state { connected = Map.delete who (connected state) }
-     inMsg srv (who :-> System Disconnected)
 
 askDisconnect :: Server -> Connection -> IO ()
 askDisconnect srv conn =
   do serverLog srv "Requesting disconnect"
      WS.sendClose conn ("Disconnected" :: Text)
 
-inMsg :: Server -> WithPlayer InMsg -> IO ()
+inMsg :: Server -> WithPlayer Choice -> IO ()
 inMsg srv msg =
   do msgs <- serverUpate srv \srvState ->
              let (newGameState,msgs) = handleMessage msg (gameState srvState)
@@ -120,7 +118,7 @@ outMsg srv (tgt :-> msg) =
 
 --------------------------------------------------------------------------------
 
-sendTo :: Connection -> OutMsg -> IO ()
+sendTo :: JS.ToJSON a => Connection -> a -> IO ()
 sendTo conn msg = sendTextData conn (JS.encode msg)
 
 recvFromMaybe :: JS.FromJSON a => Connection -> IO (Maybe a)

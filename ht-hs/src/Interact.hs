@@ -11,9 +11,8 @@ module Interact
 
   -- * XXX
   , handleMessage
-  , InMsg(..)
-  , SystemMsg(..)
-  , OutMsg(..)
+  , Choice
+  , OutMsg
   ) where
 
 import Data.Map(Map)
@@ -73,18 +72,16 @@ askInput :: PlayerColor -> [Choice] -> Interact Choice
 askInput p opts = Interact \curK ->
   \curS ->
      let cont ch = Map.insert (p :-> ch)
-                     (curK ch curS { iLog = p :-> ch
-                                          : iLog curS, iAsk = Map.empty })
+                     (curK ch curS { iLog = (p :-> ch) : iLog curS
+                                   , iAsk = Map.empty })
      in curS { iAsk = foldr cont (iAsk curS) opts }
 
 -- | Resume execution based on player input
-continueWith :: WithPlayer Choice -> Interact a
-continueWith ch =
-  Interact \_ s -> case Map.lookup ch (iAsk s) of
+continueWith :: WithPlayer Choice -> Interact ()
+continueWith msg =
+  Interact \_ s -> case Map.lookup msg (iAsk s) of
                      Just s1 -> s1
                      Nothing -> s
-
-
 
 -- | Do something with the game state
 game :: Game a -> Interact a
@@ -95,16 +92,9 @@ game g = Interact \k s -> case runGame g (iGame s) of
 
 --------------------------------------------------------------------------------
 
-data InMsg     = System SystemMsg | External Choice
-data SystemMsg = Disconnected | Connected
-
 handleMessage ::
-  WithPlayer InMsg -> InteractState -> (InteractState, [WithPlayer OutMsg])
-handleMessage (player :-> msg) =
-  interaction
-  case msg of
-    External ch -> continueWith (player :-> ch)
-    System {}   -> error "XXX"
+  WithPlayer Choice -> InteractState -> (InteractState, [WithPlayer OutMsg])
+handleMessage = interaction . continueWith
 
 
 

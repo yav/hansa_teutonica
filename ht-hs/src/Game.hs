@@ -1,5 +1,5 @@
 module Game
-  ( GameState
+  ( GameState(..)
   , initialGameState
   , getOutput
 
@@ -15,7 +15,7 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import Control.Monad(ap,liftM)
+import Control.Monad(ap,liftM,forM_)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -28,7 +28,8 @@ import Board
 
 newtype Game a = Game (GameState -> (a,GameState))
 
-data OutMsg = PlaceWorkerOnEdge EdgeId Worker
+data OutMsg =
+    PlaceWorkerOnEdge EdgeId Worker
   deriving Show
 
 runGame :: Game a -> GameState -> (a,GameState)
@@ -64,13 +65,16 @@ doUpdate f = Game \s -> ((), f s)
 output :: WithPlayer OutMsg -> Game ()
 output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
 
-
 update :: OutMsg -> Game ()
 update = undefined
 
 view :: (GameState -> a) -> Game a
 view f = Game \s -> (f s, s)
 
+broadcast :: OutMsg -> Game ()
+broadcast m =
+  do ps <- view gameTurnOrder
+     forM_ ps \p -> output (p :-> m)
 
 data GameStatus =
     GameStarting (Set PlayerColor) (Maybe Board)
