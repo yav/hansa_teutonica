@@ -26,19 +26,21 @@ import Game
 
 data InteractState =
   InteractState
-    { iGame :: GameState
-    , iLog  :: [WithPlayer Choice]
-    , iAsk  :: Map (WithPlayer Choice) InteractState
-    , iSay  :: [WithPlayer OutMsg]
+    { iGame0  :: GameState    -- initial game state
+    , iGame   :: GameState
+    , iLog    :: [WithPlayer Choice]
+    , iAsk    :: Map (WithPlayer Choice) InteractState
+    , iSay    :: [WithPlayer OutMsg]
     }
 
-startState :: InteractState
-startState =
+startState :: GameState -> InteractState
+startState g =
   InteractState
-    { iGame = initialGameState
-    , iLog  = []
-    , iAsk  = Map.empty
-    , iSay  = []
+    { iGame0  = g
+    , iGame   = g
+    , iLog    = []
+    , iAsk    = Map.empty
+    , iSay    = []
     }
 
 

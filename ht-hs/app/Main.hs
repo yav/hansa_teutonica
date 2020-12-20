@@ -13,17 +13,29 @@ import Network.WebSockets(Connection,sendTextData,receiveData)
 import qualified Network.WebSockets as WS
 import qualified Network.WebSockets.Snap as WS
 
+import System.Environment(getArgs)
+import System.Exit(exitFailure)
+import System.Random.TF(newTFGen)
 import System.FastLogger(Logger,logMsg,newLogger)
 
 import Basics
+import Game(GameState,initialGameState)
 import Interact
 
 main :: IO ()
 main =
-  do srv <- newServer
+  do args <- getArgs
+     rng  <- newTFGen
+     srv  <- case initialGameState rng args of
+               Just s -> newServer s
+               Nothing ->
+                 do putStrLn "Failed to create initial state."
+                    exitFailure
      Snap.quickHttpServe $ WS.runWebSocketsSnap \pending ->
        do conn <- WS.acceptRequest pending
           WS.withPingThread conn 30 (pure ()) (newClient srv conn)
+
+
 
 --------------------------------------------------------------------------------
 
@@ -37,10 +49,9 @@ data State = State
   , gameState :: InteractState
   }
 
-newServer :: IO Server
-newServer =
-  do ref <- newIORef State { connected = Map.empty
-                           , gameState = startState }
+newServer :: GameState -> IO Server
+newServer s =
+  do ref <- newIORef State { connected = Map.empty, gameState = startState s }
      logger <- newLogger "-"
      pure Server { serverRef = ref, serverLogger = logger }
 

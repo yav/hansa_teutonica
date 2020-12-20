@@ -19,6 +19,7 @@ import Control.Monad(ap,liftM,forM_)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
+import System.Random.TF(TFGen)
 
 import Basics
 import Bonus
@@ -77,8 +78,7 @@ broadcast m =
      forM_ ps \p -> output (p :-> m)
 
 data GameStatus =
-    GameStarting (Set PlayerColor) (Maybe Board)
-  | GameInProgress Turn
+    GameInProgress Turn
   | GameFinished Board
     deriving Show
 
@@ -92,13 +92,15 @@ data Turn = Turn
 
 
 
-initialGameState :: GameState
-initialGameState = GameState
-  { gamePlayers = Map.empty
-  , gameTurnOrder = []
-  , gameStatus = GameStarting Set.empty Nothing
-  , gameOutput = []
-  }
+initialGameState :: TFGen -> [String] -> Maybe GameState
+initialGameState _ _ =
+  Just
+    GameState
+      { gamePlayers = Map.empty
+      , gameTurnOrder = []
+      , gameStatus = undefined
+      , gameOutput = []
+      }
 
 
 
