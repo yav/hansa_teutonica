@@ -19,14 +19,14 @@ import System.Random.TF(newTFGen)
 import System.FastLogger(Logger,logMsg,newLogger)
 
 import Basics
-import Game(GameState,initialGameState)
+import Game(GameState,initialGameStateFromArgs)
 import Interact
 
 main :: IO ()
 main =
   do args <- getArgs
      rng  <- newTFGen
-     srv  <- case initialGameState rng args of
+     srv  <- case initialGameStateFromArgs rng args of
                Just s -> newServer s
                Nothing ->
                  do putStrLn "Failed to create initial state."

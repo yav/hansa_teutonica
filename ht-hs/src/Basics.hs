@@ -9,7 +9,7 @@ type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 
 data PlayerColor  = Blue | Red | Green | Yellow | Purple
-  deriving (Eq,Ord,Show,Enum,Bounded)
+  deriving (Eq,Ord,Read,Show,Enum,Bounded)
 
 data WithPlayer a = PlayerColor :-> a
   deriving (Eq,Ord,Show)

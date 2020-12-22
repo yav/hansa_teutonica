@@ -3,6 +3,8 @@ module Bonus where
 import Data.Text(Text)
 import qualified Data.Aeson as JS
 
+import Utils(enumAll)
+
 data BonusToken =
     BonusUpgrade
   | BonusSwap
@@ -10,8 +12,7 @@ data BonusToken =
   | BonusExtra
   | BonusAct4
   | BonusAct3
-  deriving (Eq,Ord,Show)
-
+  deriving (Eq,Ord,Show,Enum,Bounded)
 
 tokenNumber :: BonusToken -> Int
 tokenNumber token =
@@ -23,6 +24,8 @@ tokenNumber token =
     BonusAct4    -> 2
     BonusAct3    -> 2
 
+tokenList :: [BonusToken]
+tokenList = [ tok | ty <- enumAll, tok <- replicate (tokenNumber ty) ty ]
 
 data FixedBonus =
     BonusPlace2
@@ -32,6 +35,9 @@ data FixedBonus =
   | BonusReuse2
   deriving (Eq,Ord,Show)
 
+
+
+--------------------------------------------------------------------------------
 bonusAsKey :: BonusToken -> Text
 bonusAsKey token =
   case token of
@@ -42,7 +48,7 @@ bonusAsKey token =
     BonusAct4    -> "act_4"
     BonusAct3    -> "act_3"
 
-
 instance JS.ToJSON BonusToken where
   toJSON = JS.toJSON . bonusAsKey
+
 

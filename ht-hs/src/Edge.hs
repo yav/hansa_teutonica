@@ -18,7 +18,6 @@ module Edge
   , BonusSpot(..)
   ) where
 
-import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.String(fromString)
 

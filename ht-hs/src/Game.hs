@@ -1,5 +1,6 @@
 module Game
   ( GameState(..)
+  , initialGameStateFromArgs
   , initialGameState
   , getOutput
 
@@ -15,16 +16,21 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
+import Text.Read(readMaybe)
+import qualified Data.Text as Text
 import Control.Monad(ap,liftM,forM_)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
 import System.Random.TF(TFGen)
 
+import Utils
 import Basics
+import Stats
 import Bonus
 import Player
 import Board
+import Board.Index(boards)
 
 
 newtype Game a = Game (GameState -> (a,GameState))
@@ -53,6 +59,7 @@ instance Monad Game where
 data GameState = GameState
   { gamePlayers   :: Map PlayerColor Player
   , gameTurnOrder :: [PlayerColor]
+  , gameTokens    :: [BonusToken]
   , gameStatus    :: GameStatus
   , gameOutput    :: [WithPlayer OutMsg]
   } deriving Show
@@ -90,18 +97,51 @@ data Turn = Turn
   , turnPlaceBonus    :: [BonusToken]
   } deriving Show
 
+newTurn :: PlayerColor -> Int -> Turn
+newTurn playerId actNum =
+  Turn
+    { turnCurrentPlayer = playerId
+    , turnActionsDone   = 0
+    , turnActionLimit   = actNum
+    , turnUsedGateways  = Set.empty
+    , turnPlaceBonus    = []
+    }
 
 
-initialGameState :: TFGen -> [String] -> Maybe GameState
-initialGameState _ _ =
-  Just
-    GameState
-      { gamePlayers = Map.empty
-      , gameTurnOrder = []
-      , gameStatus = undefined
-      , gameOutput = []
-      }
 
+initialGameStateFromArgs :: TFGen -> [String] -> Maybe GameState
+initialGameStateFromArgs rng args =
+  case args of
+    b : rest ->
+      do board <- Map.lookup (Text.pack b) boards
+         ps    <- mapM readMaybe rest
+         pure (initialGameState rng board (Set.fromList ps))
+    [] -> Nothing
+
+initialGameState :: TFGen -> Board -> Set PlayerColor -> GameState
+initialGameState rng0 board playerIds =
+  GameState
+    { gamePlayers    = playerState
+    , gameTurnOrder  = playerOrder
+    , gameTokens     = tokens
+    , gameStatus =
+        if not (null playerOrder)
+          then GameInProgress
+                    (newTurn firstPlayer (getLevel firstPlayerState Actions))
+          else GameFinished board
+    , gameOutput     = []
+    }
+
+  where
+  (playerOrder,tokens) =
+    case shuffle (Set.toList playerIds) rng0 of
+      (ps, rng1) -> (ps, fst (shuffle tokenList rng1))
+
+  firstPlayer = head playerOrder
+  firstPlayerState = playerState Map.! firstPlayer
+
+  playerState =
+    Map.fromList [ (p, initialPlayer i) | p <- playerOrder | i <- [ 0 .. ] ]
 
 
 instance JS.ToJSON GameState where

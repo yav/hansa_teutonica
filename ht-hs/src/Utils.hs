@@ -1,7 +1,34 @@
 module Utils where
 
+import Control.Monad.ST
+import System.Random.TF
+import System.Random.TF.Instances
+import qualified Data.Vector as Vector
+import qualified Data.Vector.Mutable as MVector
+
 enumAll :: (Bounded a,Enum a) => [a]
 enumAll = [ minBound .. maxBound ]
 
+shuffle :: [a] -> TFGen -> ([a],TFGen)
+shuffle xs g0
+  | null xs = ([],g0)
+  | otherwise =
+    runST do v <- Vector.unsafeThaw (Vector.fromList xs)
+             mutShuffle v g0 (MVector.length v - 1)
+  where
+  mutShuffle v g i
+    | i > 0 =
+      case randomR (0,i) g of
+        (j,g1) -> do swap v i j
+                     mutShuffle v g1 (i-1)
+
+    | otherwise = do v1 <- Vector.unsafeFreeze v
+                     pure (Vector.toList v1,g)
+
+  swap v a b =
+    do x <- MVector.read v a
+       y <- MVector.read v b
+       MVector.write v a y
+       MVector.write v b x
 
 
