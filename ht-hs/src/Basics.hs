@@ -8,14 +8,24 @@ type NodeId       = Int      -- ^ Identifies a city
 type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 
-data PlayerColor  = Blue | Red | Green | Yellow | Purple
-  deriving (Eq,Ord,Read,Show,Enum,Bounded)
 
-data WithPlayer a = PlayerColor :-> a
+newtype PlayerId  = PlayerId Text
+  deriving (Show,Eq,Ord)
+
+data WithPlayer a = PlayerId :-> a
   deriving (Eq,Ord,Show)
+
 
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Bounded,Enum)
+
+replacementCost :: WorkerType -> Int
+replacementCost wt =
+  case wt of
+    Cube -> 1
+    Disc -> 2
+
+
 
 data RequireWorker = AnyWorker | Require WorkerType
   deriving (Eq,Ord,Show)
@@ -26,32 +36,21 @@ accepts requirement workerType =
     AnyWorker     -> True
     Require shape -> workerType == shape
 
+
 data Worker = Worker
-  { workerOwner :: PlayerColor
+  { workerOwner :: PlayerId
   , workerType  :: WorkerType
   } deriving (Show,Eq,Ord)
 
 
-replacementCost :: WorkerType -> Int
-replacementCost wt =
-  case wt of
-    Cube -> 1
-    Disc -> 2
-
 
 
 --------------------------------------------------------------------------------
-playerColorToKey :: PlayerColor -> Text
-playerColorToKey color =
-  case color of
-    Blue    -> "blue"
-    Red     -> "red"
-    Green   -> "green"
-    Yellow  -> "yellow"
-    Purple  -> "purple"
+playerIdToKey :: PlayerId -> Text
+playerIdToKey (PlayerId t) = t
 
-instance JS.ToJSON PlayerColor where
-  toJSON = JS.toJSON . playerColorToKey
+instance JS.ToJSON PlayerId where
+  toJSON = JS.toJSON . playerIdToKey
 
 workerTypeToKey :: WorkerType -> Text
 workerTypeToKey workerType =
@@ -77,14 +76,6 @@ instance JS.FromJSON WorkerType where
       "disc" -> pure Disc
       _      -> fail "Malformed worker type"
 
-instance JS.FromJSON PlayerColor where
-  parseJSON = JS.withText "player color" \txt ->
-    case txt of
-      "blue"    -> pure Blue
-      "red"     -> pure Red
-      "green"   -> pure Green
-      "yellow"  -> pure Yellow
-      "purple"  -> pure Purple
-      _         -> fail "Malformed color"
-
+instance JS.FromJSON PlayerId where
+  parseJSON = JS.withText "player id" \txt -> pure (PlayerId txt)
 

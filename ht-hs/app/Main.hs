@@ -45,7 +45,7 @@ data Server = Server
   }
 
 data State = State
-  { connected :: Map PlayerColor Connection
+  { connected :: Map PlayerId Connection
   , gameState :: InteractState
   }
 
@@ -91,7 +91,7 @@ newClient srv conn =
        _ -> askDisconnect srv conn
 
 
-clientLoop :: Server -> PlayerColor -> Connection -> IO ()
+clientLoop :: Server -> PlayerId -> Connection -> IO ()
 clientLoop srv who conn =
   loop `catch` \ex -> (ex :: WS.ConnectionException) `seq` removeClient srv who
   where
@@ -101,7 +101,7 @@ clientLoop srv who conn =
          Nothing  -> askDisconnect srv conn
          Just msg -> inMsg srv (who :-> msg) >> loop
 
-removeClient :: Server -> PlayerColor -> IO ()
+removeClient :: Server -> PlayerId -> IO ()
 removeClient srv who =
   do serverLog srv ("Removing client: " ++ show who)
      serverUpate_ srv \state ->

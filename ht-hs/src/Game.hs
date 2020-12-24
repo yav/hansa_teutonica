@@ -16,7 +16,6 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import Text.Read(readMaybe)
 import qualified Data.Text as Text
 import Control.Monad(ap,liftM,forM_)
 
@@ -57,8 +56,8 @@ instance Monad Game where
 
 
 data GameState = GameState
-  { gamePlayers   :: Map PlayerColor Player
-  , gameTurnOrder :: [PlayerColor]
+  { gamePlayers   :: Map PlayerId Player
+  , gameTurnOrder :: [PlayerId]
   , gameTokens    :: [BonusToken]
   , gameStatus    :: GameStatus
   , gameOutput    :: [WithPlayer OutMsg]
@@ -90,14 +89,14 @@ data GameStatus =
     deriving Show
 
 data Turn = Turn
-  { turnCurrentPlayer :: PlayerColor
+  { turnCurrentPlayer :: PlayerId
   , turnActionsDone   :: Int
   , turnActionLimit   :: Int
   , turnUsedGateways  :: Set ProvinceId
   , turnPlaceBonus    :: [BonusToken]
   } deriving Show
 
-newTurn :: PlayerColor -> Int -> Turn
+newTurn :: PlayerId -> Int -> Turn
 newTurn playerId actNum =
   Turn
     { turnCurrentPlayer = playerId
@@ -114,11 +113,11 @@ initialGameStateFromArgs rng args =
   case args of
     b : rest ->
       do board <- Map.lookup (Text.pack b) boards
-         ps    <- mapM readMaybe rest
+         let ps = map (PlayerId . Text.pack) rest
          pure (initialGameState rng board (Set.fromList ps))
     [] -> Nothing
 
-initialGameState :: TFGen -> Board -> Set PlayerColor -> GameState
+initialGameState :: TFGen -> Board -> Set PlayerId -> GameState
 initialGameState rng0 board playerIds =
   GameState
     { gamePlayers    = playerState
@@ -147,7 +146,7 @@ initialGameState rng0 board playerIds =
 instance JS.ToJSON GameState where
   toJSON g = JS.object
     [ "players" .=
-        JS.object [ playerColorToKey pId .= p
+        JS.object [ playerIdToKey pId .= p
                   | (pId,p) <- Map.toList (gamePlayers g)
                   ]
     , "turnOrder" .= gameTurnOrder g

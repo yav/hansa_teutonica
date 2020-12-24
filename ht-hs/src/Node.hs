@@ -115,11 +115,11 @@ nodeWorkers :: Node -> [Worker]
 nodeWorkers = fullSpots
 
 -- | Get the player who has the right-most worker in a node, if any.
-nodeRightMost :: Node -> Maybe PlayerColor
+nodeRightMost :: Node -> Maybe PlayerId
 nodeRightMost = fmap workerOwner . listToMaybe . fullSpots
 
 -- | Compute who is currently in control if the node, if any.
-nodeControlledBy :: Node -> Maybe PlayerColor
+nodeControlledBy :: Node -> Maybe PlayerId
 nodeControlledBy n =
   case vals of
     [] -> Nothing

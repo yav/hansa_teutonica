@@ -31,7 +31,7 @@ library
     Board.Hansa45,
     Board.Hansa3
   extensions: BlockArguments, NamedFieldPuns, ParallelListComp,
-              OverloadedStrings
+              OverloadedStrings, GeneralizedNewtypeDeriving
   build-depends:
     base >=4.13,
     containers, text, tf-random, aeson, vector

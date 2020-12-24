@@ -70,7 +70,7 @@ interaction (Interact k) s =
 
 
 -- | Ask a question from a specific player
-askInput :: PlayerColor -> [Choice] -> Interact Choice
+askInput :: PlayerId -> [Choice] -> Interact Choice
 askInput p opts = Interact \curK ->
   \curS ->
      let cont ch = Map.insert (p :-> ch)

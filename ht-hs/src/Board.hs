@@ -47,7 +47,7 @@ data Board = Board
   , boardInitialTokens     :: Set EdgeId
     -- ^ Where to place initial tokens
 
-  , boardEndVP             :: Map Level PlayerColor
+  , boardEndVP             :: Map Level PlayerId
     -- ^ Occupied spots on end-game point track, indexed by privilege
   } deriving Show
 
@@ -72,7 +72,7 @@ edgeProvince board edgeId = Map.lookup edgeId (boardEdgeProvince board)
 
 -- | Is the province with the given captial accessible, and if so how.
 provinceAccessible ::
-  PlayerColor          {- ^ By this player -} ->
+  PlayerId             {- ^ By this player -} ->
   Set NodeId           {- ^ Used up gateways -} ->
   Board                {- ^ Information about the current state -} ->
   Province             {- ^ Info about the province -} ->
@@ -90,7 +90,7 @@ provinceAccessible player used board prov =
 
 -- | Provinces avialbe for (re)palcement.
 accessibleProvinces ::
-  PlayerColor     {- ^ By this player -} ->
+  PlayerId        {- ^ By this player -} ->
   Set NodeId      {- ^ Used up gatweays -} ->
   Board           {- ^ State of the board -} ->
   Map ProvinceId NodeId
