@@ -15,6 +15,9 @@ newtype PlayerId  = PlayerId Text
 data WithPlayer a = PlayerId :-> a
   deriving (Eq,Ord,Show)
 
+instance Functor WithPlayer where
+  fmap f (p :-> q) = p :-> f q
+
 
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Bounded,Enum)

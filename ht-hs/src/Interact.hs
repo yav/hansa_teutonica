@@ -11,42 +11,52 @@ module Interact
 
   -- * XXX
   , handleMessage
-  , Choice
+  , PlayerRequest
   , OutMsg
   ) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Control.Monad(liftM,ap)
+import Data.Text(Text)
+import Data.Aeson((.:))
+import qualified Data.Aeson as JS
+import Control.Monad(guard)
+import Control.Applicative((<|>))
 
 import Basics
 import Question
 import Game
 
-
-data InteractState =
+data InteractState updates =
   InteractState
-    { iGame0  :: GameState    -- initial game state
-    , iGame   :: GameState
+    { iGame0  :: GameState NoUpdates
+      -- ^ Initial game state
+
     , iLog    :: [WithPlayer Choice]
-    , iAsk    :: Map (WithPlayer Choice) InteractState
-    , iSay    :: [WithPlayer OutMsg]
+      -- ^ A record of all responses made by the players
+
+    , iGame   :: GameState updates
+      -- ^ The current game state.
+      -- Should be reproducable by replyaing the log file on the initial state
+
+    , iAsk    :: Map (WithPlayer Choice) (InteractState Updates)
+      -- ^ Choices avialable to the players.
     }
 
-startState :: GameState -> InteractState
+startState :: GameState NoUpdates -> InteractState NoUpdates
 startState g =
   InteractState
     { iGame0  = g
-    , iGame   = g
     , iLog    = []
+    , iGame   = g
     , iAsk    = Map.empty
-    , iSay    = []
     }
 
 
 
 newtype Interact a = Interact ((a -> Result) -> Result)
-type Result        = InteractState -> InteractState
+type Result        = InteractState Updates -> InteractState Updates
 
 instance Functor Interact where
   fmap = liftM
@@ -62,11 +72,12 @@ instance Monad Interact where
 
 -- | Perform an interaction
 interaction ::
-  Interact () -> InteractState -> (InteractState, [WithPlayer OutMsg])
+  Interact () ->
+  InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
 interaction (Interact k) s =
-  let s1      = k (\_ -> id) s
-      (out,g) = getOutput (iGame s1)
-  in (s1 { iGame = g }, out)
+  let s1      = k (\_ -> id) s { iGame = startInteract (iGame s) }
+      (out,g) = endInteract (iGame s1)
+  in (s1 { iGame = g }, map (fmap GameUpdate) out)
 
 
 -- | Ask a question from a specific player
@@ -94,9 +105,42 @@ game g = Interact \k s -> case runGame g (iGame s) of
 
 --------------------------------------------------------------------------------
 
+
+data OutMsg =
+    GameUpdate GameUpdate
+  | CurGameState (InteractState NoUpdates)
+
+data PlayerRequest =
+    Reload
+  | PlayerResponse Choice
+
+
+instance JS.ToJSON OutMsg where
+  toJSON msg =
+    case msg of
+      GameUpdate upd -> JS.toJSON upd
+      CurGameState s -> JS.toJSON s
+
+instance JS.ToJSON (InteractState NoUpdates) where
+  toJSON = undefined
+
+
+instance JS.FromJSON PlayerRequest where
+  parseJSON v =  JS.withObject "request" reload v
+             <|> (PlayerResponse <$> JS.parseJSON v)
+    where
+    reload o = do tag <- o .: "tag"
+                  guard (tag == ("reload" :: Text))
+                  pure Reload
+
 handleMessage ::
-  WithPlayer Choice -> InteractState -> (InteractState, [WithPlayer OutMsg])
-handleMessage = interaction . continueWith
+  WithPlayer PlayerRequest ->
+  InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
+handleMessage (p :-> req) =
+  case req of
+    Reload -> \s -> (s, [p :-> CurGameState s])
+    PlayerResponse ch -> interaction (continueWith (p :-> ch))
+
 
 
 

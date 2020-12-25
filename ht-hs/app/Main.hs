@@ -2,10 +2,12 @@ module Main(main) where
 
 import qualified Data.ByteString.Char8 as BS8
 import Data.Text(Text)
+import qualified Data.Text as Text
 import Data.Map(Map)
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.IORef(IORef,newIORef,readIORef,atomicModifyIORef')
-import Control.Exception(catch)
+import Control.Exception(catch,SomeException(..))
 
 import qualified Data.Aeson as JS
 import qualified Snap.Http.Server as Snap
@@ -14,23 +16,28 @@ import qualified Network.WebSockets as WS
 import qualified Network.WebSockets.Snap as WS
 
 import System.Environment(getArgs)
-import System.Exit(exitFailure)
 import System.Random.TF(newTFGen)
 import System.FastLogger(Logger,logMsg,newLogger)
 
 import Basics
-import Game(GameState,initialGameStateFromArgs)
+import Game(GameState,initialGameState,NoUpdates)
 import Interact
+import Board.Index
 
 main :: IO ()
 main =
   do args <- getArgs
-     rng  <- newTFGen
-     srv  <- case initialGameStateFromArgs rng args of
-               Just s -> newServer s
-               Nothing ->
-                 do putStrLn "Failed to create initial state."
-                    exitFailure
+     srv <- case args of
+              b : ps ->
+                case Map.lookup (Text.pack b) boards of
+                  Just board ->
+                    do rng <- newTFGen
+                       let mkP = PlayerId . Text.pack
+                           players = Set.fromList (map mkP ps)
+                       newServer (initialGameState rng board players)
+                  Nothing -> fail "unknown board"
+              _ -> fail "Usage: board_name player1 player2 ..."
+
      Snap.quickHttpServe $ WS.runWebSocketsSnap \pending ->
        do conn <- WS.acceptRequest pending
           WS.withPingThread conn 30 (pure ()) (newClient srv conn)
@@ -46,10 +53,10 @@ data Server = Server
 
 data State = State
   { connected :: Map PlayerId Connection
-  , gameState :: InteractState
+  , gameState :: InteractState NoUpdates
   }
 
-newServer :: GameState -> IO Server
+newServer :: GameState NoUpdates -> IO Server
 newServer s =
   do ref <- newIORef State { connected = Map.empty, gameState = startState s }
      logger <- newLogger "-"
@@ -73,46 +80,47 @@ serverState srv = readIORef (serverRef srv)
 newClient :: Server -> Connection -> IO ()
 newClient srv conn =
   do serverLog srv "New connection requested, waiting for ID"
-     mb <- recvFromMaybe conn
-     case mb of
-       Just color ->
-         do ok <- serverUpate srv \state ->
-                    if Map.member color (connected state)
-                      then ( state, False)
-                      else ( state { connected =
-                                      Map.insert color conn (connected state) }
-                           , True
+     who <- PlayerId <$> receiveData conn
+     mbErr <- serverUpate srv \state ->
+             if Map.member who (connected state)
+                then ( state, Just "player already connected")
+                -- XXX: check only approved players connect?
+                -- (i.e., no spectators)
+                else ( state { connected =
+                                      Map.insert who conn (connected state) }
+                           , Nothing
                            )
-            if ok then do serverLog srv ("Player connected: " ++ show color)
-                          clientLoop srv color conn
-                  else do serverLog srv
-                                ("Player already connected: " ++ show color)
-                          askDisconnect srv conn
-       _ -> askDisconnect srv conn
+     case mbErr of
+       Nothing ->
+         do serverLog srv ("Player connected: " ++ show who)
+            clientLoop srv who conn
+       Just err -> disconnect srv conn Nothing err
 
 
 clientLoop :: Server -> PlayerId -> Connection -> IO ()
 clientLoop srv who conn =
-  loop `catch` \ex -> (ex :: WS.ConnectionException) `seq` removeClient srv who
+  loop `catch` \e -> disconnect srv conn (Just who)
+                                         (show (e :: SomeException))
   where
   loop =
-    do mb <- recvFromMaybe conn
-       case mb of
-         Nothing  -> askDisconnect srv conn
+    do bytes <- receiveData conn
+       case JS.decode bytes of
+         Nothing  -> fail "invalid request"
          Just msg -> inMsg srv (who :-> msg) >> loop
 
-removeClient :: Server -> PlayerId -> IO ()
-removeClient srv who =
-  do serverLog srv ("Removing client: " ++ show who)
-     serverUpate_ srv \state ->
-                       state { connected = Map.delete who (connected state) }
-
-askDisconnect :: Server -> Connection -> IO ()
-askDisconnect srv conn =
-  do serverLog srv "Requesting disconnect"
+disconnect :: Server -> Connection -> Maybe PlayerId -> String -> IO ()
+disconnect srv conn mbWho reason =
+  do serverLog srv ("Requesting disconnect: " <> reason)
+     case mbWho of
+       Just who ->
+         serverUpate_ srv \state ->
+                           state { connected =
+                                        Map.delete who (connected state) }
+       Nothing -> pure ()
      WS.sendClose conn ("Disconnected" :: Text)
+        `catch` \SomeException {} -> pure ()
 
-inMsg :: Server -> WithPlayer Choice -> IO ()
+inMsg :: Server -> WithPlayer PlayerRequest -> IO ()
 inMsg srv msg =
   do msgs <- serverUpate srv \srvState ->
              let (newGameState,msgs) = handleMessage msg (gameState srvState)
@@ -123,18 +131,11 @@ outMsg :: Server -> WithPlayer OutMsg -> IO ()
 outMsg srv (tgt :-> msg) =
   do state <- serverState srv
      case Map.lookup tgt (connected state) of
-       Just conn -> sendTo conn msg
+       Just conn ->
+        sendTextData conn (JS.encode msg)
+          `catch` \e -> disconnect srv conn (Just tgt)
+                                            (show (e :: SomeException))
        Nothing   -> pure ()
 
 
---------------------------------------------------------------------------------
-
-sendTo :: JS.ToJSON a => Connection -> a -> IO ()
-sendTo conn msg = sendTextData conn (JS.encode msg)
-
-recvFromMaybe :: JS.FromJSON a => Connection -> IO (Maybe a)
-recvFromMaybe conn =
-  do bs <- receiveData conn
-     -- serverLog srv ("Received bytes: " ++ show bs)
-     pure (JS.decode bs)
 

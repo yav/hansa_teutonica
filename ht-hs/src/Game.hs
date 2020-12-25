@@ -1,22 +1,21 @@
 module Game
-  ( GameState(..)
-  , initialGameStateFromArgs
+  ( GameState(..), Updates, NoUpdates
   , initialGameState
-  , getOutput
+  , startInteract
+  , endInteract
 
     -- * Game State Manipulation
   , Game
   , runGame
   , view
   , update
-  , OutMsg(..)
+  , GameUpdate(..)
   ) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import qualified Data.Text as Text
 import Control.Monad(ap,liftM,forM_)
 
 import qualified Data.Aeson as JS
@@ -29,17 +28,16 @@ import Stats
 import Bonus
 import Player
 import Board
-import Board.Index(boards)
 
 
-newtype Game a = Game (GameState -> (a,GameState))
+newtype Game a = Game (GameState Updates -> (a,GameState Updates))
 
-data OutMsg =
+data GameUpdate =
     PlaceWorkerOnEdge EdgeId Worker
   deriving Show
 
-runGame :: Game a -> GameState -> (a,GameState)
-runGame (Game m) s = m s
+runGame :: Game a -> GameState Updates -> (a,GameState Updates)
+runGame (Game m) s =  m s
 
 instance Functor Game where
   fmap = liftM
@@ -55,30 +53,37 @@ instance Monad Game where
                                  in m1 s1
 
 
-data GameState = GameState
+data GameState updates = GameState
   { gamePlayers   :: Map PlayerId Player
   , gameTurnOrder :: [PlayerId]
   , gameTokens    :: [BonusToken]
   , gameStatus    :: GameStatus
-  , gameOutput    :: [WithPlayer OutMsg]
+  , gameOutput    :: updates
   } deriving Show
 
-getOutput :: GameState -> ([WithPlayer OutMsg],GameState)
-getOutput i = (gameOutput i, i { gameOutput = [] })
+type Updates   = [WithPlayer GameUpdate]
+type NoUpdates = ()
 
-doUpdate :: (GameState -> GameState) -> Game ()
+startInteract :: GameState NoUpdates -> GameState Updates
+startInteract g = g { gameOutput = [] }
+
+endInteract ::
+  GameState Updates -> ([WithPlayer GameUpdate],GameState NoUpdates)
+endInteract i = (gameOutput i, i { gameOutput = () })
+
+doUpdate :: (GameState Updates -> GameState Updates) -> Game ()
 doUpdate f = Game \s -> ((), f s)
 
-output :: WithPlayer OutMsg -> Game ()
+output :: WithPlayer GameUpdate -> Game ()
 output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
 
-update :: OutMsg -> Game ()
+update :: GameUpdate -> Game ()
 update = undefined
 
-view :: (GameState -> a) -> Game a
-view f = Game \s -> (f s, s)
+view :: (GameState NoUpdates -> a) -> Game a
+view f = Game \s -> (f s { gameOutput = () }, s)
 
-broadcast :: OutMsg -> Game ()
+broadcast :: GameUpdate -> Game ()
 broadcast m =
   do ps <- view gameTurnOrder
      forM_ ps \p -> output (p :-> m)
@@ -108,16 +113,7 @@ newTurn playerId actNum =
 
 
 
-initialGameStateFromArgs :: TFGen -> [String] -> Maybe GameState
-initialGameStateFromArgs rng args =
-  case args of
-    b : rest ->
-      do board <- Map.lookup (Text.pack b) boards
-         let ps = map (PlayerId . Text.pack) rest
-         pure (initialGameState rng board (Set.fromList ps))
-    [] -> Nothing
-
-initialGameState :: TFGen -> Board -> Set PlayerId -> GameState
+initialGameState :: TFGen -> Board -> Set PlayerId -> GameState NoUpdates
 initialGameState rng0 board playerIds =
   GameState
     { gamePlayers    = playerState
@@ -128,7 +124,7 @@ initialGameState rng0 board playerIds =
           then GameInProgress
                     (newTurn firstPlayer (getLevel firstPlayerState Actions))
           else GameFinished board
-    , gameOutput     = []
+    , gameOutput     = ()
     }
 
   where
@@ -143,7 +139,7 @@ initialGameState rng0 board playerIds =
     Map.fromList [ (p, initialPlayer i) | p <- playerOrder | i <- [ 0 .. ] ]
 
 
-instance JS.ToJSON GameState where
+instance JS.ToJSON (GameState NoUpdates) where
   toJSON g = JS.object
     [ "players" .=
         JS.object [ playerIdToKey pId .= p
@@ -167,7 +163,7 @@ instance JS.ToJSON Turn where
 
 
 --------------------------------------------------------------------------------
-instance JS.ToJSON OutMsg where
+instance JS.ToJSON GameUpdate where
   toJSON = undefined
 
 

@@ -1,5 +1,7 @@
 module Question where
 
+import Data.Text(Text)
+import Data.Aeson((.:))
 import qualified Data.Aeson as JS
 
 import Basics
@@ -19,6 +21,9 @@ data Choice =
 
 
 instance JS.FromJSON Choice where
-  parseJSON = error "XXX"
+  parseJSON = JS.withObject "choice" \o ->
+    do tag <- o .: "tag"
+       case tag :: Text of
+         _ -> fail "XXX: more choices"
 
 
