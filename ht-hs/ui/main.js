@@ -90,7 +90,7 @@ function sample() {
 }
 
 function main() {
-  srvConnect('ws://0.0.0.0:8000')
+  srvConnect()
 
 /*
   const body = document.getElementById('main')
