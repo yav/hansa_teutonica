@@ -114,6 +114,33 @@ body {
   height: 100%;
 }
 
+.player-label {
+  border-radius: 3px;
+  border: 1px solid black;
+  padding-left: 0.2em;
+  padding-right: 0.2em;
+  color: black;
+  position: absolute;
+  right: 0;
+  top: -0.5ex;
+}
+
+.player-active {
+  box-shadow: 0 0 2px 2px #fff;
+}
+
+.player-active-box {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background-color: white;
+  color: black;
+  border-top: 1px solid black;
+  border-right: 1px solid black;
+  padding-right: 0.2em;
+  border-top-right-radius: 5px;
+}
+
 .player-bar {
   background-color: rgba(50,25,0,0.95);
   width: 80%;
@@ -130,7 +157,7 @@ body {
 .blue   { background-color: #06f; color: #fff; }
 .red    { background-color: #903; color: #fff; }
 .yellow { background-color: #fc3; color: #000; }
-.green  { background-color: #693; color: #000; }
+.green  { background-color: #8b3; color: #000; }
 .purple { background-color: #939; color: #fff; }
 
 

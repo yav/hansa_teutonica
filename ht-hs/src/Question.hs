@@ -26,4 +26,6 @@ instance JS.FromJSON Choice where
        case tag :: Text of
          _ -> fail "XXX: more choices"
 
+instance JS.ToJSON Choice where
+  toJSON _ = JS.toJSON ("XXX: Choice" :: Text)
 

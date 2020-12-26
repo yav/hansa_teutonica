@@ -102,11 +102,11 @@ data Turn = Turn
   } deriving Show
 
 newTurn :: PlayerId -> Int -> Turn
-newTurn playerId actNum =
+newTurn playerId actLvl =
   Turn
     { turnCurrentPlayer = playerId
     , turnActionsDone   = 0
-    , turnActionLimit   = actNum
+    , turnActionLimit   = actionLimit actLvl
     , turnUsedGateways  = Set.empty
     , turnPlaceBonus    = []
     }
@@ -150,8 +150,11 @@ instance JS.ToJSON (GameState NoUpdates) where
     ]
 
 instance JS.ToJSON GameStatus where
-  toJSON = undefined
-
+  toJSON gs =
+    case gs of
+      GameInProgress t ->
+        JS.object [ jsTag "active", "turn" .=  t ]
+      GameFinished _ -> JS.object [ jsTag "finished" ]
 
 instance JS.ToJSON Turn where
   toJSON t = JS.object

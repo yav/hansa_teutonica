@@ -19,7 +19,7 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Control.Monad(liftM,ap)
 import Data.Text(Text)
-import Data.Aeson((.:))
+import Data.Aeson((.:),(.=))
 import qualified Data.Aeson as JS
 import Control.Monad(guard)
 import Control.Applicative((<|>))
@@ -107,8 +107,8 @@ game g = Interact \k s -> case runGame g (iGame s) of
 
 
 data OutMsg =
-    GameUpdate GameUpdate
-  | CurGameState (InteractState NoUpdates)
+    CurGameState (InteractState NoUpdates)
+  | GameUpdate GameUpdate
 
 data PlayerRequest =
     Reload
@@ -119,10 +119,16 @@ instance JS.ToJSON OutMsg where
   toJSON msg =
     case msg of
       GameUpdate upd -> JS.toJSON upd
-      CurGameState s -> JS.toJSON s
+      CurGameState s ->
+        JS.object [ "fun"  .= ("redraw" :: Text)
+                  , "args" .= [s]
+                  ]
 
 instance JS.ToJSON (InteractState NoUpdates) where
-  toJSON = undefined
+  toJSON g = JS.object [ "game"      .= iGame g
+                       , "questions" .= [ q | _ :-> q <- Map.keys (iAsk g) ]
+                       , "log"       .= iLog g
+                       ]
 
 
 instance JS.FromJSON PlayerRequest where
@@ -138,9 +144,11 @@ handleMessage ::
   InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
 handleMessage (p :-> req) =
   case req of
-    Reload -> \s -> (s, [p :-> CurGameState s])
+    Reload -> \s ->
+                let forMe (q :-> _) _ = p == q
+                    ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
+                in (s, [p :-> CurGameState ps])
     PlayerResponse ch -> interaction (continueWith (p :-> ch))
-
 
 
 

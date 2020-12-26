@@ -82,3 +82,5 @@ instance JS.FromJSON WorkerType where
 instance JS.FromJSON PlayerId where
   parseJSON = JS.withText "player id" \txt -> pure (PlayerId txt)
 
+instance JS.ToJSON a => JS.ToJSON (WithPlayer a) where
+  toJSON (p :-> a) = JS.object [ "player" .= p, "thing" .= a ]

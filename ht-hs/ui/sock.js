@@ -1,4 +1,5 @@
 const handlers = {
+  redraw: uiRedraw
 }
 
 function sendJSON(ws,obj) {

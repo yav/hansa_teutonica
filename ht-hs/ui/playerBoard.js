@@ -1,4 +1,5 @@
 function drawPlayer(opts) {
+
   let height = opts.height
   let color = opts.color
 
@@ -12,10 +13,18 @@ function drawPlayer(opts) {
   dom.appendChild(img)
 
   let wsize = height * 0.07
+  { // name
+    const lab = document.createElement('div')
+    lab.classList.add('player-label')
+    lab.classList.add(opts.color)
+    lab.textContent = opts.name
+    lab.style.fontSize = 0.08 * height
+    dom.appendChild(lab)
+  }
 
   { // Stats
     let layout =
-          { book:      { x: [ 1.109, 1.309, 1.554, 1.747 ]
+          { movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
                        , y: 0.427
                        , shape: 'disc'
                        }
@@ -31,7 +40,7 @@ function drawPlayer(opts) {
                        , y: 0.15
                        , shape: 'rombus'
                        }
-          , bag:       { x: [ 2.05, 2.26, 2.50, 2.7 ]
+          , hire:      { x: [ 2.05, 2.26, 2.50, 2.7 ]
                        , y: 0.38
                        , shape: 'rombus'
                        }

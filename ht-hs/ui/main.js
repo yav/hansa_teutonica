@@ -1,5 +1,46 @@
 let gui
 
+
+function uiRedraw(ws,state) {
+  console.log('redraw')
+  const body = document.getElementById('main')
+  body.innerHTML = ''
+
+  gui = {}
+
+  const game = state.game
+
+  { // Players
+    const colorIx = [ 'red', 'green', 'yellow', 'purple', 'blue' ] // XXX
+    gui.players = {}
+    for (let i = 0; i < game.turnOrder.length; ++i) {
+      const pid = game.turnOrder[i]
+      console.log(pid)
+      const s   = game.players[pid]
+      s.height  = 120
+      s.color   = colorIx[i]
+      s.name    = pid
+      const p = drawPlayer(s)
+      gui[pid] = p
+      body.appendChild(p)
+    }
+  }
+
+  { const status = game.status
+    if (status.tag == 'active') {
+      const turn = status.turn
+      const cur = gui[turn.player]  
+      cur.classList.add('player-active')
+      const lab = document.createElement('div')
+      lab.classList.add('player-active-box')
+      lab.textContent = turn.actDone + '/' + turn.actLimit
+      cur.appendChild(lab)
+    }
+  }
+
+
+}
+
 function uiDrawBoard(ws,board) {
   const body = document.getElementById('main')
   const state = sample()
@@ -51,13 +92,13 @@ function sample() {
 function main() {
   srvConnect('ws://0.0.0.0:8000')
 
+/*
   const body = document.getElementById('main')
   const state = sample()
   gui = drawBoardIn(body,state.board)
   gui.placeWorkerInOffice(23,{owner: 'purple', shape: 'cube' })
   const purpleDisc = {owner:'purple', shape: 'disc'}
   const greenCube = {owner:'green', shape: 'cube'}
-/*
   ui.askWorkerOnVP(0, purpleDisc)
   ui.askFullEdgeSpot(17,0)
   ui.askFullEdgeSpot(17,1)
@@ -70,10 +111,10 @@ function main() {
   ui.askUpgrade('actions')
   ui.askUpgrade('privilege')
   for (let i = 0; i < 15; ++i) ui.askEmptyEdgeSpot(i,0,purpleDisc)
-*/
 
   for (const i in state.players) {
     body.appendChild(drawPlayer(state.players[i]))
   }
+*/
 
 }

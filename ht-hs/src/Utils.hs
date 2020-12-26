@@ -1,10 +1,13 @@
 module Utils where
 
+import Data.Text(Text)
 import Control.Monad.ST
 import System.Random.TF
 import System.Random.TF.Instances
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Mutable as MVector
+import qualified Data.Aeson as JS
+import qualified Data.Aeson.Types as JS
 
 enumAll :: (Bounded a,Enum a) => [a]
 enumAll = [ minBound .. maxBound ]
@@ -31,4 +34,5 @@ shuffle xs g0
        MVector.write v a y
        MVector.write v b x
 
-
+jsTag :: Text -> JS.Pair
+jsTag t = "tag" JS..= t
