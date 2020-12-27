@@ -10,6 +10,12 @@ function uiRedraw(ws,state) {
 
   const game = state.game
 
+  { // Board
+    const board = game.board
+    board.size = 700
+    gui.board = drawBoardIn(body,board)
+  }
+
   { // Players
     const colorIx = [ 'red', 'green', 'yellow', 'purple', 'blue' ] // XXX
     gui.players = {}
@@ -20,25 +26,21 @@ function uiRedraw(ws,state) {
       s.height  = 120
       s.color   = colorIx[i]
       s.name    = pid
-      const p = drawPlayer(s)
+      const p = drawPlayerIn(body,s)
       gui[pid] = p
-      body.appendChild(p)
     }
   }
 
-  { const status = game.status
+  { // Current turn
+    const status = game.status
     if (status.tag == 'active') {
       const turn = status.turn
-      const cur = gui[turn.player]  
-      cur.classList.add('player-active')
-      const lab = document.createElement('div')
-      lab.classList.add('player-active-box')
-      lab.textContent = turn.actDone + '/' + turn.actLimit
-      cur.appendChild(lab)
+      const cur = gui[turn.player]
+      cur.setCurrrent(turn)
+      cur.setPreference('disc')
+      cur.setPreference('cube')
     }
   }
-
-
 }
 
 function uiDrawBoard(ws,board) {

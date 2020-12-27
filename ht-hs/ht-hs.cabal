@@ -22,7 +22,7 @@ library
     Basics, Player, Edge, Node, Stats, Bonus, Utils,
     Question, Game, Board, Geometry,
     Interact,
-    Actions.Place,
+    Actions,
     Board.Index
     Board.Builder,
     Board.Britannia45,

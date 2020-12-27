@@ -11,6 +11,8 @@ module Player
   , changeUnavailable
   , getUnavailable
   , hireWorker
+  , setWorkerPreference
+  , getWorkerPreference
 
     -- * Bonuses
   , gainBonus
@@ -47,6 +49,7 @@ data Player = Player
   , availableBonuses    :: [BonusToken]
   , usedBonuses         :: [BonusToken]
   , points              :: Int
+  , preference          :: WorkerType
   } deriving Show
 
 zeroState :: Player
@@ -57,6 +60,7 @@ zeroState = Player
   , availableBonuses    = []
   , usedBonuses         = []
   , points              = 0
+  , preference          = Cube
   }
 
 
@@ -95,6 +99,13 @@ getUnavailable s w = unavailableWorkers s Map.! w
 hireWorker :: WorkerType -> Int -> Player -> Player
 hireWorker w n = changeAvailable w n . changeUnavailable w (-n)
 
+-- | Prefer placing this worker
+getWorkerPreference :: Player -> WorkerType
+getWorkerPreference = preference
+
+-- | Set worker preference to this
+setWorkerPreference :: WorkerType -> Player -> Player
+setWorkerPreference wt = \s -> s { preference = wt }
 
 --------------------------------------------------------------------------------
 
@@ -149,6 +160,7 @@ instance JS.ToJSON Player where
     , "vp"            .= points p
     , "bonuses"       .= bonusObj
     , "spentBonusus"  .= length (usedBonuses p)
+    , "preference"    .= preference p
     ]
 
 

@@ -28,6 +28,12 @@ replacementCost wt =
     Cube -> 1
     Disc -> 2
 
+otherType :: WorkerType -> WorkerType
+otherType ty =
+  case ty of
+    Cube -> Disc
+    Disc -> Cube
+
 
 
 data RequireWorker = AnyWorker | Require WorkerType

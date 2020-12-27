@@ -201,3 +201,8 @@ body {
   z-index: 5;
 }
 
+.player-preference {
+  box-shadow: 0 0 5px 5px;
+}
+
+

@@ -1,18 +1,21 @@
-function drawPlayer(opts) {
+function drawPlayerIn(container,opts) {
 
-  let height = opts.height
-  let color = opts.color
+  const ui = {}
 
-  let dom = document.createElement('div')
+  const height = opts.height
+  const color = opts.color
+
+  const dom = document.createElement('div')
+
   dom.classList.add('player')
   dom.style.height = height + 'px'
 
-  let img = document.createElement('img')
+  const img = document.createElement('img')
   img.setAttribute('src', 'img/player/' + color + '.png')
   img.classList.add('player-board')
   dom.appendChild(img)
 
-  let wsize = height * 0.07
+  const wsize = height * 0.07
   { // name
     const lab = document.createElement('div')
     lab.classList.add('player-label')
@@ -23,7 +26,8 @@ function drawPlayer(opts) {
   }
 
   { // Stats
-    let layout =
+  // XXX: change methods
+    const layout =
           { movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
                        , y: 0.427
                        , shape: 'disc'
@@ -47,15 +51,15 @@ function drawPlayer(opts) {
           }
 
     for (const stat in layout) {
-      let info = layout[stat]
-      let n    = info.x.length
-      let y    = height * info.y
+      const  info = layout[stat]
+      const  n    = info.x.length
+      const  y    = height * info.y
       for (let i = opts[stat]; i < n; ++i) {
         const worker = { shape: info.shape == 'disc' ? 'disc' : 'cube'
                        , owner: color
                        }
         const loc = { x: info.x[i]*height, y: y }
-        let b = drawWorkerAt(loc,wsize,worker)
+        const b = drawWorkerAt(loc,wsize,worker)
         if (info.shape == 'rombus') b.style.transform = 'rotate(45deg)'
         if (i == opts[stat])
           b.setAttribute("id",opts.color + "-" + stat)
@@ -65,15 +69,16 @@ function drawPlayer(opts) {
   }
 
   // spent bonus
+  // XXX: change methods
   if (opts.spentBonuses > 0) {
-    let it = document.createElement('div')
+    const it = document.createElement('div')
     it.classList.add('bonus-spent')
     it.setAttribute('title', 'Spent bonus tokens')
-    let lab = document.createElement('span')
+    const lab = document.createElement('span')
     lab.textContent = opts.spentBonuses
     it.appendChild(lab)
-    let style = it.style
-    let dim = 0.2 * height
+    const style = it.style
+    const dim = 0.2 * height
     style.width = dim
     style.height = dim
     style.fontSize = 0.5 * dim
@@ -83,75 +88,158 @@ function drawPlayer(opts) {
   }
 
 
-  let bar = document.createElement('div')
-  bar.setAttribute('id', color + '-bar')
+  // Player info bar
+  const bar = document.createElement('div')
   bar.classList.add('player-bar')
-  let barStyle = bar.style
+  const barStyle = bar.style
   barStyle.left = height * 0.3;
   barStyle.bottom = height * 0.025;
-  let barHeight = height * 0.18
+  const barHeight = height * 0.18
   barStyle.height = barHeight
   dom.appendChild(bar)
 
-  function pBox(label) {
-    let b = document.createElement('div')
+  function pBox() {
+    const b = document.createElement('div')
     b.classList.add('player-box')
     bar.appendChild(b)
-
-    if (label) {
-      let lab = document.createElement('div')
-      lab.classList.add('bonus-multiplier')
-      lab.textContent = label
-      let sc = 0.27 * barHeight
-      lab.style.fontSize = sc
-      b.appendChild(lab)
-    }
-
     return b
   }
 
+  const workerInfo = { available: {}, unavailable: {} }
+
   function drawSupplyIn(b,which,shape,name) {
-    let it = drawWorker(wsize,{owner:color, shape: shape})
-    it.setAttribute('id', color + '-' + which + '-' + shape)
+    const it = drawWorker(wsize,{owner:color, shape: shape})
     it.setAttribute('title',name)
-    it.textContent = opts[which][shape]
+    let n = opts[which][shape]
+    it.textContent = n
+    if (opts.preference == shape) it.classList.add('player-preference')
     b.appendChild(it)
+    const info = { num: n, dom: it }
+    workerInfo[which][shape] = info
   }
 
   function drawSupply(which,name) {
-    let b = pBox()
+    const b = pBox()
     drawSupplyIn(b,which,'cube',name)
-    let sep = document.createElement('div')
+    const sep = document.createElement('div')
     sep.classList.add('player-sep')
     sep.style.width = wsize / 2
     b.appendChild(sep)
     drawSupplyIn(b,which,'disc',name)
   }
-
   drawSupply('available','Available')
 
+  ui.changeWorkers = function(which,shape,delta) {
+    const info = workerInfo[which][shape]
+    info.num = info.num + delta
+    info.dom.textContent = info.num
+  }
+
+  ui.setPreference = function(shape) {
+    for (const which in workerInfo) {
+      const shapes = workerInfo[which]
+      for (sh in shapes) {
+        const info = shapes[sh]
+        if (sh == shape) {
+          info.dom.classList.add('player-preference')
+        } else {
+          info.dom.classList.remove('player-preference')
+        }
+      }
+    }
+  }
+
+
   { // Bonuses
-    let size = barHeight * 0.9
-    for (bonus in opts.bonuses) {
-      let n = opts.bonuses[bonus]
-      let b = pBox(n > 1 ? ('x' + n) : null)
-      let it = drawBonusToken(size,bonus)
-      it.setAttribute('id',color + '-bonus-' + bonus)
+    const bonusInfo = {}
+    const size = barHeight * 0.9
+
+    function newBonus(bonus,n) {
+      const info = {}
+      bonusInfo[bonus] = info
+
+      const b = pBox()
+      const lab = document.createElement('div')
+      lab.classList.add('bonus-multiplier')
+      lab.textContent = n > 1 ? ('x' + n) : ''
+      const sc = 0.3 * barHeight
+      lab.style.fontSize = sc
+      b.appendChild(lab)
+
+      const it = drawBonusToken(size,bonus)
       b.appendChild(it)
+
+      info.dom = b
+      info.num = n
+      info.lab = lab
       bar.appendChild(b)
+    }
+
+    for (bonus in opts.bonuses) {
+      newBonus(bonus,opts.bonuses[bonus])
+    }
+
+    ui.addBonus = function(bonus) {
+      const info = bonusInfo[bonus]
+      if (!info) {
+        newBonus(bonus,1)
+      } else {
+        info.num = info.num + 1
+        if (info.num > 1) {
+          info.lab.textContent = 'x' + info.num
+        }
+      }
+    }
+
+    ui.removeBonus = function(bonus) {
+      const info = bonusInfo[bonus]
+      if (!info) return
+      info.num = info.num - 1
+      if (info.num <= 0) {
+        info.dom.remove()
+        delete bonusInfo[bonus]
+      } else {
+        info.lab.textContent = info.num > 1? ('x' + info.num) : ''
+      }
     }
   }
 
   { // VP
-    let it = pBox()
-    it.textContent  = opts.vp + ' VP'
+    const it = pBox()
+    let vp = opts.vp
+    it.textContent  = vp + ' VP'
     it.style.fontSize = 0.4 * barHeight
     bar.appendChild(it)
+    ui.changeVP = function(delta) {
+      vp = vp + delta
+      it.textContent = vp + ' VP'
+    }
   }
 
   drawSupply('unavailable','Uvailable')
 
-  return dom
+  { // current player
+    let lab = null
+
+    // XXX: change info about the current turn
+    ui.setCurrrent = function(turn) {
+      if (turn) {
+        dom.classList.add('player-active')
+        lab = document.createElement('div')
+        lab.classList.add('player-active-box')
+        lab.textContent = turn.actDone + '/' + turn.actLimit
+        dom.appendChild(lab)
+      } else {
+        dom.classList.remove('player-active')
+        if (lab) lab.remove()
+      }
+    }
+  }
+
+
+
+  container.appendChild(dom)
+  return ui
 }
 
 

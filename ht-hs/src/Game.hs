@@ -8,8 +8,11 @@ module Game
   , Game
   , runGame
   , view
+  , getState
   , update
+  , Turn(..)
   , GameUpdate(..)
+  , GameStatus(..)
   ) where
 
 import Data.Map(Map)
@@ -33,7 +36,8 @@ import Board
 newtype Game a = Game (GameState Updates -> (a,GameState Updates))
 
 data GameUpdate =
-    PlaceWorkerOnEdge EdgeId Worker
+    SetWorkerPreference Worker
+  | PlaceWorkerOnEdge EdgeId Worker
   deriving Show
 
 runGame :: Game a -> GameState Updates -> (a,GameState Updates)
@@ -57,6 +61,7 @@ data GameState updates = GameState
   { gamePlayers   :: Map PlayerId Player
   , gameTurnOrder :: [PlayerId]
   , gameTokens    :: [BonusToken]
+  , gameBoard     :: Board
   , gameStatus    :: GameStatus
   , gameOutput    :: updates
   } deriving Show
@@ -83,6 +88,10 @@ update = undefined
 view :: (GameState NoUpdates -> a) -> Game a
 view f = Game \s -> (f s { gameOutput = () }, s)
 
+getState :: Game (GameState NoUpdates)
+getState = view id
+
+
 broadcast :: GameUpdate -> Game ()
 broadcast m =
   do ps <- view gameTurnOrder
@@ -90,7 +99,7 @@ broadcast m =
 
 data GameStatus =
     GameInProgress Turn
-  | GameFinished Board
+  | GameFinished
     deriving Show
 
 data Turn = Turn
@@ -119,11 +128,12 @@ initialGameState rng0 board playerIds =
     { gamePlayers    = playerState
     , gameTurnOrder  = playerOrder
     , gameTokens     = tokens
+    , gameBoard      = board
     , gameStatus =
         if not (null playerOrder)
           then GameInProgress
                     (newTurn firstPlayer (getLevel firstPlayerState Actions))
-          else GameFinished board
+          else GameFinished
     , gameOutput     = ()
     }
 
@@ -146,6 +156,7 @@ instance JS.ToJSON (GameState NoUpdates) where
                   | (pId,p) <- Map.toList (gamePlayers g)
                   ]
     , "turnOrder" .= gameTurnOrder g
+    , "board"     .= gameBoard g
     , "status"    .= gameStatus g
     ]
 
@@ -154,7 +165,7 @@ instance JS.ToJSON GameStatus where
     case gs of
       GameInProgress t ->
         JS.object [ jsTag "active", "turn" .=  t ]
-      GameFinished _ -> JS.object [ jsTag "finished" ]
+      GameFinished -> JS.object [ jsTag "finished" ]
 
 instance JS.ToJSON Turn where
   toJSON t = JS.object

@@ -7,6 +7,7 @@ module Interact
   -- * Building Interactions
   , Interact
   , askInput
+  , askInputs
   , game
 
   -- * XXX
@@ -44,16 +45,6 @@ data InteractState updates =
       -- ^ Choices avialable to the players.
     }
 
-startState :: GameState NoUpdates -> InteractState NoUpdates
-startState g =
-  InteractState
-    { iGame0  = g
-    , iLog    = []
-    , iGame   = g
-    , iAsk    = Map.empty
-    }
-
-
 
 newtype Interact a = Interact ((a -> Result) -> Result)
 type Result        = InteractState Updates -> InteractState Updates
@@ -89,6 +80,12 @@ askInput p opts = Interact \curK ->
                                    , iAsk = Map.empty })
      in curS { iAsk = foldr cont (iAsk curS) opts }
 
+askInputs :: [ (WithPlayer Choice, Interact ()) ] -> Interact ()
+askInputs opts = Interact \curK curS ->
+  let cont (ch,Interact m) =
+        (ch, m curK curS { iLog = ch : iLog curS, iAsk = Map.empty })
+  in curS { iAsk = Map.fromList (map cont opts) }
+
 -- | Resume execution based on player input
 continueWith :: WithPlayer Choice -> Interact ()
 continueWith msg =
@@ -101,6 +98,9 @@ game :: Game a -> Interact a
 game g = Interact \k s -> case runGame g (iGame s) of
                             (a,g1) -> k a s { iGame = g1 }
 
+
+newtype InteractBuilder a = IB (Interact a)
+  deriving (Functor,Applicative,Monad)
 
 
 --------------------------------------------------------------------------------
@@ -138,6 +138,19 @@ instance JS.FromJSON PlayerRequest where
     reload o = do tag <- o .: "tag"
                   guard (tag == ("reload" :: Text))
                   pure Reload
+
+
+
+
+startState :: GameState NoUpdates -> InteractState NoUpdates
+startState g =
+  InteractState
+    { iGame0  = g
+    , iLog    = []
+    , iGame   = g
+    , iAsk    = Map.empty
+    }
+
 
 handleMessage ::
   WithPlayer PlayerRequest ->

@@ -1,19 +1,8 @@
 module Actions.Place where
 
-import qualified Data.Set as Set
-import qualified Data.Map as Map
-import Data.Maybe(fromMaybe)
-import Control.Monad(guard)
-
-import Utils
-import Basics
-import Player
-import Board
-import Edge
-import Question
-import Game
 
 {-
+
 tryPlace :: Turn -> WorkerType -> Maybe Question
 tryPlace turn workerT =
   do guard ( turnActionsDone turn < turnActionLimit turn &&
