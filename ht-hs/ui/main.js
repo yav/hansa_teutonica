@@ -37,8 +37,9 @@ function uiRedraw(ws,state) {
       const turn = status.turn
       const cur = gui[turn.player]
       cur.setCurrrent(turn)
-      cur.setPreference('disc')
-      cur.setPreference('cube')
+      cur.addSpentBonus()
+      cur.addSpentBonus()
+      cur.addBonus('act_3')
     }
   }
 }

@@ -25,8 +25,24 @@ function drawPlayerIn(container,opts) {
     dom.appendChild(lab)
   }
 
+   // help box
+  const setHelp = function() {
+    const box = document.createElement('div')
+    box.classList.add('player-help')
+    box.classList.add(opts.color)
+    box.style.fontSize = 0.08 * height
+    dom.appendChild(box)
+    return function(thing,help) {
+      thing.addEventListener('mouseenter',function() {
+        box.textContent = help
+      })
+      thing.addEventListener('mouseleave',function() {
+        box.textContent = ''
+      })
+    }
+  } ()
+
   { // Stats
-  // XXX: change methods
     const layout =
           { movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
                        , y: 0.427
@@ -50,41 +66,67 @@ function drawPlayerIn(container,opts) {
                        }
           }
 
+    const statInfo = {}
     for (const stat in layout) {
       const  info = layout[stat]
       const  n    = info.x.length
       const  y    = height * info.y
-      for (let i = opts[stat]; i < n; ++i) {
+      const  val  = opts[stat]
+      const  doms = {}
+      for (let i = val; i < n; ++i) {
         const worker = { shape: info.shape == 'disc' ? 'disc' : 'cube'
                        , owner: color
                        }
         const loc = { x: info.x[i]*height, y: y }
         const b = drawWorkerAt(loc,wsize,worker)
+        setHelp(b, stat + ' upgrade ' + worker.shape)
         if (info.shape == 'rombus') b.style.transform = 'rotate(45deg)'
-        if (i == opts[stat])
-          b.setAttribute("id",opts.color + "-" + stat)
+        doms[i] = b
         dom.appendChild(b)
       }
+      statInfo[stat] = { doms: doms, val: val }
+    }
+
+    ui.upgrade = function(stat) {
+      const info = statInfo[stat]
+      const doms = info.doms
+      doms[info.val].remove()
+      delete doms[info.val]
+      info.val = info.val + 1
     }
   }
 
-  // spent bonus
-  // XXX: change methods
-  if (opts.spentBonuses > 0) {
-    const it = document.createElement('div')
-    it.classList.add('bonus-spent')
-    it.setAttribute('title', 'Spent bonus tokens')
-    const lab = document.createElement('span')
-    lab.textContent = opts.spentBonuses
-    it.appendChild(lab)
-    const style = it.style
-    const dim = 0.2 * height
-    style.width = dim
-    style.height = dim
-    style.fontSize = 0.5 * dim
-    style.left = 1.20 * height
-    style.top = 0.12 * height
-    dom.appendChild(it)
+  { // spent bonus
+
+    let spent = opts.spentBonuses
+    let lab = null
+
+    const makeSpent = function() {
+      const it = document.createElement('div')
+      it.classList.add('bonus-spent')
+      setHelp(it,'Spent bonus tokens')
+      lab = document.createElement('span')
+      lab.textContent = spent
+      it.appendChild(lab)
+      const style = it.style
+      const dim = 0.2 * height
+      style.width = dim
+      style.height = dim
+      style.fontSize = 0.5 * dim
+      style.left = 1.20 * height
+      style.top = 0.12 * height
+      dom.appendChild(it)
+    }
+
+    if (opts.spentBonuses > 0) makeSpent()
+
+    ui.addSpentBonus = function () {
+      console.log(spent)
+      if (spent == 0) makeSpent()
+      spent = spent + 1
+      lab.textContent = spent
+    }
+
   }
 
 
@@ -109,7 +151,7 @@ function drawPlayerIn(container,opts) {
 
   function drawSupplyIn(b,which,shape,name) {
     const it = drawWorker(wsize,{owner:color, shape: shape})
-    it.setAttribute('title',name)
+    setHelp(it,name + ' ' + shape + 's')
     let n = opts[which][shape]
     it.textContent = n
     if (opts.preference == shape) it.classList.add('player-preference')
@@ -172,6 +214,7 @@ function drawPlayerIn(container,opts) {
       info.dom = b
       info.num = n
       info.lab = lab
+      setHelp(b,'Bonus token')
       bar.appendChild(b)
     }
 
@@ -206,6 +249,7 @@ function drawPlayerIn(container,opts) {
 
   { // VP
     const it = pBox()
+    setHelp(it,'victory points')
     let vp = opts.vp
     it.textContent  = vp + ' VP'
     it.style.fontSize = 0.4 * barHeight
@@ -216,7 +260,7 @@ function drawPlayerIn(container,opts) {
     }
   }
 
-  drawSupply('unavailable','Uvailable')
+  drawSupply('unavailable','Unavailable')
 
   { // current player
     let lab = null
@@ -226,6 +270,7 @@ function drawPlayerIn(container,opts) {
       if (turn) {
         dom.classList.add('player-active')
         lab = document.createElement('div')
+        setHelp(lab,'Used actions')
         lab.classList.add('player-active-box')
         lab.textContent = turn.actDone + '/' + turn.actLimit
         dom.appendChild(lab)

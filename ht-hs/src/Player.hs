@@ -159,7 +159,7 @@ instance JS.ToJSON Player where
     , "unavailable"   .= workerObject (unavailableWorkers p)
     , "vp"            .= points p
     , "bonuses"       .= bonusObj
-    , "spentBonusus"  .= length (usedBonuses p)
+    , "spentBonuses"  .= length (usedBonuses p)
     , "preference"    .= preference p
     ]
 
