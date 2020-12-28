@@ -85,24 +85,16 @@ function drawBoardIn(container,opts) {
         dom.removeEventListener('click',info.fun)
       }
     }
-    const makeQuestion = function(el,f) {
-      el.classList.add('question')
-      const fun = function(ev) { removeQuestions(); f(ev) }
-      el.addEventListener('click',fun)
-      return fun
-    }
-
-
 
     const q = {}
     q.addFull = function(el,f) {
       questionsFull[questionsFull.length] = { dom: el
-                                            , fun: makeQuestion(el,f)
+                                            , fun: makeQuestion(el,"add full",f)
                                             }
     }
 
     q.addEmpty = function(el,f) {
-      makeQuestion(el,f)
+      makeQuestion(el,"add empty",f)
       el.classList.add('new')
       questionsEmpty[questionsEmpty.length] = el
       dom.append(el)

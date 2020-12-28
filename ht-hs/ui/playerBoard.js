@@ -191,6 +191,15 @@ function drawPlayerIn(container,opts) {
     }
   }
 
+  ui.askPreference = function(ws,shape) {
+    for (const which in workerInfo) {
+      const shapes = workerInfo[which]
+      const info = shapes[shape]
+      gui.questionAnnot(info.dom, "Set worker preference"
+                                , { setPreference: shape })
+    }
+  }
+
 
   { // Bonuses
     const bonusInfo = {}

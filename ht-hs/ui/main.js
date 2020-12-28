@@ -1,12 +1,63 @@
 let gui
 
+function newGUI(ws) {
+  const questionsExtra = []
+  const questionsElems = []
+  const ui = {}
+
+  const newQuestionExtra = function(d) {
+    questionsExtra[questionsExtra.length] = d
+  }
+
+  const removeQuestions = function() {
+    for (let i = 0; i < questionsExtra.length; ++i) questionsExtra[i].remove()
+    for (let i = 0; i < questionsElems.length; ++i) questionsElems[i]()
+  }
+
+  const makeQuestion = function(el,q,val) {
+    const tip = document.createElement('div')
+    newQuestionExtra(tip)
+    tip.classList.add('tooltip')
+    tip.textContent = q
+
+    el.appendChild(tip)
+    el.classList.add('question')
+
+    const funClick = function(ev) {
+      removeQuestions()
+      console.log(val)
+    }
+    const funEnter = function(ev) { tip.style.display = 'inline-block' }
+    const funLeave = function(ev) { tip.style.display = 'none' }
+    el.addEventListener('click',funClick)
+    el.addEventListener('mouseenter',funEnter)
+    el.addEventListener('mouseleave',funLeave)
+    return function() {
+      el.classList.remove('question')
+      el.removeEventListener('click',funClick)
+      el.removeEventListener('mouseenter',funEnter)
+      el.removeEventListener('mouseleave',funLeave)
+    }
+  }
+
+  ui.questionAnnot = function(el,q,val) {
+    questionsElems[questionsElems.length] = makeQuestion(el,q,val)
+  }
+
+  ui.questionNew = function(el,q,val) {
+    questionsExtra(el)
+    makeQuestion(el,q,val)
+  }
+
+  return ui
+}
+
 
 function uiRedraw(ws,state) {
-  console.log('redraw')
   const body = document.getElementById('main')
   body.innerHTML = ''
 
-  gui = {}
+  gui = newGUI(ws)
 
   const game = state.game
 
@@ -37,11 +88,12 @@ function uiRedraw(ws,state) {
       const turn = status.turn
       const cur = gui[turn.player]
       cur.setCurrrent(turn)
-      cur.addSpentBonus()
-      cur.addSpentBonus()
-      cur.addBonus('act_3')
     }
   }
+
+  { // questions
+  }
+
 }
 
 function uiDrawBoard(ws,board) {
