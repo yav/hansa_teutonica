@@ -6,6 +6,7 @@ function drawWorker(size,worker) {
   style.width = size + 'px'
   style.height = size + 'px'
   style.fontSize = (size * 0.8) + 'px'
+  style.position = 'relative'
   return dom
 }
 

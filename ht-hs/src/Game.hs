@@ -79,11 +79,19 @@ endInteract i = (gameOutput i, i { gameOutput = () })
 doUpdate :: (GameState Updates -> GameState Updates) -> Game ()
 doUpdate f = Game \s -> ((), f s)
 
-output :: WithPlayer GameUpdate -> Game ()
-output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
+doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game ()
+doUpdatePlayer pid f =
+  doUpdate \s -> s { gamePlayers = Map.adjust f pid (gamePlayers s) }
 
 update :: GameUpdate -> Game ()
-update = undefined
+update upd =
+  do case upd of
+       SetWorkerPreference w ->
+         doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
+
+
+     broadcast upd
+
 
 view :: (GameState NoUpdates -> a) -> Game a
 view f = Game \s -> (f s { gameOutput = () }, s)
@@ -96,6 +104,11 @@ broadcast :: GameUpdate -> Game ()
 broadcast m =
   do ps <- view gameTurnOrder
      forM_ ps \p -> output (p :-> m)
+
+output :: WithPlayer GameUpdate -> Game ()
+output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
+
+
 
 data GameStatus =
     GameInProgress Turn
@@ -178,6 +191,7 @@ instance JS.ToJSON Turn where
 
 --------------------------------------------------------------------------------
 instance JS.ToJSON GameUpdate where
-  toJSON = undefined
-
+  toJSON upd =
+    case upd of
+      SetWorkerPreference w -> jsCall "setWorkerPreference" [w]
 

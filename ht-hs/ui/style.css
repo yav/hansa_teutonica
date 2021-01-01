@@ -202,7 +202,12 @@ body {
 }
 
 .player-preference {
-  box-shadow: 0 0 5px 5px;
+  position: absolute;
+  display: inline-block;
+  z-index: 7;
+}
+.player-preference img {
+  transform: rotate(180deg);
 }
 
 .player-help {

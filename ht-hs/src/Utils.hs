@@ -36,3 +36,9 @@ shuffle xs g0
 
 jsTag :: Text -> JS.Pair
 jsTag t = "tag" JS..= t
+
+jsTagged :: Text -> [JS.Pair] -> JS.Value
+jsTagged t xs = JS.object (jsTag t : xs)
+
+jsCall :: JS.ToJSON a => Text -> [a] -> JS.Value
+jsCall f as = jsTagged f [ "args" JS..= as ]

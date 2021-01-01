@@ -56,7 +56,7 @@ tryPlace state =
          getFull      = occupiedSpots board accessible workerT canReplace
          changePref   = do let otherT = otherType workerT
                            guard (getAvailable playerState otherT > 0)
-                           pure (ChActiveWorker otherT)
+                           pure (ChSetPreference otherT)
 
      ch <- [ player :-> c | c <- changePref ++ getFree ++ getFull ]
      pure (ch, handleChoice ch)
@@ -64,13 +64,13 @@ tryPlace state =
   where
   handleChoice (pid :-> ch) =
     case ch of
-      ChActiveWorker t ->
+      ChSetPreference t ->
         game $ update
              $ SetWorkerPreference Worker { workerOwner = pid, workerType = t }
       ChEdge edgeId spot mbW ->
         case mbW of
-          Nothing -> undefined
-          Just w -> undefined
+          Nothing -> error "XXX: place emtpy"
+          Just w -> error "XXX: place full"
       _ -> pure ()
 
 

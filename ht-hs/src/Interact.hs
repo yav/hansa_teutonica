@@ -6,7 +6,6 @@ module Interact
 
   -- * Building Interactions
   , Interact
-  , askInput
   , askInputs
   , game
 
@@ -22,9 +21,8 @@ import Control.Monad(liftM,ap)
 import Data.Text(Text)
 import Data.Aeson((.:),(.=))
 import qualified Data.Aeson as JS
-import Control.Monad(guard)
-import Control.Applicative((<|>))
 
+import Utils
 import Basics
 import Question
 import Game
@@ -41,7 +39,8 @@ data InteractState updates =
       -- ^ The current game state.
       -- Should be reproducable by replyaing the log file on the initial state
 
-    , iAsk    :: Map (WithPlayer Choice) (InteractState Updates)
+    , iAsk    :: Map (WithPlayer Choice)
+                     (InteractState Updates -> InteractState Updates)
       -- ^ Choices avialable to the players.
     }
 
@@ -71,27 +70,18 @@ interaction (Interact k) s =
   in (s1 { iGame = g }, map (fmap GameUpdate) out)
 
 
--- | Ask a question from a specific player
-askInput :: PlayerId -> [Choice] -> Interact Choice
-askInput p opts = Interact \curK ->
-  \curS ->
-     let cont ch = Map.insert (p :-> ch)
-                     (curK ch curS { iLog = (p :-> ch) : iLog curS
-                                   , iAsk = Map.empty })
-     in curS { iAsk = foldr cont (iAsk curS) opts }
-
 askInputs :: [ (WithPlayer Choice, Interact ()) ] -> Interact ()
 askInputs opts = Interact \curK curS ->
-  let cont (ch,Interact m) =
-        (ch, m curK curS { iLog = ch : iLog curS, iAsk = Map.empty })
+  let cont (ch,Interact m) = (ch, m curK)
   in curS { iAsk = Map.fromList (map cont opts) }
 
 -- | Resume execution based on player input
-continueWith :: WithPlayer Choice -> Interact ()
-continueWith msg =
-  Interact \_ s -> case Map.lookup msg (iAsk s) of
-                     Just s1 -> s1
-                     Nothing -> s
+continueWith ::
+  WithPlayer Choice -> Interact a
+continueWith msg = Interact \_ s ->
+  case Map.lookup msg (iAsk s) of
+    Just f  -> f s { iAsk = Map.empty, iLog = msg : iLog s }
+    Nothing -> s
 
 -- | Do something with the game state
 game :: Game a -> Interact a
@@ -108,6 +98,7 @@ newtype InteractBuilder a = IB (Interact a)
 
 data OutMsg =
     CurGameState (InteractState NoUpdates)
+  | AskQuestions [Choice]
   | GameUpdate GameUpdate
 
 data PlayerRequest =
@@ -118,11 +109,9 @@ data PlayerRequest =
 instance JS.ToJSON OutMsg where
   toJSON msg =
     case msg of
-      GameUpdate upd -> JS.toJSON upd
-      CurGameState s ->
-        JS.object [ "fun"  .= ("redraw" :: Text)
-                  , "args" .= [s]
-                  ]
+      GameUpdate upd  -> JS.toJSON upd
+      AskQuestions qs -> jsCall "ask" [qs]
+      CurGameState s -> jsCall "redraw" [s]
 
 instance JS.ToJSON (InteractState NoUpdates) where
   toJSON g = JS.object [ "game"      .= iGame g
@@ -132,15 +121,11 @@ instance JS.ToJSON (InteractState NoUpdates) where
 
 
 instance JS.FromJSON PlayerRequest where
-  parseJSON v =  JS.withObject "request" reload v
-             <|> (PlayerResponse <$> JS.parseJSON v)
-    where
-    reload o = do tag <- o .: "tag"
-                  guard (tag == ("reload" :: Text))
-                  pure Reload
-
-
-
+  parseJSON = JS.withObject "request" \o ->
+              do tag <- o .: "tag"
+                 case tag :: Text of
+                   "reload" -> pure Reload
+                   _        -> PlayerResponse <$> JS.parseJSON (JS.Object o)
 
 startState :: GameState NoUpdates -> InteractState NoUpdates
 startState g =
@@ -156,12 +141,23 @@ handleMessage ::
   WithPlayer PlayerRequest ->
   InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
 handleMessage (p :-> req) =
+  askQuestions .
   case req of
     Reload -> \s ->
                 let forMe (q :-> _) _ = p == q
                     ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
                 in (s, [p :-> CurGameState ps])
     PlayerResponse ch -> interaction (continueWith (p :-> ch))
+
+  where
+  askQuestions (s,os) =
+    ( s
+    , os ++
+      [ q :-> AskQuestions qs
+      | (q,qs) <- Map.toList $ Map.fromListWith (++)
+                                 [ (q,[ch]) | q :-> ch <- Map.keys (iAsk s) ]
+      ]
+    )
 
 
 

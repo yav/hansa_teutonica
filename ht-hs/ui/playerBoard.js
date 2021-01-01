@@ -121,7 +121,6 @@ function drawPlayerIn(container,opts) {
     if (opts.spentBonuses > 0) makeSpent()
 
     ui.addSpentBonus = function () {
-      console.log(spent)
       if (spent == 0) makeSpent()
       spent = spent + 1
       lab.textContent = spent
@@ -154,7 +153,6 @@ function drawPlayerIn(container,opts) {
     setHelp(it,name + ' ' + shape + 's')
     let n = opts[which][shape]
     it.textContent = n
-    if (opts.preference == shape) it.classList.add('player-preference')
     b.appendChild(it)
     const info = { num: n, dom: it }
     workerInfo[which][shape] = info
@@ -168,8 +166,9 @@ function drawPlayerIn(container,opts) {
     sep.style.width = wsize / 2
     b.appendChild(sep)
     drawSupplyIn(b,which,'disc',name)
+    return b
   }
-  drawSupply('available','Available')
+  const available = drawSupply('available','Available')
 
   ui.changeWorkers = function(which,shape,delta) {
     const info = workerInfo[which][shape]
@@ -177,27 +176,38 @@ function drawPlayerIn(container,opts) {
     info.dom.textContent = info.num
   }
 
-  ui.setPreference = function(shape) {
-    for (const which in workerInfo) {
-      const shapes = workerInfo[which]
-      for (sh in shapes) {
-        const info = shapes[sh]
-        if (sh == shape) {
-          info.dom.classList.add('player-preference')
-        } else {
-          info.dom.classList.remove('player-preference')
-        }
-      }
-    }
-  }
+  const setPref = function() {
+    const it  = document.createElement('div')
+    const img = document.createElement('img')
+    img.setAttribute('src','img/player/arrow.png')
+    it.appendChild(img)
+    it.classList.add('player-preference')
+    const imgStyle = img.style
+    const style = it.style
+    setHelp(it,'Place these workers')
 
-  ui.askPreference = function(ws,shape) {
-    for (const which in workerInfo) {
-      const shapes = workerInfo[which]
-      const info = shapes[shape]
-      gui.questionAnnot(info.dom, "Set worker preference"
-                                , { setPreference: shape })
+
+    ui.askPreference = function(shape,json) {
+      gui.questionAnnot(it,'Set preference to ' + shape,json)
     }
+
+    return function(shape) {
+      const info = workerInfo['available'][shape]
+      const size = workerSize(wsize,shape)
+      imgStyle.height = size
+      style.top       = size * 1.3
+      style.left      = 0
+      info.dom.appendChild(it)
+    }
+  }()
+  setPref(opts.preference)
+  ui.setPreference = setPref
+
+
+  ui.askWorker = function(which,shape,tip,json) {
+    const shapes = workerInfo[which]
+    const info = shapes[shape]
+    gui.questionAnnot(info.dom,tip,json)
   }
 
 
