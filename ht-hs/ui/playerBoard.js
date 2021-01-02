@@ -152,9 +152,13 @@ function drawPlayerIn(container,pid,opts) {
     const it = drawWorker(wsize,{owner:pid, shape: shape})
     setHelp(it,name + ' ' + shape + 's')
     let n = opts[which][shape]
-    it.textContent = n
+
+    const lab = document.createElement('span')
+    lab.textContent = n
+    it.appendChild(lab)
+
     b.appendChild(it)
-    const info = { num: n, dom: it }
+    const info = { num: n, lab: lab, dom: it }
     workerInfo[which][shape] = info
   }
 
@@ -173,7 +177,7 @@ function drawPlayerIn(container,pid,opts) {
   ui.changeWorkers = function(which,shape,delta) {
     const info = workerInfo[which][shape]
     info.num = info.num + delta
-    info.dom.textContent = info.num
+    info.lab.textContent = info.num
   }
 
   const setPref = function() {
