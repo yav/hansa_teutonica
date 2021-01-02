@@ -281,27 +281,6 @@ function drawPlayerIn(container,pid,opts) {
 
   drawSupply('unavailable','Unavailable')
 
-  { // current player
-    let lab = null
-
-    // XXX: change info about the current turn
-    ui.setCurrrent = function(turn) {
-      if (turn) {
-        dom.classList.add('player-active')
-        lab = document.createElement('div')
-        setHelp(lab,'Used actions')
-        lab.classList.add('player-active-box')
-        lab.textContent = turn.actDone + '/' + turn.actLimit
-        dom.appendChild(lab)
-      } else {
-        dom.classList.remove('player-active')
-        if (lab) lab.remove()
-      }
-    }
-  }
-
-
-
   container.appendChild(dom)
   return ui
 }

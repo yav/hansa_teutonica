@@ -15,10 +15,8 @@ const handlers =
   , changeUnavailable: function(ws,w,n) {
       gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
     }
-/*
-  , changeDoneActions: uiChangeDoneActions
-  , changeActionLimit: uiChangeActionLimit
-*/
+  , changeDoneActions: function(ws,n) { gui.turn.changeDone(n) }
+  , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
   }
 
 function sendJSON(ws,obj) {

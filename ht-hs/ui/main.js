@@ -100,8 +100,7 @@ function uiRedraw(ws,state) {
     const status = game.status
     if (status.tag == 'active') {
       const turn = status.turn
-      const cur = gui[turn.player]
-      cur.setCurrrent(turn)
+      gui.turn = drawTurnIn(body,turn)
     }
   }
 
