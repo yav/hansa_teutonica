@@ -1,6 +1,7 @@
 module Game
   ( GameState(..), Updates, NoUpdates
   , initialGameState
+  , playerAfter
   , startInteract
   , endInteract
 
@@ -8,9 +9,11 @@ module Game
   , Game
   , runGame
   , view
+  , viewPlayer
   , getState
   , gameUpdate
   , Turn(..)
+  , newTurn
   , GameUpdate(..)
   , GameStatus(..)
   ) where
@@ -43,6 +46,7 @@ data GameUpdate =
   | ChangeUnavailable Worker Int
   | ChangeDoneActions Int
   | ChangeActionLimit Int
+  | NewTurn Turn
   deriving Show
 
 runGame :: Game a -> GameState Updates -> (a,GameState Updates)
@@ -71,6 +75,9 @@ data GameState updates = GameState
   , gameOutput    :: updates
   } deriving Show
 
+viewPlayer :: PlayerId -> (Player -> a) -> GameState update -> a
+viewPlayer playerId f = \s -> f (gamePlayers s Map.! playerId)
+
 type Updates   = [WithPlayer GameUpdate]
 type NoUpdates = ()
 
@@ -83,6 +90,7 @@ endInteract i = (gameOutput i, i { gameOutput = () })
 
 doUpdate :: (GameState Updates -> GameState Updates) -> Game ()
 doUpdate f = Game \s -> ((), f s)
+
 
 doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game ()
 doUpdatePlayer pid f =
@@ -120,6 +128,8 @@ gameUpdate upd =
        PlaceWorkerOnEdge edgeId spot w ->
          doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
 
+       NewTurn turn -> doUpdate \s -> s { gameStatus = GameInProgress turn }
+
 
      broadcast upd
 
@@ -129,6 +139,13 @@ view f = Game \s -> (f s { gameOutput = () }, s)
 
 getState :: Game (GameState NoUpdates)
 getState = view id
+
+playerAfter :: PlayerId -> GameState a -> PlayerId
+playerAfter playerId state =
+  case break (== playerId) (gameTurnOrder state) of
+    (_, _ : next : _) -> next
+    (next : _, _)     -> next
+    _                 -> playerId -- shouldn't happen
 
 
 broadcast :: GameUpdate -> Game ()
@@ -230,4 +247,5 @@ instance JS.ToJSON GameUpdate where
       ChangeUnavailable a b   -> jsCall "changeUnavailable" [js a, js b]
       ChangeDoneActions n     -> jsCall "changeDoneActions" [n]
       ChangeActionLimit n     -> jsCall "changeActionLimit" [n]
+      NewTurn t               -> jsCall "newTurn" [t]
  

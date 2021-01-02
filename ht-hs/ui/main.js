@@ -3,7 +3,9 @@ let gui
 
 function main() { srvConnect() }
 
-function newGUI(ws) {
+function newGUI(ws,container) {
+  container.innerHTML = ''
+
   const questionsExtra = []
   const questionsElems = []
   const ui = {}
@@ -54,15 +56,14 @@ function newGUI(ws) {
     makeQuestion(el,q,val)
   }
 
+  ui.container = container
+
   return ui
 }
 
 
 function uiRedraw(ws,state) {
-  const body = document.getElementById('main')
-  body.innerHTML = ''
-
-  gui = newGUI(ws)
+  gui = newGUI(ws, document.getElementById('main'))
 
   const game = state.game
 
@@ -80,7 +81,7 @@ function uiRedraw(ws,state) {
   { // Board
     const board = game.board
     board.size = 700
-    gui.board = drawBoardIn(body,board)
+    gui.board = drawBoard(board)
   }
 
   { // Players
@@ -90,7 +91,7 @@ function uiRedraw(ws,state) {
       const s   = game.players[pid]
       s.height  = 120
       s.name    = pid
-      const p = drawPlayerIn(body,pid,s)
+      const p = drawPlayer(pid,s)
       gui[pid] = p
     }
     gui.playerUI = function(x) { return gui[x ? x : playerId] }
@@ -100,7 +101,7 @@ function uiRedraw(ws,state) {
     const status = game.status
     if (status.tag == 'active') {
       const turn = status.turn
-      gui.turn = drawTurnIn(body,turn)
+      gui.turn = drawTurn(turn)
     }
   }
 
@@ -128,6 +129,7 @@ function uiQuestions(ws,qs) {
       case 'edge-full':
         break
       case 'done':
+        gui.turn.askDone(q)
         break
     }
   }

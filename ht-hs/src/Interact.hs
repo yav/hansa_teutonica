@@ -145,13 +145,14 @@ handleMessage ::
   WithPlayer PlayerRequest ->
   InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
 handleMessage (p :-> req) =
-  askQuestions .
   case req of
     Reload -> \s ->
                 let forMe (q :-> _) _ = p == q
                     ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
                 in (s, [p :-> CurGameState ps])
-    PlayerResponse ch -> interaction (continueWith (p :-> ch))
+    PlayerResponse ch ->
+      askQuestions .
+      interaction (continueWith (p :-> ch))
 
   where
   askQuestions (s,os) =

@@ -54,7 +54,7 @@ function boardCoord(name,size) {
 }
 
 
-function drawBoardIn(container,opts) {
+function drawBoard(opts) {
   const ui    = {}
   const board = boardCoord(opts.map, opts.size)
 
@@ -343,7 +343,7 @@ function drawBoardIn(container,opts) {
   }
 
 
-  container.appendChild(dom)
+  gui.container.appendChild(dom)
   return ui
 }
 

@@ -1,5 +1,5 @@
 
-function drawTurnIn(container,turn) {
+function drawTurn(turn) {
   const ui = {}
 
   let done    = turn.actDone
@@ -19,6 +19,7 @@ function drawTurnIn(container,turn) {
     for (let i = 0; i < xs.length; ++i) {
       g.appendChild(xs[i])
     }
+    dom.appendChild(g)
     return g
   }
 
@@ -29,15 +30,15 @@ function drawTurnIn(container,turn) {
   const player = lab(turn.player)
   player.classList.add('turn-player')
   player.classList.add(gui.colors[turn.player])
-  dom.appendChild(group([ lab('turn: '), player ]))
+  group([ lab('turn: '), player ])
 
   const elDone  = lab(done)
   const elLimit = lab(limit)
-  dom.appendChild(group([ lab('actions: '), elDone, lab('/'), elLimit ]))
+  group([ lab('actions: '), elDone, lab('/'), elLimit ])
 
   // XXX: the "hand": bonuses, picked up things, etc
 
-  container.appendChild(dom)
+  gui.container.appendChild(dom)
 
   // exported
   return {
@@ -53,6 +54,19 @@ function drawTurnIn(container,turn) {
         limit = limit + n
         elLimit.textContent = limit
       }
+
+  , askDone:
+      function(json) {
+        console.log('here')
+        const btn = document.createElement('span')
+        btn.classList.add('turn-player')
+        btn.classList.add(gui.colors[turn.player])
+        btn.textContent = json.message
+        gui.questionNew(group([btn]), json.message, json)
+      }
+
+  , remove:
+      function() { dom.remove() }
   }
 
 

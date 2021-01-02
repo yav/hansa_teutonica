@@ -31,6 +31,7 @@ instance JS.FromJSON Choice where
          "edge-empty" ->
            ChEdge <$> (o .: "edge") <*> (o .: "spot") <*> (o .: "shape")
                                     <*> pure Nothing
+         "done" -> ChDone <$> (o .: "message")
          _ -> fail "XXX: more choices"
 
 instance JS.ToJSON Choice where

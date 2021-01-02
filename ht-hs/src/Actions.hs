@@ -5,6 +5,7 @@ import Control.Monad(guard)
 
 import Utils
 import Basics
+import Stats
 import Player
 import Board
 import Edge
@@ -21,12 +22,23 @@ startGame g = interaction nextAction (startState g)
 nextAction :: Interact ()
 nextAction =
   do state <- inGame getState
-     let opts = tryPlace state
+     -- XXX: check end game
+     let opts = tryPlace state ++ tryEndTurn state
      askInputs opts
      nextAction
 
+nextTurn :: Interact ()
+nextTurn =
+  do state <- inGame getState
+     case gameStatus state of
+       GameInProgress turn ->
+          do let nextPlayerId = playerAfter (turnCurrentPlayer turn) state
+                 actLvl = viewPlayer nextPlayerId (`getLevel` Actions) state
+             update (NewTurn (newTurn nextPlayerId actLvl))
+       _ -> pure ()
 
---------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
 startAction :: GameState NoUpdates -> [(Turn,Player)]
 startAction state =
   do GameInProgress turn <- pure (gameStatus state)
@@ -34,8 +46,15 @@ startAction state =
      guard (turnActionsDone turn < turnActionLimit turn)
      pure (turn, playerState)
 
+type PlayerOptions = GameState NoUpdates -> [(WithPlayer Choice, Interact ())]
 
-tryPlace :: GameState NoUpdates -> [(WithPlayer Choice, Interact ())]
+tryEndTurn :: PlayerOptions
+tryEndTurn state =
+  do GameInProgress turn <- pure (gameStatus state)
+     guard (turnActionsDone turn == turnActionLimit turn)
+     pure (turnCurrentPlayer turn :-> ChDone "End Turn", nextTurn)
+
+tryPlace :: PlayerOptions
 tryPlace state =
   do (turn,playerState) <- startAction state
      let workerT      = getWorkerPreference playerState

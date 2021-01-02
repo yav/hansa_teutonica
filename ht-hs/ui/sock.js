@@ -17,6 +17,7 @@ const handlers =
     }
   , changeDoneActions: function(ws,n) { gui.turn.changeDone(n) }
   , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
+  , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }
   }
 
 function sendJSON(ws,obj) {

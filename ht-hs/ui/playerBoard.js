@@ -1,4 +1,4 @@
-function drawPlayerIn(container,pid,opts) {
+function drawPlayer(pid,opts) {
 
   const ui = {}
 
@@ -285,7 +285,7 @@ function drawPlayerIn(container,pid,opts) {
 
   drawSupply('unavailable','Unavailable')
 
-  container.appendChild(dom)
+  gui.container.appendChild(dom)
   return ui
 }
 
