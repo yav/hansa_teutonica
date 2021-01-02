@@ -50,7 +50,7 @@ function newGUI(ws) {
   }
 
   ui.questionNew = function(el,q,val) {
-    questionsExtra(el)
+    newQuestionExtra(el)
     makeQuestion(el,q,val)
   }
 
@@ -66,6 +66,17 @@ function uiRedraw(ws,state) {
 
   const game = state.game
 
+  { // Colors
+    gui.colors = {}
+    const colorIx = [ 'red', 'green', 'yellow', 'purple', 'blue' ] // XXX
+    for (let i = 0; i < game.turnOrder.length; ++i) {
+      const pid = game.turnOrder[i]
+      gui.colors[pid] = colorIx[i]
+    }
+  }
+
+
+
   { // Board
     const board = game.board
     board.size = 700
@@ -73,15 +84,13 @@ function uiRedraw(ws,state) {
   }
 
   { // Players
-    const colorIx = [ 'red', 'green', 'yellow', 'purple', 'blue' ] // XXX
     gui.players = {}
     for (let i = 0; i < game.turnOrder.length; ++i) {
       const pid = game.turnOrder[i]
       const s   = game.players[pid]
       s.height  = 120
-      s.color   = colorIx[i]
       s.name    = pid
-      const p = drawPlayerIn(body,s)
+      const p = drawPlayerIn(body,pid,s)
       gui[pid] = p
     }
     gui.playerUI = function(x) { return gui[x ? x : playerId] }
@@ -115,6 +124,7 @@ function uiQuestions(ws,qs) {
       case 'bonus':
         break
       case 'edge-empty':
+        gui.board.askEmptyEdgeSpot(q)
         break
       case 'edge-full':
         break
@@ -125,6 +135,4 @@ function uiQuestions(ws,qs) {
 }
 
 
-function uiSetWorkerPreference(ws,w) {
-  const ui = gui.playerUI(w.owner).setPreference(w.shape)
-}
+

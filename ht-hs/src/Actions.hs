@@ -1,8 +1,6 @@
 module Actions where
 
-import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.Maybe(fromMaybe)
 import Control.Monad(guard)
 
 import Utils
@@ -22,7 +20,7 @@ startGame g = interaction nextAction (startState g)
 
 nextAction :: Interact ()
 nextAction =
-  do state <- game getState
+  do state <- inGame getState
      let opts = tryPlace state
      askInputs opts
      nextAction
@@ -65,12 +63,19 @@ tryPlace state =
   handleChoice (pid :-> ch) =
     case ch of
       ChSetPreference t ->
-        game $ update
-             $ SetWorkerPreference Worker { workerOwner = pid, workerType = t }
-      ChEdge edgeId spot mbW ->
+        do let w = Worker { workerOwner = pid, workerType = t }
+           update (SetWorkerPreference w)
+
+      ChEdge edgeId spot workerT mbW ->
         case mbW of
-          Nothing -> error "XXX: place emtpy"
+          Nothing ->
+            do let w = Worker { workerOwner = pid, workerType = workerT }
+               update (ChangeAvailble w (-1))
+               update (PlaceWorkerOnEdge edgeId spot w)
+               update (ChangeDoneActions 1)
+
           Just w -> error "XXX: place full"
+
       _ -> pure ()
 
 

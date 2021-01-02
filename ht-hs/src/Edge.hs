@@ -88,9 +88,11 @@ edgeFreeSpots = Map.toList . Map.unions . zipWith getFree [ 0 .. ] . edgeSpots
                      Just _  -> Map.empty
 
 -- | Get all workers on the edge.
-edgeWorkers :: Edge -> [(Int, Worker)]
+edgeWorkers :: Edge -> [(Int, RequireWorker, Worker)]
 edgeWorkers e =
-  [ (n,w) | (n,Just w) <- zip [0..] (map edgeSpotWorker (edgeSpots e)) ]
+  [ (n,edgeSpotType spot, w) | (n,spot) <- zip [0..] (edgeSpots e)
+                             , Just w   <- [ edgeSpotWorker spot ]
+                             ]
 
 -- | Remove all workers from an edge.
 edgeRemoveWorkers :: Edge -> Edge

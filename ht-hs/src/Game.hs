@@ -9,7 +9,7 @@ module Game
   , runGame
   , view
   , getState
-  , update
+  , gameUpdate
   , Turn(..)
   , GameUpdate(..)
   , GameStatus(..)
@@ -31,13 +31,18 @@ import Stats
 import Bonus
 import Player
 import Board
+import Edge
 
 
 newtype Game a = Game (GameState Updates -> (a,GameState Updates))
 
 data GameUpdate =
     SetWorkerPreference Worker
-  | PlaceWorkerOnEdge EdgeId Worker
+  | PlaceWorkerOnEdge EdgeId Int Worker
+  | ChangeAvailble Worker Int
+  | ChangeUnavailable Worker Int
+  | ChangeDoneActions Int
+  | ChangeActionLimit Int
   deriving Show
 
 runGame :: Game a -> GameState Updates -> (a,GameState Updates)
@@ -83,11 +88,37 @@ doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game ()
 doUpdatePlayer pid f =
   doUpdate \s -> s { gamePlayers = Map.adjust f pid (gamePlayers s) }
 
-update :: GameUpdate -> Game ()
-update upd =
+doUpdateBoard :: (Board -> Board) -> Game ()
+doUpdateBoard f =
+  doUpdate \s -> s { gameBoard = f (gameBoard s) }
+
+doUpdateTurn :: (Turn -> Turn) -> Game ()
+doUpdateTurn f =
+  doUpdate \s -> s { gameStatus = case gameStatus s of
+                                    GameInProgress t -> GameInProgress (f t)
+                                    _ -> gameStatus s }
+
+gameUpdate :: GameUpdate -> Game ()
+gameUpdate upd =
   do case upd of
+
        SetWorkerPreference w ->
          doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
+
+       ChangeAvailble w n ->
+         doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
+
+       ChangeUnavailable w n ->
+         doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
+
+       ChangeDoneActions n ->
+          doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
+
+       ChangeActionLimit n ->
+          doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
+
+       PlaceWorkerOnEdge edgeId spot w ->
+         doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
 
 
      broadcast upd
@@ -193,5 +224,10 @@ instance JS.ToJSON Turn where
 instance JS.ToJSON GameUpdate where
   toJSON upd =
     case upd of
-      SetWorkerPreference w -> jsCall "setWorkerPreference" [w]
-
+      SetWorkerPreference w   -> jsCall "setWorkerPreference" [w]
+      PlaceWorkerOnEdge a b c -> jsCall "setWorkerOnEdge" [js a, js b, js c]
+      ChangeAvailble a b      -> jsCall "changeAvailable" [js a, js b]
+      ChangeUnavailable a b   -> jsCall "changeUnavailable" [js a, js b]
+      ChangeDoneActions n     -> jsCall "changeDoneActions" [n]
+      ChangeActionLimit n     -> jsCall "changeActionLimit" [n]
+ 

@@ -1,7 +1,24 @@
 const handlers =
   { redraw: uiRedraw
-  , setWorkerPreference: uiSetWorkerPreference
   , ask: uiQuestions
+
+  , setWorkerPreference: function (ws,w) {
+      gui.playerUI(w.owner).setPreference(w.shape)
+    }
+
+  , setWorkerOnEdge: function(ws,edge,spot,worker) {
+      gui.board.placeWorkerOnEdge(edge,spot,worker)
+    }
+  , changeAvailable: function(ws,w,n) {
+      gui.playerUI(w.owner).changeWorkers('available',w.shape,n)
+    }
+  , changeUnavailable: function(ws,w,n) {
+      gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
+    }
+/*
+  , changeDoneActions: uiChangeDoneActions
+  , changeActionLimit: uiChangeActionLimit
+*/
   }
 
 function sendJSON(ws,obj) {

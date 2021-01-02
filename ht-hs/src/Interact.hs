@@ -7,7 +7,8 @@ module Interact
   -- * Building Interactions
   , Interact
   , askInputs
-  , game
+  , inGame
+  , update
 
   -- * XXX
   , handleMessage
@@ -84,9 +85,12 @@ continueWith msg = Interact \_ s ->
     Nothing -> s
 
 -- | Do something with the game state
-game :: Game a -> Interact a
-game g = Interact \k s -> case runGame g (iGame s) of
-                            (a,g1) -> k a s { iGame = g1 }
+inGame :: Game a -> Interact a
+inGame g = Interact \k s -> case runGame g (iGame s) of
+                              (a,g1) -> k a s { iGame = g1 }
+
+update :: GameUpdate -> Interact ()
+update = inGame . gameUpdate
 
 
 newtype InteractBuilder a = IB (Interact a)

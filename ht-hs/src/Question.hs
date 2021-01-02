@@ -18,7 +18,7 @@ data Choice =
   | ChActiveWorker WorkerType
   | ChPassiveWorker WorkerType
   | ChBonusToken BonusToken
-  | ChEdge EdgeId Int (Maybe Worker)
+  | ChEdge EdgeId Int WorkerType (Maybe Worker)
   | ChDone Text
     deriving (Eq,Ord,Show)
 
@@ -26,9 +26,11 @@ data Choice =
 instance JS.FromJSON Choice where
   parseJSON = JS.withObject "choice" \o ->
     do tag <- o .: "tag"
-       traceShowM o
        case tag :: Text of
          "prefer" -> ChSetPreference <$> (o .: "worker")
+         "edge-empty" ->
+           ChEdge <$> (o .: "edge") <*> (o .: "spot") <*> (o .: "shape")
+                                    <*> pure Nothing
          _ -> fail "XXX: more choices"
 
 instance JS.ToJSON Choice where
@@ -38,10 +40,12 @@ instance JS.ToJSON Choice where
       ChActiveWorker wt   -> jsTagged "active"  [ "worker" .= wt ]
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
-      ChEdge eid spot mbw ->
+      ChEdge eid spot sh mbw ->
         case mbw of
-          Nothing -> jsTagged "edge-empty" [ "edge" .= eid, "spot" .= spot ]
+          Nothing -> jsTagged "edge-empty" [ "edge" .= eid, "spot" .= spot
+                                           , "shape" .= sh ]
           Just w  -> jsTagged "edge-full"  [ "edge" .= eid, "spot" .= spot
+                                           , "shape" .= sh
                                            , "worker" .= w ]
       ChDone t -> jsTagged "done" [ "message" .= t ]
 

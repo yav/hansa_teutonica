@@ -216,21 +216,22 @@ function drawBoardIn(container,opts) {
 
     const makeWorker = function(edge,spot,worker) {
       const loc = board.edgeSpot(edge,spot)
-      return drawWorkerAt(loc,board.workerSize,worker)
+      const b = drawWorkerAt(loc,board.workerSize,worker)
+      b.classList.add('empty')
+      dom.appendChild(b)
+      return b
     }
 
     const placeWorker = function(edge,spot,worker) {
       const el = makeWorker(edge,spot,worker)
-      dom.appendChild(el)
       let placed = placedWorkers[edge]
       if (placed === undefined) { placed = {}; placedWorkers[edge] = placed }
       placed[spot] = el
     }
 
-    const askEmptyWorker = function(edge,spot,worker) {
-      question.addEmpty(makeWorker(edge,spot,worker),function(ev) {
-        console.log('empty spot',edge,spot)
-      })
+    const askEmptyWorker = function(json) {
+      const w = { owner: playerId, shape: json.shape }
+      gui.questionNew(makeWorker(json.edge,json.spot,w), "tooltip", json)
     }
 
     const askFullWorker = function(edge,spot) {

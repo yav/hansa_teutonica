@@ -1,6 +1,6 @@
 function drawWorker(size,worker) {
   let dom = document.createElement('div')
-  dom.classList.add('worker',worker.shape,worker.owner)
+  dom.classList.add('worker',worker.shape,gui.colors[worker.owner])
   size = workerSize(size,worker.shape)
   let style = dom.style
   style.width = size + 'px'

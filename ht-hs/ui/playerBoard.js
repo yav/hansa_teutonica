@@ -1,9 +1,9 @@
-function drawPlayerIn(container,opts) {
+function drawPlayerIn(container,pid,opts) {
 
   const ui = {}
 
   const height = opts.height
-  const color = opts.color
+  const color = gui.colors[pid]
 
   const dom = document.createElement('div')
 
@@ -19,7 +19,7 @@ function drawPlayerIn(container,opts) {
   { // name
     const lab = document.createElement('div')
     lab.classList.add('player-label')
-    lab.classList.add(opts.color)
+    lab.classList.add(color)
     lab.textContent = opts.name
     lab.style.fontSize = 0.08 * height
     dom.appendChild(lab)
@@ -29,7 +29,7 @@ function drawPlayerIn(container,opts) {
   const setHelp = function() {
     const box = document.createElement('div')
     box.classList.add('player-help')
-    box.classList.add(opts.color)
+    box.classList.add(color)
     box.style.fontSize = 0.08 * height
     dom.appendChild(box)
     return function(thing,help) {
@@ -75,7 +75,7 @@ function drawPlayerIn(container,opts) {
       const  doms = {}
       for (let i = val; i < n; ++i) {
         const worker = { shape: info.shape == 'disc' ? 'disc' : 'cube'
-                       , owner: color
+                       , owner: pid
                        }
         const loc = { x: info.x[i]*height, y: y }
         const b = drawWorkerAt(loc,wsize,worker)
@@ -149,7 +149,7 @@ function drawPlayerIn(container,opts) {
   const workerInfo = { available: {}, unavailable: {} }
 
   function drawSupplyIn(b,which,shape,name) {
-    const it = drawWorker(wsize,{owner:color, shape: shape})
+    const it = drawWorker(wsize,{owner:pid, shape: shape})
     setHelp(it,name + ' ' + shape + 's')
     let n = opts[which][shape]
     it.textContent = n

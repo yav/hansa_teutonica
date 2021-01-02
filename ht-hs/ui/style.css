@@ -40,7 +40,8 @@ body {
 .question {
   box-shadow: 0 0 2px 2px;
   cursor: pointer;
-  color: #603 !important;
+  /* color: #603 !important; */
+  color: #930 !important;
 /*
   animation-name: pulse;
   animation-duration: 1s;
@@ -81,6 +82,10 @@ body {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+
+.question.worker.empty {
+  background-color: rgba(0,0,0,0);
+}
 
 .worker {
   z-index: 5;

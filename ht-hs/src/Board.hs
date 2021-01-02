@@ -106,7 +106,7 @@ freeSpots ::
   WorkerType                 {- ^ Spot for this kind of worker -} ->
   [Choice]                   {- ^ Available spots -}
 freeSpots board provinceOk workerT =
-  [ ChEdge edgeId spot Nothing
+  [ ChEdge edgeId spot workerT Nothing
   | (edgeId,edgeState) <- Map.toList (boardEdges board)
   , provinceOk (edgeProvince board edgeId)
   , (spotReq,spot) <- edgeFreeSpots edgeState
@@ -120,11 +120,11 @@ occupiedSpots ::
   (Worker -> Bool) ->
   [Choice]
 occupiedSpots board provinceOk workerT workerOk =
-  [ ChEdge edgeId spot (Just worker)
+  [ ChEdge edgeId spot workerT (Just worker)
   | (edgeId, edgeState) <- Map.toList (boardEdges board)
   , provinceOk (edgeProvince board edgeId)
-  , (spot,worker) <- edgeWorkers edgeState
-  , workerType worker == workerT && workerOk worker
+  , (spot,spotReq,worker) <- edgeWorkers edgeState
+  , accepts spotReq workerT && workerOk worker
   ]
 
 
