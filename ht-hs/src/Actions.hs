@@ -50,7 +50,8 @@ tryPlace state =
          canReplace w = workerOwner w /= player &&
                         totWorkers > replacementCost (workerType w)
 
-         getFree      = freeSpots board accessible workerT
+         getFree      = do guard (getAvailable playerState workerT > 0)
+                           freeSpots board accessible workerT
          getFull      = occupiedSpots board accessible workerT canReplace
          changePref   = do let otherT = otherType workerT
                            guard (getAvailable playerState otherT > 0)
