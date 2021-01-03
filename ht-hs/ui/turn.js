@@ -25,6 +25,7 @@ function drawTurn(turn) {
 
   const dom = document.createElement('div')
   dom.classList.add('turn')
+  dom.style.fontSize = 1.5 * gui.board.fontSize
 
 
   const player = lab(turn.player)
@@ -36,10 +37,16 @@ function drawTurn(turn) {
   const elLimit = lab(limit)
   group([ lab('actions: '), elDone, lab('/'), elLimit ])
 
+  const drawPicked = function(w) {
+    const it = drawWorker(gui.board.workerSize,w)
+    it.classList.add('hand')
+    return it
+  }
+
   const picked = []
   for (let i = 0; i < turn.pickedUp.length; ++i) {
     const w = turn.pickedUp[i]
-    const it = drawWorker(gui.board.workerSize,w)
+    const it = drawPicked(w)
     picked[i] = it
   }
   const pickedGroup = group(picked)
@@ -81,9 +88,7 @@ function drawTurn(turn) {
         pickedGroup.removeChild(ch)
       }
   , addWorkerToHand:
-      function(w) {
-        pickedGroup.appendChild(drawWorker(gui.board.workerSize,w))
-      }
+      function(w) { pickedGroup.appendChild(drawPicked(w)) }
 
   }
 

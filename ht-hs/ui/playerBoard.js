@@ -9,6 +9,7 @@ function drawPlayer(pid,opts) {
 
   dom.classList.add('player')
   dom.style.height = height + 'px'
+  dom.style.fontSize = 0.08 * height
 
   const img = document.createElement('img')
   img.setAttribute('src', 'img/player/' + color + '.png')
@@ -21,7 +22,6 @@ function drawPlayer(pid,opts) {
     lab.classList.add('player-label')
     lab.classList.add(color)
     lab.textContent = opts.name
-    lab.style.fontSize = 0.08 * height
     dom.appendChild(lab)
   }
 
@@ -30,7 +30,6 @@ function drawPlayer(pid,opts) {
     const box = document.createElement('div')
     box.classList.add('player-help')
     box.classList.add(color)
-    box.style.fontSize = 0.08 * height
     dom.appendChild(box)
     return function(thing,help) {
       thing.addEventListener('mouseenter',function() {
@@ -112,7 +111,6 @@ function drawPlayer(pid,opts) {
       const dim = 0.2 * height
       style.width = dim
       style.height = dim
-      style.fontSize = 0.5 * dim
       style.left = 1.20 * height
       style.top = 0.12 * height
       dom.appendChild(it)
@@ -149,7 +147,7 @@ function drawPlayer(pid,opts) {
   const workerInfo = { available: {}, unavailable: {} }
 
   function drawSupplyIn(b,which,shape,name) {
-    const it = drawWorker(wsize,{owner:pid, shape: shape})
+    const it = drawWorker(null,{owner:pid, shape: shape})
     setHelp(it,name + ' ' + shape + 's')
     let n = opts[which][shape]
 
@@ -197,9 +195,8 @@ function drawPlayer(pid,opts) {
 
     return function(shape) {
       const info = workerInfo['available'][shape]
-      const size = workerSize(wsize,shape)
-      imgStyle.height = size
-      style.top       = size * 1.3
+      imgStyle.height = '2ex'
+      style.top       = '2.3ex'
       style.left      = 0
       info.dom.appendChild(it)
     }

@@ -24,8 +24,11 @@ function newGUI(ws,container) {
     newQuestionExtra(tip)
     tip.classList.add('tooltip')
     tip.textContent = val.help
+    tip.style.left = el.offsetLeft + 20
+    tip.style.top  = el.offsetTop + 20
 
-    el.appendChild(tip)
+    // place them in the same parent so that z-indexes work correctly
+    el.parentNode.appendChild(tip)
     el.classList.add('question')
 
     const funClick = function(ev) {

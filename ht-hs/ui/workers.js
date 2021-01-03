@@ -1,11 +1,10 @@
 function drawWorker(size,worker) {
-  let dom = document.createElement('div')
+  const dom = document.createElement('div')
   dom.classList.add('worker',worker.shape,gui.colors[worker.owner])
-  size = workerSize(size,worker.shape)
-  let style = dom.style
-  style.width = size + 'px'
-  style.height = size + 'px'
-  style.fontSize = (size * 0.8) + 'px'
+  const ssize = size ? workerSize(size,worker.shape) : '2ex'
+  const style = dom.style
+  style.width = ssize
+  style.height = ssize
   style.position = 'relative'
   return dom
 }
@@ -15,8 +14,8 @@ function workerSize(size,shape) {
 }
 
 function drawWorkerAt(loc,size,worker) {
-  let dom = drawWorker(size,worker)
-  let style = dom.style
+  const dom = drawWorker(size,worker)
+  const style = dom.style
   style.position = 'absolute'
   style.left = loc.x + 'px'
   style.top = loc.y + 'px'

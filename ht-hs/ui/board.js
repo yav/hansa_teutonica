@@ -15,6 +15,7 @@ function boardCoord(name,size) {
          , bonusSize:  3 * sz
          , houseSize:  1.5 * sz
          , upgradeSize: 4.5 * sz
+         , fontSize: sz
 
          , nodeSpot: function(node,ix) {
              const it = map.nodes[node][ix]
@@ -58,12 +59,14 @@ function drawBoard(opts) {
   const ui    = {}
   const board = boardCoord(opts.map, opts.size)
   ui.workerSize = board.workerSize
+  ui.fontSize   = board.fontSize
 
   const dom = function() {
     const dom = document.createElement('div')
     dom.classList.add('board')
     dom.style.height = board.height
     dom.style.width  = board.width
+    dom.style.fontSize = board.fontSize
 
     const img = document.createElement('img')
     img.classList.add('board-img')
