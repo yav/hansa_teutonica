@@ -10,14 +10,18 @@ module Game
   , runGame
   , view
   , viewPlayer
+  , viewTurn
   , getState
+  , getTurn
   , gameUpdate
   , Turn(..)
   , newTurn
+  , nextPickedUp
   , GameUpdate(..)
   , GameStatus(..)
   ) where
 
+import Data.Maybe(listToMaybe)
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
@@ -42,10 +46,15 @@ newtype Game a = Game (GameState Updates -> (a,GameState Updates))
 data GameUpdate =
     SetWorkerPreference Worker
   | PlaceWorkerOnEdge EdgeId Int Worker
+  | RemoveWorkerFromEdge EdgeId Int
   | ChangeAvailble Worker Int
   | ChangeUnavailable Worker Int
+
   | ChangeDoneActions Int
   | ChangeActionLimit Int
+  | AddWorkerToHand (Maybe ProvinceId) Worker
+  | RemoveWokerFromHand
+
   | NewTurn Turn
   deriving Show
 
@@ -77,6 +86,12 @@ data GameState updates = GameState
 
 viewPlayer :: PlayerId -> (Player -> a) -> GameState update -> a
 viewPlayer playerId f = \s -> f (gamePlayers s Map.! playerId)
+
+viewTurn :: (Turn -> a) -> GameState update -> a
+viewTurn f g =
+  case gameStatus g of
+    GameInProgress t -> f t
+    _ -> error "viewTurn: Game finished"
 
 type Updates   = [WithPlayer GameUpdate]
 type NoUpdates = ()
@@ -119,17 +134,31 @@ gameUpdate upd =
        ChangeUnavailable w n ->
          doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
 
-       ChangeDoneActions n ->
-          doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
 
-       ChangeActionLimit n ->
-          doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
+       -- edges
 
        PlaceWorkerOnEdge edgeId spot w ->
          doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
 
+       RemoveWorkerFromEdge edgeId spot ->
+         doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
+
+
+       -- turn
+
        NewTurn turn -> doUpdate \s -> s { gameStatus = GameInProgress turn }
 
+       ChangeDoneActions n ->
+          doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
+
+       ChangeActionLimit n ->
+         doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
+
+       AddWorkerToHand prov w ->
+         doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
+
+       RemoveWokerFromHand ->
+         doUpdateTurn \t -> t { turnPickedUp = drop 1 (turnPickedUp t) }
 
      broadcast upd
 
@@ -139,6 +168,9 @@ view f = Game \s -> (f s { gameOutput = () }, s)
 
 getState :: Game (GameState NoUpdates)
 getState = view id
+
+getTurn :: Game Turn
+getTurn = view (viewTurn id)
 
 playerAfter :: PlayerId -> GameState a -> PlayerId
 playerAfter playerId state =
@@ -169,6 +201,7 @@ data Turn = Turn
   , turnActionLimit   :: Int
   , turnUsedGateways  :: Set ProvinceId
   , turnPlaceBonus    :: [BonusToken]
+  , turnPickedUp      :: [(Maybe ProvinceId,Worker)]
   } deriving Show
 
 newTurn :: PlayerId -> Int -> Turn
@@ -179,8 +212,11 @@ newTurn playerId actLvl =
     , turnActionLimit   = actionLimit actLvl
     , turnUsedGateways  = Set.empty
     , turnPlaceBonus    = []
+    , turnPickedUp      = []
     }
 
+nextPickedUp :: Turn -> Maybe (Maybe ProvinceId,Worker)
+nextPickedUp = listToMaybe  . reverse . turnPickedUp
 
 
 initialGameState :: TFGen -> Board -> Set PlayerId -> GameState NoUpdates
@@ -193,7 +229,7 @@ initialGameState rng0 board playerIds =
     , gameStatus =
         if not (null playerOrder)
           then GameInProgress
-                    (newTurn firstPlayer (getLevel firstPlayerState Actions))
+                    (newTurn firstPlayer (getLevel Actions firstPlayerState))
           else GameFinished
     , gameOutput     = ()
     }
@@ -234,6 +270,7 @@ instance JS.ToJSON Turn where
     , "actDone"  .= turnActionsDone t
     , "actLimit" .= turnActionLimit t
     , "bonuses"  .= length (turnPlaceBonus t)
+    , "pickedUp" .= map snd (turnPickedUp t)
     ]
 
 
@@ -243,9 +280,11 @@ instance JS.ToJSON GameUpdate where
     case upd of
       SetWorkerPreference w   -> jsCall "setWorkerPreference" [w]
       PlaceWorkerOnEdge a b c -> jsCall "setWorkerOnEdge" [js a, js b, js c]
+      RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
       ChangeAvailble a b      -> jsCall "changeAvailable" [js a, js b]
       ChangeUnavailable a b   -> jsCall "changeUnavailable" [js a, js b]
       ChangeDoneActions n     -> jsCall "changeDoneActions" [n]
       ChangeActionLimit n     -> jsCall "changeActionLimit" [n]
+      AddWorkerToHand _ w     -> jsCall "addWorkerToHand" [w]
+      RemoveWokerFromHand     -> jsCall' "removeWokerFromHand"
       NewTurn t               -> jsCall "newTurn" [t]
- 

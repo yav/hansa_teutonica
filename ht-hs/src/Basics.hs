@@ -1,7 +1,7 @@
 module Basics where
 
 import Data.Text(Text)
-import Data.Aeson ((.=))
+import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
 
 type NodeId       = Int      -- ^ Identifies a city
@@ -76,6 +76,11 @@ instance JS.ToJSON Worker where
               , "shape" .= workerType worker
               ]
 
+instance JS.FromJSON Worker where
+  parseJSON = JS.withObject "worker" \o ->
+    do owner <- o .: "owner"
+       shape <- o .: "shape"
+       pure Worker { workerOwner = owner, workerType = shape }
 
 
 instance JS.FromJSON WorkerType where
@@ -90,3 +95,5 @@ instance JS.FromJSON PlayerId where
 
 instance JS.ToJSON a => JS.ToJSON (WithPlayer a) where
   toJSON (p :-> a) = JS.object [ "player" .= p, "thing" .= a ]
+
+

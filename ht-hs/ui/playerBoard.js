@@ -191,8 +191,8 @@ function drawPlayer(pid,opts) {
     setHelp(it,'Place these workers')
 
 
-    ui.askPreference = function(shape,json) {
-      gui.questionAnnot(it,'Set preference to ' + shape,json)
+    ui.askPreference = function(json) {
+      gui.questionAnnot(it,json)
     }
 
     return function(shape) {
@@ -208,10 +208,10 @@ function drawPlayer(pid,opts) {
   ui.setPreference = setPref
 
 
-  ui.askWorker = function(which,shape,tip,json) {
+  ui.askWorker = function(which,json) {
     const shapes = workerInfo[which]
-    const info = shapes[shape]
-    gui.questionAnnot(info.dom,tip,json)
+    const info = shapes[json.choice.shape]
+    gui.questionAnnot(info.dom,json)
   }
 
 

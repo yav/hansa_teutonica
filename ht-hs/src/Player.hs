@@ -137,8 +137,8 @@ levelUp stat = changeAvailable (statWorker stat) 1 . bumpLevel
   bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
 -- | Get the level of the specified stat
-getLevel :: Player -> Stat -> Level
-getLevel s stat = playerStats s Map.! stat
+getLevel :: Stat -> Player -> Level
+getLevel stat s = playerStats s Map.! stat
 
 --------------------------------------------------------------------------------
 

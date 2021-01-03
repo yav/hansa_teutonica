@@ -43,5 +43,8 @@ jsTagged t xs = JS.object (jsTag t : xs)
 jsCall :: JS.ToJSON a => Text -> [a] -> JS.Value
 jsCall f as = jsTagged f [ "args" JS..= as ]
 
+jsCall' :: Text -> JS.Value
+jsCall' f = jsTagged f [ "args" JS..= ([] :: [JS.Value]) ]
+
 js :: JS.ToJSON a => a -> JS.Value
 js = JS.toJSON

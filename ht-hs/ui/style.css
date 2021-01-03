@@ -228,7 +228,7 @@ body {
 .tooltip {
   position: absolute;
   right: -20;
-  top: -20;
+  top: 20;
   display: none;
   border: 1px solid black;
   background-color: white;

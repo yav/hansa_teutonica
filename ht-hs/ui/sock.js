@@ -9,15 +9,24 @@ const handlers =
   , setWorkerOnEdge: function(ws,edge,spot,worker) {
       gui.board.placeWorkerOnEdge(edge,spot,worker)
     }
+  , removeWorkerFromEdge: function(ws,edge,spot) {
+      gui.board.removeWorkerFromEdge(edge,spot)
+    }
+
+
   , changeAvailable: function(ws,w,n) {
       gui.playerUI(w.owner).changeWorkers('available',w.shape,n)
     }
   , changeUnavailable: function(ws,w,n) {
       gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
     }
+
+
+  , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }
   , changeDoneActions: function(ws,n) { gui.turn.changeDone(n) }
   , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
-  , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }
+  , addWorkerToHand: function(ws,w) { gui.turn.addWorkerToHand(w) }
+  , removeWokerFromHand: function(ws) { gui.turn.removeWorkerFromHand() }
   }
 
 function sendJSON(ws,obj) {

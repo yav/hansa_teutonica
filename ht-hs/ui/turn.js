@@ -36,6 +36,14 @@ function drawTurn(turn) {
   const elLimit = lab(limit)
   group([ lab('actions: '), elDone, lab('/'), elLimit ])
 
+  const picked = []
+  for (let i = 0; i < turn.pickedUp.length; ++i) {
+    const w = turn.pickedUp[i]
+    const it = drawWorker(gui.board.workerSize,w)
+    picked[i] = it
+  }
+  const pickedGroup = group(picked)
+
   // XXX: the "hand": bonuses, picked up things, etc
 
   gui.container.appendChild(dom)
@@ -57,16 +65,26 @@ function drawTurn(turn) {
 
   , askDone:
       function(json) {
-        console.log('here')
         const btn = document.createElement('span')
         btn.classList.add('turn-player')
         btn.classList.add(gui.colors[turn.player])
-        btn.textContent = json.message
-        gui.questionNew(group([btn]), json.message, json)
+        btn.textContent = json.choice.message
+        gui.questionNew(group([btn]), json)
       }
 
   , remove:
       function() { dom.remove() }
+
+  , removeWorkerFromHand:
+      function() {
+        const ch = pickedGroup.children[0]
+        pickedGroup.removeChild(ch)
+      }
+  , addWorkerToHand:
+      function(w) {
+        pickedGroup.appendChild(drawWorker(gui.board.workerSize,w))
+      }
+
   }
 
 

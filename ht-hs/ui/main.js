@@ -19,11 +19,11 @@ function newGUI(ws,container) {
     for (let i = 0; i < questionsElems.length; ++i) questionsElems[i]()
   }
 
-  const makeQuestion = function(el,q,val) {
+  const makeQuestion = function(el,val) {
     const tip = document.createElement('div')
     newQuestionExtra(tip)
     tip.classList.add('tooltip')
-    tip.textContent = q
+    tip.textContent = val.help
 
     el.appendChild(tip)
     el.classList.add('question')
@@ -31,8 +31,8 @@ function newGUI(ws,container) {
     const funClick = function(ev) {
       removeQuestions()
       console.log('sending:')
-      console.log(val)
-      ws.send(JSON.stringify(val))
+      console.log(val.choice)
+      ws.send(JSON.stringify(val.choice))
     }
     const funEnter = function(ev) { tip.style.display = 'inline-block' }
     const funLeave = function(ev) { tip.style.display = 'none' }
@@ -47,13 +47,13 @@ function newGUI(ws,container) {
     }
   }
 
-  ui.questionAnnot = function(el,q,val) {
-    questionsElems[questionsElems.length] = makeQuestion(el,q,val)
+  ui.questionAnnot = function(el,val) {
+    questionsElems[questionsElems.length] = makeQuestion(el,val)
   }
 
-  ui.questionNew = function(el,q,val) {
+  ui.questionNew = function(el,val) {
     newQuestionExtra(el)
-    makeQuestion(el,q,val)
+    makeQuestion(el,val)
   }
 
   ui.container = container
@@ -112,12 +112,12 @@ function uiRedraw(ws,state) {
 function uiQuestions(ws,qs) {
   for (let i = 0; i < qs.length; ++i) {
     const q = qs[i]
-    switch(q.tag) {
+    switch(q.choice.tag) {
       case 'prefer':
-        gui.playerUI().askPreference(q.worker,q)
+        gui.playerUI().askPreference(q)
         break
       case 'active':
-        gui.playerUI().askWorker('available',q.worker,'tool tip',q)
+        gui.playerUI().askWorker('available',q)
         break
       case 'passive':
         break
@@ -127,6 +127,7 @@ function uiQuestions(ws,qs) {
         gui.board.askEmptyEdgeSpot(q)
         break
       case 'edge-full':
+        gui.board.askFullEdgeSpot(q)
         break
       case 'done':
         gui.turn.askDone(q)

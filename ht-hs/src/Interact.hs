@@ -7,7 +7,9 @@ module Interact
   -- * Building Interactions
   , Interact
   , askInputs
+  , choose
   , inGame
+  , viewGame
   , update
 
   -- * XXX
@@ -41,7 +43,7 @@ data InteractState updates =
       -- Should be reproducable by replyaing the log file on the initial state
 
     , iAsk    :: Map (WithPlayer Choice)
-                     (InteractState Updates -> InteractState Updates)
+                     (Text, InteractState Updates -> InteractState Updates)
       -- ^ Choices avialable to the players.
     }
 
@@ -71,9 +73,13 @@ interaction (Interact k) s =
   in (s1 { iGame = g }, map (fmap GameUpdate) out)
 
 
-askInputs :: [ (WithPlayer Choice, Interact ()) ] -> Interact ()
+choose :: PlayerId -> [(Choice,Text)] -> Interact Choice
+choose playerId opts =
+  askInputs [ (playerId :-> ch, help, pure ch) | (ch,help) <- opts ]
+
+askInputs :: [ (WithPlayer Choice, Text, Interact a) ] -> Interact a
 askInputs opts = Interact \curK curS ->
-  let cont (ch,Interact m) = (ch, m curK)
+  let cont (ch,help,Interact m) = (ch, (help, m curK))
   in curS { iAsk = Map.fromList (map cont opts) }
 
 -- | Resume execution based on player input
@@ -81,13 +87,16 @@ continueWith ::
   WithPlayer Choice -> Interact a
 continueWith msg = Interact \_ s ->
   case Map.lookup msg (iAsk s) of
-    Just f  -> f s { iAsk = Map.empty, iLog = msg : iLog s }
-    Nothing -> s
+    Just (_,f)  -> f s { iAsk = Map.empty, iLog = msg : iLog s }
+    Nothing     -> s
 
 -- | Do something with the game state
 inGame :: Game a -> Interact a
 inGame g = Interact \k s -> case runGame g (iGame s) of
                               (a,g1) -> k a s { iGame = g1 }
+
+viewGame :: (GameState NoUpdates -> b) -> Interact b
+viewGame f = inGame (view f)
 
 update :: GameUpdate -> Interact ()
 update = inGame . gameUpdate
@@ -102,7 +111,7 @@ newtype InteractBuilder a = IB (Interact a)
 
 data OutMsg =
     CurGameState (InteractState NoUpdates)
-  | AskQuestions [Choice]
+  | AskQuestions [ChoiceHelp]
   | GameUpdate GameUpdate
 
 data PlayerRequest =
@@ -118,10 +127,14 @@ instance JS.ToJSON OutMsg where
       CurGameState s -> jsCall "redraw" [s]
 
 instance JS.ToJSON (InteractState NoUpdates) where
-  toJSON g = JS.object [ "game"      .= iGame g
-                       , "questions" .= [ q | _ :-> q <- Map.keys (iAsk g) ]
-                       , "log"       .= iLog g
-                       ]
+  toJSON g =
+    JS.object
+      [ "game"      .= iGame g
+      , "questions" .= [ ChoiceHelp { chChoice = q
+                                    , chHelp = help }
+                       | (_ :-> q,(help,_)) <- Map.toList (iAsk g) ]
+      , "log"       .= iLog g
+      ]
 
 
 instance JS.FromJSON PlayerRequest where
@@ -159,12 +172,22 @@ handleMessage (p :-> req) =
     ( s
     , os ++
       [ q :-> AskQuestions qs
-      | (q,qs) <- Map.toList $ Map.fromListWith (++)
-                                 [ (q,[ch]) | q :-> ch <- Map.keys (iAsk s) ]
+      | (q,qs) <- Map.toList
+                $ Map.fromListWith (++)
+                  [ (q,[ChoiceHelp { chChoice = ch
+                                   , chHelp = help
+                                   }])
+                      | (q :-> ch,(help,_))  <- Map.toList (iAsk s) ]
       ]
     )
 
 
+data ChoiceHelp = ChoiceHelp
+  { chChoice :: Choice
+  , chHelp   :: Text
+  } deriving (Eq,Ord)
 
+instance JS.ToJSON ChoiceHelp where
+  toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
 
 

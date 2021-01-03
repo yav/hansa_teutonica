@@ -57,6 +57,7 @@ function boardCoord(name,size) {
 function drawBoard(opts) {
   const ui    = {}
   const board = boardCoord(opts.map, opts.size)
+  ui.workerSize = board.workerSize
 
   const dom = function() {
     const dom = document.createElement('div')
@@ -217,7 +218,6 @@ function drawBoard(opts) {
     const makeWorker = function(edge,spot,worker) {
       const loc = board.edgeSpot(edge,spot)
       const b = drawWorkerAt(loc,board.workerSize,worker)
-      b.classList.add('empty')
       dom.appendChild(b)
       return b
     }
@@ -230,14 +230,15 @@ function drawBoard(opts) {
     }
 
     const askEmptyWorker = function(json) {
-      const w = { owner: playerId, shape: json.shape }
-      gui.questionNew(makeWorker(json.edge,json.spot,w), "tooltip", json)
+      const w = { owner: playerId, shape: json.choice.shape }
+      const b = makeWorker(json.choice.edge,json.choice.spot,w)
+      b.classList.add('empty')
+      gui.questionNew(b, json)
     }
 
-    const askFullWorker = function(edge,spot) {
-      question.addFull(placedWorkers[edge][spot],function(ev) {
-        console.log('full spot',edge,spot)
-      })
+    const askFullWorker = function(json) {
+      const w = placedWorkers[json.choice.edge][json.choice.spot]
+      gui.questionAnnot(w,json)
     }
 
     const removeWorker = function(edge,spot) {
@@ -258,6 +259,7 @@ function drawBoard(opts) {
       placedBonuses[edge] = el
     }
 
+    // XXX:
     const askBonus = function(edge) {
       const loc = board.bonusSpot(edge)
       const el = drawAskBonusAt(loc, board.bonusSize)

@@ -18,19 +18,31 @@ data Choice =
   | ChActiveWorker WorkerType
   | ChPassiveWorker WorkerType
   | ChBonusToken BonusToken
-  | ChEdge EdgeId Int WorkerType (Maybe Worker)
+  | ChEdgeEmpty EdgeId Int WorkerType
+  | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
   | ChDone Text
     deriving (Eq,Ord,Show)
-
 
 instance JS.FromJSON Choice where
   parseJSON = JS.withObject "choice" \o ->
     do tag <- o .: "tag"
        case tag :: Text of
+
          "prefer" -> ChSetPreference <$> (o .: "worker")
+
          "edge-empty" ->
-           ChEdge <$> (o .: "edge") <*> (o .: "spot") <*> (o .: "shape")
-                                    <*> pure Nothing
+           ChEdgeEmpty
+              <$> (o .: "edge")
+              <*> (o .: "spot")
+              <*> (o .: "shape")
+
+         "edge-full" ->
+           ChEdgeFull
+             <$> (o .: "edge")
+             <*> (o .: "spot")
+             <*> (o .: "shape")
+             <*> (o .: "worker")
+
          "done" -> ChDone <$> (o .: "message")
          _ -> fail "XXX: more choices"
 
@@ -41,12 +53,16 @@ instance JS.ToJSON Choice where
       ChActiveWorker wt   -> jsTagged "active"  [ "worker" .= wt ]
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
-      ChEdge eid spot sh mbw ->
-        case mbw of
-          Nothing -> jsTagged "edge-empty" [ "edge" .= eid, "spot" .= spot
-                                           , "shape" .= sh ]
-          Just w  -> jsTagged "edge-full"  [ "edge" .= eid, "spot" .= spot
-                                           , "shape" .= sh
-                                           , "worker" .= w ]
+      ChEdgeEmpty eid spot sh ->
+        jsTagged "edge-empty" [ "edge" .= eid, "spot" .= spot, "shape" .= sh ]
+
+      ChEdgeFull eid spot sh w ->
+        jsTagged "edge-full"  [ "edge" .= eid
+                              , "spot" .= spot
+                              , "shape" .= sh
+                              , "worker" .= w
+                              ]
+
       ChDone t -> jsTagged "done" [ "message" .= t ]
+
 
