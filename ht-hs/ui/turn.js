@@ -31,11 +31,11 @@ function drawTurn(turn) {
   const player = lab(turn.player)
   player.classList.add('turn-player')
   player.classList.add(gui.colors[turn.player])
-  group([ lab('turn: '), player ])
+  group([ lab('Turn: '), player ])
 
   const elDone  = lab(done)
   const elLimit = lab(limit)
-  group([ lab('actions: '), elDone, lab('/'), elLimit ])
+  group([ lab('Actions: '), elDone, lab('/'), elLimit ])
 
   const drawPicked = function(w) {
     const it = drawWorker(gui.board.workerSize,w)

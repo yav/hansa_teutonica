@@ -78,7 +78,8 @@ function drawPlayer(pid,opts) {
                        }
         const loc = { x: info.x[i]*height, y: y }
         const b = drawWorkerAt(loc,wsize,worker)
-        setHelp(b, stat + ' upgrade ' + worker.shape)
+        setHelp(b, stat.charAt(0).toUpperCase() + stat.slice(1) +
+                                                  ' upgrade ' + worker.shape)
         if (info.shape == 'rombus') b.style.transform = 'rotate(45deg)'
         doms[i] = b
         dom.appendChild(b)
@@ -269,7 +270,7 @@ function drawPlayer(pid,opts) {
 
   { // VP
     const it = pBox()
-    setHelp(it,'victory points')
+    setHelp(it,'Victory points')
     let vp = opts.vp
     it.textContent  = vp + ' VP'
     it.style.fontSize = 0.4 * barHeight
