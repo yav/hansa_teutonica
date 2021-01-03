@@ -137,12 +137,11 @@ tryMove state0 =
        prov <- viewGame \g -> edgeProvince (gameBoard g) edgeId
        update (AddWorkerToHand prov w)
        opts <- viewGame movablePieces
-       let newLimit = limit - 1
-       if newLimit > 0
+       if num < limit
          then askInputs $ ( workerOwner w :-> ChDone "Done"
                           , "No more moves"
                           , putDown)
-                        : pickupQuestion (num+1) (workerOwner w) newLimit opts
+                        : pickupQuestion (num+1) (workerOwner w) limit opts
          else putDown
 
   putDown =
