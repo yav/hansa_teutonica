@@ -158,7 +158,7 @@ gameUpdate upd =
          doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
 
        RemoveWokerFromHand ->
-         doUpdateTurn \t -> t { turnPickedUp = drop 1 (turnPickedUp t) }
+         doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
 
      broadcast upd
 
