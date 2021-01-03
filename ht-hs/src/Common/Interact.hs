@@ -19,6 +19,8 @@ module Common.Interact
 import Data.Text(Text)
 import Data.Map(Map)
 import qualified Data.Map as Map
+import Data.Set(Set)
+import qualified Data.Set as Set
 import Control.Monad(liftM,ap)
 
 import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:))
@@ -29,7 +31,7 @@ import Common.Basics
 
 
 startGame ::
-  [PlayerId] ->
+  Set PlayerId ->
   gs ->
   Interact i o gs () ->
   InteractState i o gs
@@ -93,7 +95,7 @@ handleMessage (p :-> req) =
 
 data InteractState i o gs =
   InteractState
-    { iPlayers :: [PlayerId]
+    { iPlayers :: Set PlayerId
 
     , iGame0  :: gs
       -- ^ Initial game state
@@ -134,7 +136,7 @@ interaction ::
 interaction (Interact m) s = (s1,msgs)
   where
   (s1,os) = m (\_ -> (,)) s []
-  msgs    = [ p :-> GameUpdate o | p <- iPlayers s1, o <- os ]
+  msgs    = [ p :-> GameUpdate o | p <- Set.toList (iPlayers s1), o <- os ]
 
 choose :: Ord i => PlayerId -> [(i,Text)] -> Interact i o gs i
 choose playerId opts =
