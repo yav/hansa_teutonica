@@ -8,7 +8,7 @@ module Game
     -- * Game State Manipulation
   , Game
   , runGame
-  , view
+  , gameView
   , viewPlayer
   , viewTurn
   , getState
@@ -32,7 +32,8 @@ import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
 import System.Random.TF(TFGen)
 
-import Utils
+import Common.Utils
+
 import Basics
 import Stats
 import Bonus
@@ -163,14 +164,14 @@ gameUpdate upd =
      broadcast upd
 
 
-view :: (GameState NoUpdates -> a) -> Game a
-view f = Game \s -> (f s { gameOutput = () }, s)
+gameView :: (GameState NoUpdates -> a) -> Game a
+gameView f = Game \s -> (f s { gameOutput = () }, s)
 
 getState :: Game (GameState NoUpdates)
-getState = view id
+getState = gameView id
 
 getTurn :: Game Turn
-getTurn = view (viewTurn id)
+getTurn = gameView (viewTurn id)
 
 playerAfter :: PlayerId -> GameState a -> PlayerId
 playerAfter playerId state =
@@ -182,7 +183,7 @@ playerAfter playerId state =
 
 broadcast :: GameUpdate -> Game ()
 broadcast m =
-  do ps <- view gameTurnOrder
+  do ps <- gameView gameTurnOrder
      forM_ ps \p -> output (p :-> m)
 
 output :: WithPlayer GameUpdate -> Game ()

@@ -22,7 +22,7 @@ import System.FastLogger(Logger,logMsg,newLogger)
 import Basics
 import Game(GameState,initialGameState,NoUpdates)
 import Interact
-import Actions(startGame)
+import Actions(nextTurn)
 import Board.Index
 
 main :: IO ()
@@ -60,7 +60,7 @@ data State = State
 newServer :: GameState NoUpdates -> IO Server
 newServer s =
   do ref <- newIORef State { connected = Map.empty
-                           , gameState = fst (startGame s) }
+                           , gameState = fst (startGame s nextTurn) }
      logger <- newLogger "-"
      pure Server { serverRef = ref, serverLogger = logger }
 

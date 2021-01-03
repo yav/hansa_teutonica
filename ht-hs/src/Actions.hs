@@ -5,7 +5,8 @@ import Control.Monad(guard)
 import Data.Text(Text)
 import qualified Data.Text as Text
 
-import Utils
+import Common.Utils
+
 import Basics
 import Stats
 import Player
@@ -16,14 +17,10 @@ import Game
 import Interact
 
 
-startGame ::
-  GameState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
-startGame g = interaction nextAction (startState g)
-
 
 nextAction :: Interact ()
 nextAction =
-  do state <- viewGame id
+  do state <- getGameState
      -- XXX: check end game
      let normalOpts = tryPlace state ++ tryMove state
          -- NOTE: this will not catch the corrner case of the player having
@@ -34,7 +31,7 @@ nextAction =
 
 nextTurn :: Interact ()
 nextTurn =
-  do state <- viewGame id
+  do state <- getGameState
      case gameStatus state of
        GameInProgress turn ->
           do let nextPlayerId = playerAfter (turnCurrentPlayer turn) state
@@ -134,9 +131,9 @@ tryMove state0 =
 
   pickup num limit edgeId spot w =
     do update (RemoveWorkerFromEdge edgeId spot)
-       prov <- viewGame \g -> edgeProvince (gameBoard g) edgeId
+       prov <- view \g -> edgeProvince (gameBoard g) edgeId
        update (AddWorkerToHand prov w)
-       opts <- viewGame movablePieces
+       opts <- view movablePieces
        if num < limit
          then askInputs $ ( workerOwner w :-> ChDone "Done"
                           , "No more moves"
@@ -145,8 +142,8 @@ tryMove state0 =
          else putDown
 
   putDown =
-    do board <- viewGame gameBoard
-       mb    <- viewGame (viewTurn nextPickedUp)
+    do board <- view gameBoard
+       mb    <- view (viewTurn nextPickedUp)
        case mb of
          Nothing -> update (ChangeDoneActions 1)
          Just (thisProv,w) ->
@@ -159,5 +156,16 @@ tryMove state0 =
               update RemoveWokerFromHand
               update (PlaceWorkerOnEdge tgtEdge tgtSpot w)
               putDown
+
+
+
+tryHire :: PlayerOptions
+tryHire state0 =
+  do (turn,playerState) <- startAction state0
+     let player = turnCurrentPlayer turn
+         question t = (player :-> ChPassiveWorker t, "Hire worker", doHire 0 t)
+     [ question t | t <- enumAll, getUnavailable playerState t > 0 ]
+  where
+  doHire done t = undefined
 
 

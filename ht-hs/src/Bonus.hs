@@ -3,7 +3,7 @@ module Bonus where
 import Data.Text(Text)
 import qualified Data.Aeson as JS
 
-import Utils(enumAll)
+import Common.Utils(enumAll)
 
 data BonusToken =
     BonusUpgrade

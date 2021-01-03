@@ -1,4 +1,4 @@
-module Utils where
+module Common.Utils where
 
 import Data.Text(Text)
 import Control.Monad.ST

@@ -36,8 +36,9 @@ import qualified Data.List as List
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
 
+import Common.Utils
+
 import Basics
-import Utils
 import Stats
 import Bonus
 

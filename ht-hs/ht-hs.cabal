@@ -19,7 +19,10 @@ extra-source-files:  CHANGELOG.md
 library
   hs-source-dirs:      src
   exposed-modules:
-    Basics, Player, Edge, Node, Stats, Bonus, Utils,
+    Common.Basics,
+    Common.Interact,
+    Common.Utils,
+    Basics, Player, Edge, Node, Stats, Bonus,
     Question, Game, Board, Geometry,
     Interact,
     Actions,
@@ -33,6 +36,7 @@ library
   extensions: BlockArguments, NamedFieldPuns, ParallelListComp,
               OverloadedStrings, GeneralizedNewtypeDeriving,
               TypeSynonymInstances, FlexibleInstances
+              MultiParamTypeClasses, RankNTypes
   build-depends:
     base >=4.13,
     containers, text, tf-random, aeson, vector

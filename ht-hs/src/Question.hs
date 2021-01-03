@@ -5,12 +5,12 @@ import Data.Aeson((.:))
 import qualified Data.Aeson as JS
 import Data.Aeson((.=))
 
-import Utils
+import Common.Utils
+
 import Basics
 import Bonus
 import Node
 
-import Debug.Trace
 
 
 data Choice =

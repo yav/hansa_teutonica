@@ -1,23 +1,16 @@
-module Basics where
+module Basics
+  ( module Basics
+  , module Common.Basics
+  ) where
 
 import Data.Text(Text)
 import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
+import Common.Basics
 
 type NodeId       = Int      -- ^ Identifies a city
 type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
-
-
-newtype PlayerId  = PlayerId Text
-  deriving (Show,Eq,Ord)
-
-data WithPlayer a = PlayerId :-> a
-  deriving (Eq,Ord,Show)
-
-instance Functor WithPlayer where
-  fmap f (p :-> q) = p :-> f q
-
 
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Bounded,Enum)
@@ -55,12 +48,6 @@ data Worker = Worker
 
 
 --------------------------------------------------------------------------------
-playerIdToKey :: PlayerId -> Text
-playerIdToKey (PlayerId t) = t
-
-instance JS.ToJSON PlayerId where
-  toJSON = JS.toJSON . playerIdToKey
-
 workerTypeToKey :: WorkerType -> Text
 workerTypeToKey workerType =
   case workerType of
@@ -90,10 +77,5 @@ instance JS.FromJSON WorkerType where
       "disc" -> pure Disc
       _      -> fail "Malformed worker type"
 
-instance JS.FromJSON PlayerId where
-  parseJSON = JS.withText "player id" \txt -> pure (PlayerId txt)
-
-instance JS.ToJSON a => JS.ToJSON (WithPlayer a) where
-  toJSON (p :-> a) = JS.object [ "player" .= p, "thing" .= a ]
 
 

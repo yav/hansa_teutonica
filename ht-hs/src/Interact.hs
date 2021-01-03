@@ -1,21 +1,19 @@
 module Interact
   ( -- * InteractionState
     InteractState
-  , startState
-  , interaction
+  , startGame
+  , handleMessage
+  , PlayerRequest
+  , OutMsg
 
   -- * Building Interactions
   , Interact
   , askInputs
   , choose
   , inGame
-  , viewGame
+  , view
   , update
-
-  -- * XXX
-  , handleMessage
-  , PlayerRequest
-  , OutMsg
+  , getGameState
   ) where
 
 import Data.Map(Map)
@@ -25,10 +23,53 @@ import Data.Text(Text)
 import Data.Aeson((.:),(.=))
 import qualified Data.Aeson as JS
 
-import Utils
+import Common.Utils
+
 import Basics
 import Question
 import Game
+
+startGame ::
+  GameState NoUpdates ->
+  Interact () ->
+  (InteractState NoUpdates, [WithPlayer OutMsg])
+startGame g begin =
+  interaction begin
+    InteractState
+      { iGame0  = g
+      , iLog    = []
+      , iGame   = g
+      , iAsk    = Map.empty
+      }
+
+handleMessage ::
+  WithPlayer PlayerRequest ->
+  InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
+handleMessage (p :-> req) =
+  case req of
+    Reload -> \s ->
+                let forMe (q :-> _) _ = p == q
+                    ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
+                in (s, [p :-> CurGameState ps])
+    PlayerResponse ch ->
+      askQuestions .
+      interaction (continueWith (p :-> ch))
+
+  where
+  askQuestions (s,os) =
+    ( s
+    , os ++
+      [ q :-> AskQuestions qs
+      | (q,qs) <- Map.toList
+                $ Map.fromListWith (++)
+                  [ (q,[ChoiceHelp { chChoice = ch
+                                   , chHelp = help
+                                   }])
+                      | (q :-> ch,(help,_))  <- Map.toList (iAsk s) ]
+      ]
+    )
+
+
 
 data InteractState updates =
   InteractState
@@ -46,6 +87,23 @@ data InteractState updates =
                      (Text, InteractState Updates -> InteractState Updates)
       -- ^ Choices avialable to the players.
     }
+
+data OutMsg =
+    CurGameState (InteractState NoUpdates)
+  | AskQuestions [ChoiceHelp]
+  | GameUpdate GameUpdate
+
+data ChoiceHelp = ChoiceHelp
+  { chChoice :: Choice
+  , chHelp   :: Text
+  } deriving (Eq,Ord)
+
+data PlayerRequest =
+    Reload
+  | PlayerResponse Choice
+
+
+
 
 
 newtype Interact a = Interact ((a -> Result) -> Result)
@@ -95,28 +153,21 @@ inGame :: Game a -> Interact a
 inGame g = Interact \k s -> case runGame g (iGame s) of
                               (a,g1) -> k a s { iGame = g1 }
 
-viewGame :: (GameState NoUpdates -> b) -> Interact b
-viewGame f = inGame (view f)
+view :: (GameState NoUpdates -> b) -> Interact b
+view f = inGame (gameView f)
+
+getGameState :: Interact (GameState NoUpdates)
+getGameState = view id
 
 update :: GameUpdate -> Interact ()
 update = inGame . gameUpdate
 
 
-newtype InteractBuilder a = IB (Interact a)
-  deriving (Functor,Applicative,Monad)
 
 
 --------------------------------------------------------------------------------
+-- Input and output messages
 
-
-data OutMsg =
-    CurGameState (InteractState NoUpdates)
-  | AskQuestions [ChoiceHelp]
-  | GameUpdate GameUpdate
-
-data PlayerRequest =
-    Reload
-  | PlayerResponse Choice
 
 
 instance JS.ToJSON OutMsg where
@@ -143,49 +194,6 @@ instance JS.FromJSON PlayerRequest where
                  case tag :: Text of
                    "reload" -> pure Reload
                    _        -> PlayerResponse <$> JS.parseJSON (JS.Object o)
-
-startState :: GameState NoUpdates -> InteractState NoUpdates
-startState g =
-  InteractState
-    { iGame0  = g
-    , iLog    = []
-    , iGame   = g
-    , iAsk    = Map.empty
-    }
-
-
-handleMessage ::
-  WithPlayer PlayerRequest ->
-  InteractState NoUpdates -> (InteractState NoUpdates, [WithPlayer OutMsg])
-handleMessage (p :-> req) =
-  case req of
-    Reload -> \s ->
-                let forMe (q :-> _) _ = p == q
-                    ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
-                in (s, [p :-> CurGameState ps])
-    PlayerResponse ch ->
-      askQuestions .
-      interaction (continueWith (p :-> ch))
-
-  where
-  askQuestions (s,os) =
-    ( s
-    , os ++
-      [ q :-> AskQuestions qs
-      | (q,qs) <- Map.toList
-                $ Map.fromListWith (++)
-                  [ (q,[ChoiceHelp { chChoice = ch
-                                   , chHelp = help
-                                   }])
-                      | (q :-> ch,(help,_))  <- Map.toList (iAsk s) ]
-      ]
-    )
-
-
-data ChoiceHelp = ChoiceHelp
-  { chChoice :: Choice
-  , chHelp   :: Text
-  } deriving (Eq,Ord)
 
 instance JS.ToJSON ChoiceHelp where
   toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
