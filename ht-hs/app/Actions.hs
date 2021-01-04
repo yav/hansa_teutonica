@@ -17,7 +17,7 @@ import Question
 import Game
 
 
-nextAction :: Interact Game ()
+nextAction :: Interact ()
 nextAction =
   do state <- getGameState
      -- XXX: check end game
@@ -28,7 +28,7 @@ nextAction =
      askInputs opts
      nextAction
 
-nextTurn :: Interact Game ()
+nextTurn :: Interact ()
 nextTurn =
   do state <- getGameState
      case gameStatus state of
@@ -47,7 +47,7 @@ startAction state =
      guard (turnActionsDone turn < turnActionLimit turn)
      pure (turn, playerState)
 
-type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact Game ())]
+type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
 
 tryEndTurn :: Bool -> PlayerOptions
 tryEndTurn forceEnd state =

@@ -27,9 +27,10 @@ import qualified Data.Aeson as JS
 
 import Common.Utils
 import Common.Basics
+import AppTypes(State,Input,Update,doUpdate)
 
 
-startGame :: Set PlayerId -> app -> Interact app () -> InteractState app
+startGame :: Set PlayerId -> State -> Interact () -> InteractState
 startGame ps g begin =
   fst
   $ interaction begin
@@ -42,25 +43,24 @@ startGame ps g begin =
       }
 
 
-data OutMsg app =
-    CurGameState (InteractState app)
-  | AskQuestions [ChoiceHelp app]
-  | GameUpdate (Update app)
+data OutMsg =
+    CurGameState InteractState
+  | AskQuestions [ChoiceHelp]
+  | GameUpdate Update
 
-data ChoiceHelp app = ChoiceHelp
-  { chChoice :: Input app
+data ChoiceHelp = ChoiceHelp
+  { chChoice :: Input
   , chHelp   :: Text
   }
 
-data PlayerRequest app =
+data PlayerRequest =
     Reload
-  | PlayerResponse (Input app)
+  | PlayerResponse Input
 
 
 handleMessage ::
-  App app =>
-  WithPlayer (PlayerRequest app) ->
-  InteractState app -> (InteractState app, [WithPlayer (OutMsg app)])
+  WithPlayer PlayerRequest ->
+  InteractState -> (InteractState, [WithPlayer OutMsg])
 handleMessage (p :-> req) =
   case req of
     Reload -> \s ->
@@ -88,57 +88,54 @@ handleMessage (p :-> req) =
     )
 
 
-data InteractState app =
+data InteractState =
   InteractState
     { iPlayers :: Set PlayerId
 
-    , iGame0  :: app
+    , iGame0  :: State
       -- ^ Initial game state
 
-    , iLog    :: [WithPlayer (Input app)]
+    , iLog    :: [WithPlayer Input]
       -- ^ A record of all responses made by the players
 
-    , iGame   :: app
+    , iGame   :: State
       -- ^ The current game state.
       -- Should be reproducable by replyaing the log file on the initial state
 
-    , iAsk     :: Map (WithPlayer (Input app)) (Text, R app)
+    , iAsk     :: Map (WithPlayer Input) (Text, R)
       -- ^ Choices avialable to the players.
     }
 
 
-newtype Interact app a = Interact ((a -> R app) -> R app)
+newtype Interact a = Interact ((a -> R) -> R)
 
-instance Functor (Interact app) where
+instance Functor Interact where
   fmap = liftM
 
-instance Applicative (Interact app) where
+instance Applicative Interact where
   pure a = Interact \k -> k a
   (<*>)  = ap
 
-instance Monad (Interact app) where
+instance Monad Interact where
   Interact m >>= f = Interact \k -> m \a -> let Interact m1 = f a
                                             in m1 k
 
-type R app =
-  InteractState app -> [Update app] -> (InteractState app, [Update app])
+type R = InteractState -> [Update] -> (InteractState, [Update])
 
 -- | Perform an interaction
 interaction ::
-  Interact app () ->
-  InteractState app -> (InteractState app, [WithPlayer (OutMsg app)])
+  Interact () ->
+  InteractState -> (InteractState, [WithPlayer OutMsg])
 interaction (Interact m) s = (s1,msgs)
   where
   (s1,os) = m (\_ -> (,)) s []
   msgs    = [ p :-> GameUpdate o | p <- Set.toList (iPlayers s1), o <- os ]
 
-choose :: App app => PlayerId -> [(Input app,Text)] -> Interact app (Input app)
+choose :: PlayerId -> [(Input,Text)] -> Interact Input
 choose playerId opts =
   askInputs [ (playerId :-> ch, help, pure ch) | (ch,help) <- opts ]
 
-askInputs ::
-  App app =>
-  [ (WithPlayer (Input app), Text, Interact app a) ] -> Interact app a
+askInputs :: [ (WithPlayer Input, Text, Interact a) ] -> Interact a
 askInputs opts =
   Interact $
   \curK ->
@@ -147,7 +144,7 @@ askInputs opts =
   in (curS { iAsk = Map.union (Map.fromList (map cont opts)) (iAsk curS) }, os)
 
 -- | Resume execution based on player input
-continueWith :: App app => WithPlayer (Input app) -> Interact app a
+continueWith :: WithPlayer Input -> Interact a
 continueWith msg = Interact $
   \_ ->
   \s os ->
@@ -158,17 +155,17 @@ continueWith msg = Interact $
       Nothing -> (s,os)
 
 -- | Access a component of the current game state
-view :: (app -> a) -> Interact app a
+view :: (State -> a) -> Interact a
 view f = Interact $
   \k ->
   \s os -> k (f (iGame s)) s os
 
 -- | Access the current game state
-getGameState :: Interact app app
+getGameState :: Interact State
 getGameState = view id
 
 -- | Update the current game state
-update :: App app => Update app -> Interact app ()
+update :: Update -> Interact ()
 update o = Interact $
   \k    ->
   \s os -> k () s { iGame = doUpdate o (iGame s) } (o : os)
@@ -181,14 +178,14 @@ update o = Interact $
 
 
 
-instance App app => ToJSON (OutMsg app) where
+instance ToJSON OutMsg where
   toJSON msg =
     case msg of
       GameUpdate upd  -> toJSON upd
       AskQuestions qs -> jsCall "ask" [qs]
       CurGameState s  -> jsCall "redraw" [s]
 
-instance App app => ToJSON (InteractState app) where
+instance ToJSON InteractState where
   toJSON g =
     JS.object
       [ "game"      .= iGame g
@@ -196,12 +193,12 @@ instance App app => ToJSON (InteractState app) where
       , "log"       .= iLog g
       ]
     where
-    toChoiceHelp :: InteractState app -> [ ChoiceHelp app ]
+    toChoiceHelp :: InteractState -> [ ChoiceHelp ]
     toChoiceHelp s =
       [ ChoiceHelp { chChoice = q, chHelp = help }
       | (_ :-> q,(help,_)) <- Map.toList (iAsk s) ]
 
-instance App app => FromJSON (PlayerRequest app) where
+instance FromJSON PlayerRequest where
   parseJSON =
     JS.withObject "request" \o ->
     do tag <- o .: "tag"
@@ -210,6 +207,6 @@ instance App app => FromJSON (PlayerRequest app) where
          _        -> PlayerResponse <$> parseJSON (JS.Object o)
 
 
-instance App app => ToJSON (ChoiceHelp app) where
+instance ToJSON ChoiceHelp where
   toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
 

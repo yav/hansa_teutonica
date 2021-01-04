@@ -1,0 +1,20 @@
+signature AppTypes where
+
+import Data.Aeson(ToJSON,FromJSON)
+
+data State
+
+instance ToJSON State
+
+data Update
+
+instance ToJSON Update
+doUpdate :: Update -> State -> State
+
+data Input
+instance ToJSON   Input
+instance FromJSON Input
+instance Ord Input
+
+
+

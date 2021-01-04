@@ -11,6 +11,7 @@ module Game
   , nextPickedUp
   , GameUpdate(..)
   , GameStatus(..)
+  , doUpdate
   ) where
 
 import Data.Maybe(listToMaybe)
@@ -81,47 +82,45 @@ doUpdateTurn f =
                            GameInProgress t -> GameInProgress (f t)
                            _ -> gameStatus s }
 
-instance App Game where
-  type Update Game = GameUpdate
-  type Input Game = Choice
 
-  doUpdate upd =
-    case upd of
+doUpdate :: GameUpdate -> Game -> Game
+doUpdate upd =
+  case upd of
 
-      SetWorkerPreference w ->
-        doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
+    SetWorkerPreference w ->
+      doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
 
-      ChangeAvailble w n ->
-        doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
+    ChangeAvailble w n ->
+      doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
 
-      ChangeUnavailable w n ->
-        doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
+    ChangeUnavailable w n ->
+      doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
 
 
-      -- edges
+    -- edges
 
-      PlaceWorkerOnEdge edgeId spot w ->
-        doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
+    PlaceWorkerOnEdge edgeId spot w ->
+      doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
 
-      RemoveWorkerFromEdge edgeId spot ->
-        doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
+    RemoveWorkerFromEdge edgeId spot ->
+      doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
 
 
-      -- turn
+    -- turn
 
-      NewTurn turn -> \s -> s { gameStatus = GameInProgress turn }
+    NewTurn turn -> \s -> s { gameStatus = GameInProgress turn }
 
-      ChangeDoneActions n ->
-         doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
+    ChangeDoneActions n ->
+       doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
 
-      ChangeActionLimit n ->
-        doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
+    ChangeActionLimit n ->
+      doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
 
-      AddWorkerToHand prov w ->
-        doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
+    AddWorkerToHand prov w ->
+      doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
 
-      RemoveWokerFromHand ->
-        doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
+    RemoveWokerFromHand ->
+      doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
 
 
 playerAfter :: PlayerId -> Game -> PlayerId
