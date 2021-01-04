@@ -22,9 +22,9 @@ library
     Common.Basics,
     Common.Interact,
     Common.Utils,
+    Common.Server,
     Basics, Player, Edge, Node, Stats, Bonus,
     Question, Game, Board, Geometry,
-    Interact,
     Actions,
     Board.Index
     Board.Builder,
@@ -35,11 +35,14 @@ library
     Board.Hansa3
   extensions: BlockArguments, NamedFieldPuns, ParallelListComp,
               OverloadedStrings, GeneralizedNewtypeDeriving,
-              TypeSynonymInstances, FlexibleInstances
-              MultiParamTypeClasses, RankNTypes
+              TypeSynonymInstances, FlexibleInstances, FlexibleContexts
+              MultiParamTypeClasses, RankNTypes,
+              FunctionalDependencies, TypeFamilies
   build-depends:
     base >=4.13,
-    containers, text, tf-random, aeson, vector
+    containers, text, tf-random, aeson, vector,
+    bytestring,
+    websockets-snap, websockets, snap-server
   default-language:    Haskell2010
   ghc-options:         -Wall
 
@@ -52,11 +55,9 @@ executable ht-hs
   build-depends:
     base >=4.13,
     containers,
-    bytestring,
     text,
     ht-hs,
-    tf-random,
-    websockets-snap, websockets, snap-server, aeson
+    tf-random
 
   default-language:    Haskell2010
   ghc-options:         -Wall

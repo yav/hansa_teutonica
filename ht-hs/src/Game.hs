@@ -1,19 +1,11 @@
 module Game
-  ( GameState(..), Updates, NoUpdates
-  , initialGameState
+  ( Game(..)
+  , initialGame
   , playerAfter
-  , startInteract
-  , endInteract
 
     -- * Game State Manipulation
-  , Game
-  , runGame
-  , gameView
   , viewPlayer
   , viewTurn
-  , getState
-  , getTurn
-  , gameUpdate
   , Turn(..)
   , newTurn
   , nextPickedUp
@@ -26,13 +18,13 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import Control.Monad(ap,liftM,forM_)
 
 import qualified Data.Aeson as JS
-import Data.Aeson ((.=))
+import Data.Aeson ((.=),ToJSON(..))
 import System.Random.TF(TFGen)
 
 import Common.Utils
+import Common.Basics
 
 import Basics
 import Stats
@@ -40,9 +32,8 @@ import Bonus
 import Player
 import Board
 import Edge
+import Question
 
-
-newtype Game a = Game (GameState Updates -> (a,GameState Updates))
 
 data GameUpdate =
     SetWorkerPreference Worker
@@ -59,136 +50,86 @@ data GameUpdate =
   | NewTurn Turn
   deriving Show
 
-runGame :: Game a -> GameState Updates -> (a,GameState Updates)
-runGame (Game m) s =  m s
-
-instance Functor Game where
-  fmap = liftM
-
-instance Applicative Game where
-  pure a = Game \s -> (a,s)
-  (<*>)  = ap
-
-instance Monad Game where
-  Game m >>= f = Game \s -> case m s of
-                              (a,s1) ->
-                                 let Game m1 = f a
-                                 in m1 s1
-
-
-data GameState updates = GameState
+data Game = Game
   { gamePlayers   :: Map PlayerId Player
   , gameTurnOrder :: [PlayerId]
   , gameTokens    :: [BonusToken]
   , gameBoard     :: Board
   , gameStatus    :: GameStatus
-  , gameOutput    :: updates
   } deriving Show
 
-viewPlayer :: PlayerId -> (Player -> a) -> GameState update -> a
+viewPlayer :: PlayerId -> (Player -> a) -> Game -> a
 viewPlayer playerId f = \s -> f (gamePlayers s Map.! playerId)
 
-viewTurn :: (Turn -> a) -> GameState update -> a
+viewTurn :: (Turn -> a) -> Game -> a
 viewTurn f g =
   case gameStatus g of
     GameInProgress t -> f t
     _ -> error "viewTurn: Game finished"
 
-type Updates   = [WithPlayer GameUpdate]
-type NoUpdates = ()
-
-startInteract :: GameState NoUpdates -> GameState Updates
-startInteract g = g { gameOutput = [] }
-
-endInteract ::
-  GameState Updates -> ([WithPlayer GameUpdate],GameState NoUpdates)
-endInteract i = (gameOutput i, i { gameOutput = () })
-
-doUpdate :: (GameState Updates -> GameState Updates) -> Game ()
-doUpdate f = Game \s -> ((), f s)
-
-
-doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game ()
+doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game -> Game
 doUpdatePlayer pid f =
-  doUpdate \s -> s { gamePlayers = Map.adjust f pid (gamePlayers s) }
+  \s -> s { gamePlayers = Map.adjust f pid (gamePlayers s) }
 
-doUpdateBoard :: (Board -> Board) -> Game ()
+doUpdateBoard :: (Board -> Board) -> Game -> Game
 doUpdateBoard f =
-  doUpdate \s -> s { gameBoard = f (gameBoard s) }
+  \s -> s { gameBoard = f (gameBoard s) }
 
-doUpdateTurn :: (Turn -> Turn) -> Game ()
+doUpdateTurn :: (Turn -> Turn) -> Game -> Game
 doUpdateTurn f =
-  doUpdate \s -> s { gameStatus = case gameStatus s of
-                                    GameInProgress t -> GameInProgress (f t)
-                                    _ -> gameStatus s }
+  \s -> s { gameStatus = case gameStatus s of
+                           GameInProgress t -> GameInProgress (f t)
+                           _ -> gameStatus s }
 
-gameUpdate :: GameUpdate -> Game ()
-gameUpdate upd =
-  do case upd of
+instance App Game where
+  type Update Game = GameUpdate
+  type Input Game = Choice
 
-       SetWorkerPreference w ->
-         doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
+  doUpdate upd =
+    case upd of
 
-       ChangeAvailble w n ->
-         doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
+      SetWorkerPreference w ->
+        doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
 
-       ChangeUnavailable w n ->
-         doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
+      ChangeAvailble w n ->
+        doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
 
-
-       -- edges
-
-       PlaceWorkerOnEdge edgeId spot w ->
-         doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
-
-       RemoveWorkerFromEdge edgeId spot ->
-         doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
+      ChangeUnavailable w n ->
+        doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
 
 
-       -- turn
+      -- edges
 
-       NewTurn turn -> doUpdate \s -> s { gameStatus = GameInProgress turn }
+      PlaceWorkerOnEdge edgeId spot w ->
+        doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
 
-       ChangeDoneActions n ->
-          doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
-
-       ChangeActionLimit n ->
-         doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
-
-       AddWorkerToHand prov w ->
-         doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
-
-       RemoveWokerFromHand ->
-         doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
-
-     broadcast upd
+      RemoveWorkerFromEdge edgeId spot ->
+        doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
 
 
-gameView :: (GameState NoUpdates -> a) -> Game a
-gameView f = Game \s -> (f s { gameOutput = () }, s)
+      -- turn
 
-getState :: Game (GameState NoUpdates)
-getState = gameView id
+      NewTurn turn -> \s -> s { gameStatus = GameInProgress turn }
 
-getTurn :: Game Turn
-getTurn = gameView (viewTurn id)
+      ChangeDoneActions n ->
+         doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
 
-playerAfter :: PlayerId -> GameState a -> PlayerId
+      ChangeActionLimit n ->
+        doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
+
+      AddWorkerToHand prov w ->
+        doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
+
+      RemoveWokerFromHand ->
+        doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
+
+
+playerAfter :: PlayerId -> Game -> PlayerId
 playerAfter playerId state =
   case break (== playerId) (gameTurnOrder state) of
     (_, _ : next : _) -> next
     (next : _, _)     -> next
     _                 -> playerId -- shouldn't happen
-
-
-broadcast :: GameUpdate -> Game ()
-broadcast m =
-  do ps <- gameView gameTurnOrder
-     forM_ ps \p -> output (p :-> m)
-
-output :: WithPlayer GameUpdate -> Game ()
-output m = doUpdate \s -> s { gameOutput = m : gameOutput s }
-
 
 
 data GameStatus =
@@ -220,9 +161,9 @@ nextPickedUp :: Turn -> Maybe (Maybe ProvinceId,Worker)
 nextPickedUp = listToMaybe  . reverse . turnPickedUp
 
 
-initialGameState :: TFGen -> Board -> Set PlayerId -> GameState NoUpdates
-initialGameState rng0 board playerIds =
-  GameState
+initialGame :: TFGen -> Board -> Set PlayerId -> Game
+initialGame rng0 board playerIds =
+  Game
     { gamePlayers    = playerState
     , gameTurnOrder  = playerOrder
     , gameTokens     = tokens
@@ -232,7 +173,6 @@ initialGameState rng0 board playerIds =
           then GameInProgress
                     (newTurn firstPlayer (getLevel Actions firstPlayerState))
           else GameFinished
-    , gameOutput     = ()
     }
 
   where
@@ -247,7 +187,10 @@ initialGameState rng0 board playerIds =
     Map.fromList [ (p, initialPlayer i) | p <- playerOrder | i <- [ 0 .. ] ]
 
 
-instance JS.ToJSON (GameState NoUpdates) where
+
+--------------------------------------------------------------------------------
+
+instance ToJSON Game where
   toJSON g = JS.object
     [ "players" .=
         JS.object [ playerIdToKey pId .= p
@@ -258,14 +201,14 @@ instance JS.ToJSON (GameState NoUpdates) where
     , "status"    .= gameStatus g
     ]
 
-instance JS.ToJSON GameStatus where
+instance ToJSON GameStatus where
   toJSON gs =
     case gs of
       GameInProgress t ->
         JS.object [ jsTag "active", "turn" .=  t ]
       GameFinished -> JS.object [ jsTag "finished" ]
 
-instance JS.ToJSON Turn where
+instance ToJSON Turn where
   toJSON t = JS.object
     [ "player"   .= turnCurrentPlayer t
     , "actDone"  .= turnActionsDone t
@@ -274,18 +217,17 @@ instance JS.ToJSON Turn where
     , "pickedUp" .= map snd (turnPickedUp t)
     ]
 
-
---------------------------------------------------------------------------------
-instance JS.ToJSON GameUpdate where
+instance ToJSON GameUpdate where
   toJSON upd =
     case upd of
-      SetWorkerPreference w   -> jsCall "setWorkerPreference" [w]
-      PlaceWorkerOnEdge a b c -> jsCall "setWorkerOnEdge" [js a, js b, js c]
+      SetWorkerPreference w    -> jsCall "setWorkerPreference" [w]
+      PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
       RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
-      ChangeAvailble a b      -> jsCall "changeAvailable" [js a, js b]
-      ChangeUnavailable a b   -> jsCall "changeUnavailable" [js a, js b]
-      ChangeDoneActions n     -> jsCall "changeDoneActions" [n]
-      ChangeActionLimit n     -> jsCall "changeActionLimit" [n]
-      AddWorkerToHand _ w     -> jsCall "addWorkerToHand" [w]
-      RemoveWokerFromHand     -> jsCall' "removeWokerFromHand"
-      NewTurn t               -> jsCall "newTurn" [t]
+      ChangeAvailble a b       -> jsCall "changeAvailable" [js a, js b]
+      ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
+      ChangeDoneActions n      -> jsCall "changeDoneActions" [n]
+      ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
+      AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]
+      RemoveWokerFromHand      -> jsCall' "removeWokerFromHand"
+      NewTurn t                -> jsCall "newTurn" [t]
+

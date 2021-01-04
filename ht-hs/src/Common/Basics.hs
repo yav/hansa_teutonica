@@ -1,8 +1,22 @@
 module Common.Basics where
 
 import Data.Text(Text)
-import Data.Aeson ((.=))
+import Data.Aeson (ToJSON,FromJSON,(.=))
 import qualified Data.Aeson as JS
+
+
+
+class ( ToJSON   app
+      , ToJSON   (Update app)
+      , ToJSON   (Input app)
+      , FromJSON (Input app)
+      , Ord      (Input app)
+      ) => App app where
+  type Update app
+  type Input  app
+  doUpdate :: Update app -> app -> app
+
+
 
 newtype PlayerId  = PlayerId Text
   deriving (Show,Eq,Ord)
@@ -12,7 +26,6 @@ data WithPlayer a = PlayerId :-> a
 
 instance Functor WithPlayer where
   fmap f (p :-> q) = p :-> f q
-
 
 --------------------------------------------------------------------------------
 playerIdToKey :: PlayerId -> Text

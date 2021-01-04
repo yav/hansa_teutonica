@@ -13,7 +13,6 @@ module Common.Interact
   , view
   , update
   , getGameState
-  , GameUpdate(..)
   ) where
 
 import Data.Text(Text)
@@ -30,11 +29,7 @@ import Common.Utils
 import Common.Basics
 
 
-startGame ::
-  Set PlayerId ->
-  gs ->
-  Interact i o gs () ->
-  InteractState i o gs
+startGame :: Set PlayerId -> app -> Interact app () -> InteractState app
 startGame ps g begin =
   fst
   $ interaction begin
@@ -47,25 +42,25 @@ startGame ps g begin =
       }
 
 
-data OutMsg i o gs =
-    CurGameState (InteractState i o gs)
-  | AskQuestions [ChoiceHelp i]
-  | GameUpdate o
+data OutMsg app =
+    CurGameState (InteractState app)
+  | AskQuestions [ChoiceHelp app]
+  | GameUpdate (Update app)
 
-data ChoiceHelp i = ChoiceHelp
-  { chChoice :: i
+data ChoiceHelp app = ChoiceHelp
+  { chChoice :: Input app
   , chHelp   :: Text
-  } deriving (Eq,Ord)
+  }
 
-data PlayerRequest i =
+data PlayerRequest app =
     Reload
-  | PlayerResponse i
+  | PlayerResponse (Input app)
 
 
 handleMessage ::
-  Ord i =>
-  WithPlayer (PlayerRequest i) ->
-  InteractState i o gs -> (InteractState i o gs, [WithPlayer (OutMsg i o gs)])
+  App app =>
+  WithPlayer (PlayerRequest app) ->
+  InteractState app -> (InteractState app, [WithPlayer (OutMsg app)])
 handleMessage (p :-> req) =
   case req of
     Reload -> \s ->
@@ -93,66 +88,66 @@ handleMessage (p :-> req) =
     )
 
 
-data InteractState i o gs =
+data InteractState app =
   InteractState
     { iPlayers :: Set PlayerId
 
-    , iGame0  :: gs
+    , iGame0  :: app
       -- ^ Initial game state
 
-    , iLog    :: [WithPlayer i]
+    , iLog    :: [WithPlayer (Input app)]
       -- ^ A record of all responses made by the players
 
-    , iGame   :: gs
+    , iGame   :: app
       -- ^ The current game state.
       -- Should be reproducable by replyaing the log file on the initial state
 
-    , iAsk     :: Map (WithPlayer i) (Text, R i o gs)
+    , iAsk     :: Map (WithPlayer (Input app)) (Text, R app)
       -- ^ Choices avialable to the players.
     }
 
 
+newtype Interact app a = Interact ((a -> R app) -> R app)
 
-
-newtype Interact i o gs a = Interact ((a -> R i o gs) -> R i o gs)
-
-instance Functor (Interact i o gs) where
+instance Functor (Interact app) where
   fmap = liftM
 
-instance Applicative (Interact i o gs) where
+instance Applicative (Interact app) where
   pure a = Interact \k -> k a
   (<*>)  = ap
 
-instance Monad (Interact i o gs) where
+instance Monad (Interact app) where
   Interact m >>= f = Interact \k -> m \a -> let Interact m1 = f a
                                             in m1 k
 
-type R i o gs = InteractState i o gs -> [o] -> (InteractState i o gs, [o])
+type R app =
+  InteractState app -> [Update app] -> (InteractState app, [Update app])
 
 -- | Perform an interaction
 interaction ::
-  Interact i o gs () ->
-  InteractState i o gs -> (InteractState i o gs, [WithPlayer (OutMsg i o gs)])
+  Interact app () ->
+  InteractState app -> (InteractState app, [WithPlayer (OutMsg app)])
 interaction (Interact m) s = (s1,msgs)
   where
   (s1,os) = m (\_ -> (,)) s []
   msgs    = [ p :-> GameUpdate o | p <- Set.toList (iPlayers s1), o <- os ]
 
-choose :: Ord i => PlayerId -> [(i,Text)] -> Interact i o gs i
+choose :: App app => PlayerId -> [(Input app,Text)] -> Interact app (Input app)
 choose playerId opts =
   askInputs [ (playerId :-> ch, help, pure ch) | (ch,help) <- opts ]
 
-
 askInputs ::
-  Ord i => [ (WithPlayer i, Text, Interact i o gs a) ] -> Interact i o gs a
-askInputs opts = Interact $
+  App app =>
+  [ (WithPlayer (Input app), Text, Interact app a) ] -> Interact app a
+askInputs opts =
+  Interact $
   \curK ->
   \curS os ->
   let cont (ch,help,Interact m) = (ch, (help, m curK))
   in (curS { iAsk = Map.union (Map.fromList (map cont opts)) (iAsk curS) }, os)
 
 -- | Resume execution based on player input
-continueWith :: Ord i => WithPlayer i -> Interact i o gs a
+continueWith :: App app => WithPlayer (Input app) -> Interact app a
 continueWith msg = Interact $
   \_ ->
   \s os ->
@@ -163,21 +158,17 @@ continueWith msg = Interact $
       Nothing -> (s,os)
 
 -- | Access a component of the current game state
-view :: (gs -> a) -> Interact i o gs a
+view :: (app -> a) -> Interact app a
 view f = Interact $
   \k ->
   \s os -> k (f (iGame s)) s os
 
 -- | Access the current game state
-getGameState :: Interact i o gs gs
+getGameState :: Interact app app
 getGameState = view id
 
-
-class GameUpdate o gs where
-  doUpdate :: o -> gs -> gs
-
 -- | Update the current game state
-update :: GameUpdate o gs => o -> Interact i o gs ()
+update :: App app => Update app -> Interact app ()
 update o = Interact $
   \k    ->
   \s os -> k () s { iGame = doUpdate o (iGame s) } (o : os)
@@ -190,24 +181,27 @@ update o = Interact $
 
 
 
-instance (ToJSON i, ToJSON o, ToJSON gs) => ToJSON (OutMsg i o gs) where
+instance App app => ToJSON (OutMsg app) where
   toJSON msg =
     case msg of
       GameUpdate upd  -> toJSON upd
       AskQuestions qs -> jsCall "ask" [qs]
       CurGameState s  -> jsCall "redraw" [s]
 
-instance (ToJSON i, ToJSON gs) => ToJSON (InteractState i o gs) where
+instance App app => ToJSON (InteractState app) where
   toJSON g =
     JS.object
       [ "game"      .= iGame g
-      , "questions" .= [ ChoiceHelp { chChoice = q
-                                    , chHelp = help }
-                       | (_ :-> q,(help,_)) <- Map.toList (iAsk g) ]
+      , "questions" .= toChoiceHelp g
       , "log"       .= iLog g
       ]
+    where
+    toChoiceHelp :: InteractState app -> [ ChoiceHelp app ]
+    toChoiceHelp s =
+      [ ChoiceHelp { chChoice = q, chHelp = help }
+      | (_ :-> q,(help,_)) <- Map.toList (iAsk s) ]
 
-instance FromJSON i => FromJSON (PlayerRequest i) where
+instance App app => FromJSON (PlayerRequest app) where
   parseJSON =
     JS.withObject "request" \o ->
     do tag <- o .: "tag"
@@ -216,6 +210,6 @@ instance FromJSON i => FromJSON (PlayerRequest i) where
          _        -> PlayerResponse <$> parseJSON (JS.Object o)
 
 
-instance ToJSON i => ToJSON (ChoiceHelp i) where
+instance App app => ToJSON (ChoiceHelp app) where
   toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
 

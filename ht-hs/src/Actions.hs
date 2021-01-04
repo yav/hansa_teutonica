@@ -6,6 +6,7 @@ import Data.Text(Text)
 import qualified Data.Text as Text
 
 import Common.Utils
+import Common.Interact
 
 import Basics
 import Stats
@@ -14,11 +15,9 @@ import Board
 import Edge
 import Question
 import Game
-import Interact
 
 
-
-nextAction :: Interact ()
+nextAction :: Interact Game ()
 nextAction =
   do state <- getGameState
      -- XXX: check end game
@@ -29,7 +28,7 @@ nextAction =
      askInputs opts
      nextAction
 
-nextTurn :: Interact ()
+nextTurn :: Interact Game ()
 nextTurn =
   do state <- getGameState
      case gameStatus state of
@@ -41,15 +40,14 @@ nextTurn =
 
 
 -------------------------------------------------------------------------------
-startAction :: GameState NoUpdates -> [(Turn,Player)]
+startAction :: Game -> [(Turn,Player)]
 startAction state =
   do GameInProgress turn <- pure (gameStatus state)
      let playerState = gamePlayers state Map.! turnCurrentPlayer turn
      guard (turnActionsDone turn < turnActionLimit turn)
      pure (turn, playerState)
 
-type PlayerOptions =
-      GameState NoUpdates -> [(WithPlayer Choice, Text, Interact ())]
+type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact Game ())]
 
 tryEndTurn :: Bool -> PlayerOptions
 tryEndTurn forceEnd state =
