@@ -31,19 +31,16 @@ nextAction =
 nextTurn :: Interact ()
 nextTurn =
   do state <- getGameState
-     case gameStatus state of
-       GameInProgress turn ->
-          do let nextPlayerId = playerAfter (turnCurrentPlayer turn) state
-                 actLvl = viewPlayer nextPlayerId (getLevel Actions) state
-             update (NewTurn (newTurn nextPlayerId actLvl))
-       _ -> pure ()
-
+     let turn = gameStatus state
+         nextPlayerId = playerAfter (turnCurrentPlayer turn) state
+         actLvl = viewPlayer nextPlayerId (getLevel Actions) state
+     update (NewTurn (newTurn nextPlayerId actLvl))
 
 -------------------------------------------------------------------------------
 startAction :: Game -> [(Turn,Player)]
 startAction state =
-  do GameInProgress turn <- pure (gameStatus state)
-     let playerState = gamePlayers state Map.! turnCurrentPlayer turn
+  do let turn = gameStatus state
+         playerState = gamePlayers state Map.! turnCurrentPlayer turn
      guard (turnActionsDone turn < turnActionLimit turn)
      pure (turn, playerState)
 
@@ -51,7 +48,7 @@ type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
 
 tryEndTurn :: Bool -> PlayerOptions
 tryEndTurn forceEnd state =
-  do GameInProgress turn <- pure (gameStatus state)
+  do let turn = gameStatus state
      guard (forceEnd || turnActionsDone turn == turnActionLimit turn)
      pure (turnCurrentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
 
@@ -115,10 +112,10 @@ tryMove state0 =
      pickupQuestion (1::Int) player limit pieces
   where
   movablePieces state =
-     let board               = gameBoard state
-         GameInProgress turn = gameStatus state
-         player              = turnCurrentPlayer turn
-         canMove w           = workerOwner w == player
+     let board      = gameBoard state
+         turn       = gameStatus state
+         player     = turnCurrentPlayer turn
+         canMove w  = workerOwner w == player
      in pickupSpots board (const True) canMove
 
   pickupQuestion num player limit opts =

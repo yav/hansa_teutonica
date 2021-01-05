@@ -3,13 +3,15 @@ signature AppTypes where
 import Data.Aeson(ToJSON,FromJSON)
 
 data State
+data Finished
 
 instance ToJSON State
+instance ToJSON Finished
 
 data Update
 
 instance ToJSON Update
-doUpdate :: Update -> State -> State
+doUpdate :: Update -> State -> Either Finished State
 
 data Input
 instance ToJSON   Input

@@ -1,5 +1,5 @@
 module Game
-  ( Game(..)
+  ( Game, GameFinished
   , initialGame
   , playerAfter
 
@@ -51,24 +51,27 @@ data GameUpdate =
   | NewTurn Turn
   deriving Show
 
-data Game = Game
+data GameStatus s = Game
   { gamePlayers   :: Map PlayerId Player
   , gameTurnOrder :: [PlayerId]
   , gameTokens    :: [BonusToken]
   , gameBoard     :: Board
-  , gameStatus    :: GameStatus
+  , gameStatus    :: s
   } deriving Show
+
+type Game = GameStatus Turn
+type GameFinished = GameStatus FinalScore
+
+data FinalScore = FinalScore -- XXX
 
 viewPlayer :: PlayerId -> (Player -> a) -> Game -> a
 viewPlayer playerId f = \s -> f (gamePlayers s Map.! playerId)
 
 viewTurn :: (Turn -> a) -> Game -> a
-viewTurn f g =
-  case gameStatus g of
-    GameInProgress t -> f t
-    _ -> error "viewTurn: Game finished"
+viewTurn f = f . gameStatus
 
-doUpdatePlayer :: PlayerId -> (Player -> Player) -> Game -> Game
+doUpdatePlayer ::
+  PlayerId -> (Player -> Player) -> Game -> Game
 doUpdatePlayer pid f =
   \s -> s { gamePlayers = Map.adjust f pid (gamePlayers s) }
 
@@ -77,49 +80,47 @@ doUpdateBoard f =
   \s -> s { gameBoard = f (gameBoard s) }
 
 doUpdateTurn :: (Turn -> Turn) -> Game -> Game
-doUpdateTurn f =
-  \s -> s { gameStatus = case gameStatus s of
-                           GameInProgress t -> GameInProgress (f t)
-                           _ -> gameStatus s }
+doUpdateTurn f = \s -> s { gameStatus = f (gameStatus s) }
 
 
-doUpdate :: GameUpdate -> Game -> Game
+doUpdate :: GameUpdate -> Game -> Either GameFinished Game
 doUpdate upd =
   case upd of
 
-    SetWorkerPreference w ->
+    SetWorkerPreference w -> Right .
       doUpdatePlayer (workerOwner w) (setWorkerPreference (workerType w))
 
-    ChangeAvailble w n ->
+    ChangeAvailble w n -> Right .
       doUpdatePlayer (workerOwner w) (changeAvailable (workerType w) n)
 
-    ChangeUnavailable w n ->
+    ChangeUnavailable w n -> Right .
       doUpdatePlayer (workerOwner w) (changeUnavailable (workerType w) n)
 
 
     -- edges
 
-    PlaceWorkerOnEdge edgeId spot w ->
-      doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot $ Just w
+    PlaceWorkerOnEdge edgeId spot w -> Right .
+      doUpdateBoard (modifyEdge edgeId (edgeSetWorker spot (Just w)))
 
-    RemoveWorkerFromEdge edgeId spot ->
-      doUpdateBoard $ modifyEdge edgeId $ edgeSetWorker spot Nothing
+    RemoveWorkerFromEdge edgeId spot -> Right .
+      doUpdateBoard (modifyEdge edgeId (edgeSetWorker spot Nothing))
 
 
     -- turn
 
-    NewTurn turn -> \s -> s { gameStatus = GameInProgress turn }
+    NewTurn turn -> Right .
+      doUpdateTurn \_ -> turn
 
-    ChangeDoneActions n ->
+    ChangeDoneActions n -> Right .
        doUpdateTurn \t -> t { turnActionsDone = turnActionsDone t + n }
 
-    ChangeActionLimit n ->
+    ChangeActionLimit n -> Right .
       doUpdateTurn \t -> t { turnActionLimit = turnActionLimit t + n }
 
-    AddWorkerToHand prov w ->
+    AddWorkerToHand prov w -> Right .
       doUpdateTurn \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
 
-    RemoveWokerFromHand ->
+    RemoveWokerFromHand -> Right .
       doUpdateTurn \t -> t { turnPickedUp = init (turnPickedUp t) }
 
 
@@ -131,10 +132,6 @@ playerAfter playerId state =
     _                 -> playerId -- shouldn't happen
 
 
-data GameStatus =
-    GameInProgress Turn
-  | GameFinished
-    deriving Show
 
 data Turn = Turn
   { turnCurrentPlayer :: PlayerId
@@ -167,11 +164,7 @@ initialGame rng0 board playerIds =
     , gameTurnOrder  = playerOrder
     , gameTokens     = tokens
     , gameBoard      = board
-    , gameStatus =
-        if not (null playerOrder)
-          then GameInProgress
-                    (newTurn firstPlayer (getLevel Actions firstPlayerState))
-          else GameFinished
+    , gameStatus     = newTurn firstPlayer (getLevel Actions firstPlayerState)
     }
 
   where
@@ -189,7 +182,7 @@ initialGame rng0 board playerIds =
 
 --------------------------------------------------------------------------------
 
-instance ToJSON Game where
+instance ToJSON status => ToJSON (GameStatus status) where
   toJSON g = JS.object
     [ "players" .=
         JS.object [ playerIdToKey pId .= p
@@ -200,20 +193,22 @@ instance ToJSON Game where
     , "status"    .= gameStatus g
     ]
 
-instance ToJSON GameStatus where
-  toJSON gs =
-    case gs of
-      GameInProgress t ->
-        JS.object [ jsTag "active", "turn" .=  t ]
-      GameFinished -> JS.object [ jsTag "finished" ]
-
 instance ToJSON Turn where
   toJSON t = JS.object
-    [ "player"   .= turnCurrentPlayer t
-    , "actDone"  .= turnActionsDone t
-    , "actLimit" .= turnActionLimit t
-    , "bonuses"  .= length (turnPlaceBonus t)
-    , "pickedUp" .= map snd (turnPickedUp t)
+    [ jsTag "active"
+    , "turn" .= JS.object
+                  [ "player"   .= turnCurrentPlayer t
+                  , "actDone"  .= turnActionsDone t
+                  , "actLimit" .= turnActionLimit t
+                  , "bonuses"  .= length (turnPlaceBonus t)
+                  , "pickedUp" .= map snd (turnPickedUp t)
+                  ]
+    ]
+
+instance ToJSON FinalScore where
+  toJSON FinalScore = JS.object
+    [ jsTag "finished"
+    , "score" .= JS.Null -- XXX
     ]
 
 instance ToJSON GameUpdate where

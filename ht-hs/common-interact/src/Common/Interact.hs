@@ -27,7 +27,7 @@ import qualified Data.Aeson as JS
 
 import Common.Utils
 import Common.Basics
-import AppTypes(State,Input,Update,doUpdate)
+import AppTypes(State,Finished,Input,Update,doUpdate)
 
 
 startGame :: Set PlayerId -> State -> Interact () -> InteractState
@@ -38,7 +38,7 @@ startGame ps g begin =
       { iPlayers = ps
       , iGame0   = g
       , iLog     = []
-      , iGame    = g
+      , iGame    = Right g
       , iAsk     = Map.empty
       }
 
@@ -98,7 +98,7 @@ data InteractState =
     , iLog    :: [WithPlayer Input]
       -- ^ A record of all responses made by the players
 
-    , iGame   :: State
+    , iGame   :: Either Finished State
       -- ^ The current game state.
       -- Should be reproducable by replyaing the log file on the initial state
 
@@ -158,7 +158,9 @@ continueWith msg = Interact $
 view :: (State -> a) -> Interact a
 view f = Interact $
   \k ->
-  \s os -> k (f (iGame s)) s os
+  \s os -> case iGame s of
+             Right st -> k (f st) s os
+             Left _   -> (s,os)
 
 -- | Access the current game state
 getGameState :: Interact State
@@ -168,7 +170,9 @@ getGameState = view id
 update :: Update -> Interact ()
 update o = Interact $
   \k    ->
-  \s os -> k () s { iGame = doUpdate o (iGame s) } (o : os)
+  \s os -> case iGame s of
+             Left _  -> (s,os)
+             Right a -> k () s { iGame = doUpdate o a } (o : os)
 
 
 

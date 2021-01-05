@@ -24,7 +24,8 @@ library
     Board.Hansa3,
     AppTypes
   default-extensions:
-    BlockArguments, NamedFieldPuns, OverloadedStrings, ParallelListComp
+    BlockArguments, OverloadedStrings, NamedFieldPuns, ParallelListComp
+
   build-depends:
     common-utils,
     base >=4.13,

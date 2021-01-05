@@ -1,13 +1,11 @@
-module AppTypes where
+module AppTypes (module AppTypes, doUpdate) where
 
-import Game(Game,GameUpdate)
+import Game(Game,GameFinished,GameUpdate,doUpdate)
 import qualified Game
 import Question(Choice)
 
-type State  = Game
-type Update = GameUpdate
-type Input  = Choice
-
-doUpdate :: Update -> State -> State
-doUpdate = Game.doUpdate
+type State    = Game
+type Finished = GameFinished
+type Update   = GameUpdate
+type Input    = Choice
 
