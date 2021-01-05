@@ -68,7 +68,7 @@ function newGUI(ws,container) {
 function uiRedraw(ws,state) {
   gui = newGUI(ws, document.getElementById('main'))
 
-  const game = state.game
+  const game = state.game ? state.game : state.finished
 
   { // Colors
     gui.colors = {}
@@ -101,11 +101,8 @@ function uiRedraw(ws,state) {
   }
 
   { // Current turn
-    const status = game.status
-    if (status.tag == 'active') {
-      const turn = status.turn
-      gui.turn = drawTurn(turn)
-    }
+    // XXX: check for finished
+    gui.turn = drawTurn(game.status)
   }
 
   // questions

@@ -12,7 +12,7 @@ module Common.Interact
   , choose
   , view
   , update
-  , getGameState
+  , getState
   ) where
 
 import Data.Text(Text)
@@ -163,8 +163,8 @@ view f = Interact $
              Left _   -> (s,os)
 
 -- | Access the current game state
-getGameState :: Interact State
-getGameState = view id
+getState :: Interact State
+getState = view id
 
 -- | Update the current game state
 update :: Update -> Interact ()
@@ -192,7 +192,9 @@ instance ToJSON OutMsg where
 instance ToJSON InteractState where
   toJSON g =
     JS.object
-      [ "game"      .= iGame g
+      [ case iGame g of
+          Right a -> "game" .= a
+          Left a  -> "finished" .= a
       , "questions" .= toChoiceHelp g
       , "log"       .= iLog g
       ]

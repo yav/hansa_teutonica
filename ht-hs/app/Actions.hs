@@ -7,6 +7,7 @@ import qualified Data.Text as Text
 
 import Common.Utils
 import Common.Interact
+import Common.Field
 
 import Basics
 import Stats
@@ -19,7 +20,7 @@ import Game
 
 nextAction :: Interact ()
 nextAction =
-  do state <- getGameState
+  do state <- getState
      -- XXX: check end game
      let normalOpts = tryPlace state ++ tryMove state
          -- NOTE: this will not catch the corrner case of the player having
@@ -30,17 +31,17 @@ nextAction =
 
 nextTurn :: Interact ()
 nextTurn =
-  do state <- getGameState
-     let turn = gameStatus state
+  do state <- getState
+     let turn = getField gameTurn state
          nextPlayerId = playerAfter (turnCurrentPlayer turn) state
-         actLvl = viewPlayer nextPlayerId (getLevel Actions) state
+         actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
      update (NewTurn (newTurn nextPlayerId actLvl))
 
 -------------------------------------------------------------------------------
 startAction :: Game -> [(Turn,Player)]
 startAction state =
-  do let turn = gameStatus state
-         playerState = gamePlayers state Map.! turnCurrentPlayer turn
+  do let turn = getField gameTurn state
+         playerState = getField (gamePlayer (turnCurrentPlayer turn)) state
      guard (turnActionsDone turn < turnActionLimit turn)
      pure (turn, playerState)
 
@@ -48,7 +49,7 @@ type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
 
 tryEndTurn :: Bool -> PlayerOptions
 tryEndTurn forceEnd state =
-  do let turn = gameStatus state
+  do let turn = getField gameTurn state
      guard (forceEnd || turnActionsDone turn == turnActionLimit turn)
      pure (turnCurrentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
 
@@ -57,7 +58,7 @@ tryPlace state =
   do (turn,playerState) <- startAction state
      let workerT      = getWorkerPreference playerState
 
-         board        = gameBoard state
+         board        = getField gameBoard state
          player       = turnCurrentPlayer turn
 
          gateways     = accessibleProvinces player (turnUsedGateways turn) board
@@ -112,8 +113,8 @@ tryMove state0 =
      pickupQuestion (1::Int) player limit pieces
   where
   movablePieces state =
-     let board      = gameBoard state
-         turn       = gameStatus state
+     let board      = getField gameBoard state
+         turn       = getField gameTurn state
          player     = turnCurrentPlayer turn
          canMove w  = workerOwner w == player
      in pickupSpots board (const True) canMove
@@ -126,7 +127,7 @@ tryMove state0 =
 
   pickup num limit edgeId spot w =
     do update (RemoveWorkerFromEdge edgeId spot)
-       prov <- view \g -> edgeProvince (gameBoard g) edgeId
+       prov <- view \g -> edgeProvince (getField gameBoard g) edgeId
        update (AddWorkerToHand prov w)
        opts <- view movablePieces
        if num < limit
@@ -137,8 +138,8 @@ tryMove state0 =
          else putDown
 
   putDown =
-    do board <- view gameBoard
-       mb    <- view (viewTurn nextPickedUp)
+    do board <- view (getField gameBoard)
+       mb    <- view (nextPickedUp . getField gameTurn)
        case mb of
          Nothing -> update (ChangeDoneActions 1)
          Just (thisProv,w) ->
@@ -157,10 +158,34 @@ tryMove state0 =
 tryHire :: PlayerOptions
 tryHire state0 =
   do (turn,playerState) <- startAction state0
-     let player = turnCurrentPlayer turn
-         question t = (player :-> ChPassiveWorker t, "Hire worker", doHire 0 t)
+     let player     = turnCurrentPlayer turn
+         limit      = hireLimit (getLevel Hire playerState)
+         question t = (player :-> ChPassiveWorker t, "Hire worker", doHire limit t)
      [ question t | t <- enumAll, getUnavailable playerState t > 0 ]
   where
-  doHire done t = undefined
+{-
+  hire n t =
+    do pid <- view (viewTurn turnCurrentPlayer
+       let w = worker t
+       update (ChangeUnavailable w (-n))
+       update (ChangeAvailble    w n)
+-}
 
+  doHire lim ch = undefined {-
+    do state <- getState
+       let turn   = gameStatus state
+           playerId = turnCurrentPlayer turn
+           player = viewPlayer playerId id
+           cubes  = getUnavailable Cube
+           discs  = getUnavailable Disc
+           worker t = Worker { workerOwner = playerId, workerType = t }
+       case limit of
+         Just l
+           | cubes == 0 -> hire (min l discs) Disc
+           | discs == 0 -> hire (min l cubes) Cube
+           | cubes + discs > l ->
 
+         _ -> do hire discs Disc
+                 hire cubes 
+
+-}
