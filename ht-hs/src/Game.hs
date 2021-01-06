@@ -4,6 +4,7 @@ module Game
   , initialGame
   , playerAfter
   , gameTurnOrder
+  , gameCurrentPlayer
   , gamePlayer
   , gameBoard
   , gameTokens
@@ -71,6 +72,9 @@ gamePlayer playerId = gamePlayers .> mapAt playerId
 gameTurn :: Field Game Turn
 gameTurn = gameStatus
 
+gameCurrentPlayer :: Game -> PlayerId
+gameCurrentPlayer = currentPlayer . getField gameTurn
+
 doUpdate :: GameUpdate -> Game -> Either GameFinished Game
 doUpdate upd =
   case upd of
@@ -107,16 +111,16 @@ doUpdate upd =
       Right . (gameTurn `updField` useGateway g)
 
     ChangeDoneActions n ->
-      Right . (gameTurn `updField` updField actionsDone (+n))
+      Right . (gameTurn .> actionsDone `updField` (+n))
 
     ChangeActionLimit n ->
-      Right . (gameTurn `updField` updField currentActionLimit (+n))
+      Right . (gameTurn .> currentActionLimit `updField` (+n))
 
     AddWorkerToHand prov w ->
       Right . (gameTurn `updField` addWorkerToHand prov w)
 
     RemoveWokerFromHand ->
-      Right .  (gameTurn `updField` removeWokerFromHand)
+      Right . (gameTurn `updField` removeWokerFromHand)
 
 
 playerAfter :: PlayerId -> Game -> PlayerId

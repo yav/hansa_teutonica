@@ -83,8 +83,8 @@ changeAvailable w n =
   \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
 
 -- | How many workers of the given type we have.
-getAvailable :: Player -> WorkerType -> Int
-getAvailable s w = availableWorkers s Map.! w
+getAvailable :: WorkerType -> Player -> Int
+getAvailable w s = availableWorkers s Map.! w
 
 -- | Add this many workers to the pool of unavailable worker.
 -- Use negative number to decrease the number of workers.
@@ -93,8 +93,8 @@ changeUnavailable w n =
   \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
 
 -- | How many workers of the given type we have.
-getUnavailable :: Player -> WorkerType -> Int
-getUnavailable s w = unavailableWorkers s Map.! w
+getUnavailable :: WorkerType -> Player -> Int
+getUnavailable w s = unavailableWorkers s Map.! w
 
 -- | Move the given number of workers from unavailable to available.
 hireWorker :: WorkerType -> Int -> Player -> Player

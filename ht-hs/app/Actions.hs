@@ -68,17 +68,17 @@ tryPlace state =
          gatewayFor edgeId =
                         (`Map.lookup` gateways) =<< edgeProvince board edgeId
 
-         totWorkers   = sum (map (getAvailable playerState) enumAll)
+         totWorkers   = sum (map (`getAvailable` playerState) enumAll)
          canReplace w = workerOwner w /= player &&
                         totWorkers > replacementCost (workerType w)
 
-         getFree      = do guard (getAvailable playerState workerT > 0)
+         getFree      = do guard (getAvailable workerT playerState > 0)
                            x <- freeSpots board accessible workerT
                            pure (x, "Place a worker")
          getFull      = do x <- replaceSpots board accessible workerT canReplace
                            pure (x, "Replace a worker")
          changePref   = do let otherT = otherType workerT
-                           guard (getAvailable playerState otherT > 0)
+                           guard (getAvailable otherT playerState > 0)
                            let help = "Change preference to " <>
                                       workerTypeToKey otherT
                            pure (ChSetPreference otherT, help)
@@ -167,32 +167,40 @@ tryHire state0 =
   do (turn,playerState) <- startAction state0
      let player     = currentPlayer turn
          limit      = hireLimit (getLevel Hire playerState)
-         question t = (player :-> ChPassiveWorker t, "Hire worker", doHire limit t)
-     [ question t | t <- enumAll, getUnavailable playerState t > 0 ]
+         question t = (player :-> ChPassiveWorker t, "Hire worker",
+                                                        doHire 1 limit t)
+     [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
   where
-{-
   hire n t =
-    do pid <- view (viewTurn currentPlayer
-       let w = worker t
+    do playerId <- view (currentPlayer . getField gameTurn)
+       let w = Worker { workerOwner = playerId, workerType = t }
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
--}
 
-  doHire lim ch = undefined {-
-    do state <- getState
-       let turn   = gameStatus state
-           playerId = currentPlayer turn
-           player = viewPlayer playerId id
-           cubes  = getUnavailable Cube
-           discs  = getUnavailable Disc
-           worker t = Worker { workerOwner = playerId, workerType = t }
+  doHire hired limit ch =
+    do game <- getState
+       let playerId = gameCurrentPlayer game
+           player   = getField (gamePlayer playerId) game
+           cubes    = getUnavailable Cube player
+           discs    = getUnavailable Disc player
        case limit of
          Just l
-           | cubes == 0 -> hire (min l discs) Disc
-           | discs == 0 -> hire (min l cubes) Cube
-           | cubes + discs > l ->
+           | cubes == 0 -> hire (min l discs) Disc >> done
+           | discs == 0 -> hire (min l cubes) Cube >> done
+           | cubes + discs > l -> undefined
+             do hire 1 ch
+                if hired == l
+                  then done
+                  else
+                    do let lab = mconcat
+                                   ["Hire ", showText hired, "/", showText l ]
+                       x  <- choose playerId
+                               [ (ChPassiveWorker t, lab) | t <- enumAll]
+                       let ChPassiveWorker ch' = x
+                       doHire (1+hired) limit ch'
 
          _ -> do hire discs Disc
-                 hire cubes 
+                 hire cubes Disc
+                 done
 
--}
+  done = update (ChangeDoneActions 1)

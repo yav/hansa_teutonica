@@ -1,6 +1,7 @@
 module Common.Utils where
 
 import Data.Text(Text)
+import qualified Data.Text as Text
 import Control.Monad.ST
 import System.Random.TF
 import System.Random.TF.Instances
@@ -8,6 +9,9 @@ import qualified Data.Vector as Vector
 import qualified Data.Vector.Mutable as MVector
 import qualified Data.Aeson as JS
 import qualified Data.Aeson.Types as JS
+
+showText :: Show a => a -> Text
+showText = Text.pack . show
 
 enumAll :: (Bounded a,Enum a) => [a]
 enumAll = [ minBound .. maxBound ]
