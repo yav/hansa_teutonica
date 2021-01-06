@@ -1,15 +1,13 @@
 {-# Language TemplateHaskell #-}
 module Game
   ( Game, GameFinished, GameStatus
+  , initialGame
+  , playerAfter
   , gameTurnOrder
   , gamePlayer
   , gameBoard
   , gameTokens
   , gameTurn
-
-  , initialGame
-  , playerAfter
-
   , GameUpdate(..)
   , doUpdate
   ) where
