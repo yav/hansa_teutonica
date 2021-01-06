@@ -20,6 +20,7 @@ const handlers =
   , changeUnavailable: function(ws,w,n) {
       gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
     }
+  , useGateway: function(ws,g) {}
 
 
   , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }

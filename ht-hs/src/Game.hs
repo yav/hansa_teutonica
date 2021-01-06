@@ -46,6 +46,7 @@ data GameUpdate =
   | ChangeActionLimit Int
   | AddWorkerToHand (Maybe ProvinceId) Worker
   | RemoveWokerFromHand
+  | UseGateway ProvinceId
 
   | NewTurn Turn
   deriving Show
@@ -103,6 +104,9 @@ doUpdate upd =
     -- turn
 
     NewTurn turn -> Right . setField gameTurn turn
+
+    UseGateway g ->
+      Right . (gameTurn `updField` useGateway g)
 
     ChangeDoneActions n ->
       Right . (gameTurn `updField` updField actionsDone (+n))
@@ -173,13 +177,16 @@ instance ToJSON GameUpdate where
   toJSON upd =
     case upd of
       SetWorkerPreference w    -> jsCall "setWorkerPreference" [w]
-      PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
-      RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
       ChangeAvailble a b       -> jsCall "changeAvailable" [js a, js b]
       ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
+
+      PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
+      RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
+
+      NewTurn t                -> jsCall "newTurn" [t]
+      UseGateway g             -> jsCall "usedGateway" [g]
       ChangeDoneActions n      -> jsCall "changeDoneActions" [n]
       ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
       AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]
       RemoveWokerFromHand      -> jsCall' "removeWokerFromHand"
-      NewTurn t                -> jsCall "newTurn" [t]
 

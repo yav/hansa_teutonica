@@ -65,6 +65,8 @@ tryPlace state =
 
          gateways     = accessibleProvinces player (usedGateways turn) board
          accessible   = maybe True (`Map.member` gateways)
+         gatewayFor edgeId =
+                        (`Map.lookup` gateways) =<< edgeProvince board edgeId
 
          totWorkers   = sum (map (getAvailable playerState) enumAll)
          canReplace w = workerOwner w /= player &&
@@ -83,10 +85,10 @@ tryPlace state =
 
      (ch,help) <- [ (player :-> c,help) |
                      (c,help) <- changePref ++ getFree ++ getFull ]
-     pure (ch, help, handleChoice ch)
+     pure (ch, help, handleChoice gatewayFor ch)
 
   where
-  handleChoice (pid :-> ch) =
+  handleChoice gatewayFor (pid :-> ch) =
     case ch of
       ChSetPreference t ->
         do let w = Worker { workerOwner = pid, workerType = t }
@@ -95,7 +97,9 @@ tryPlace state =
       ChEdgeEmpty edgeId spot workerT ->
         do let w = Worker { workerOwner = pid, workerType = workerT }
            update (ChangeAvailble w (-1))
-           -- XXX: use a gateway
+           case gatewayFor edgeId of
+             Just g -> update (UseGateway g)
+             _      -> pure ()
            update (PlaceWorkerOnEdge edgeId spot w)
            update (ChangeDoneActions 1)
 
