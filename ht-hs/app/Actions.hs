@@ -16,6 +16,7 @@ import Board
 import Edge
 import Question
 import Game
+import Turn
 
 
 nextAction :: Interact ()
@@ -33,7 +34,7 @@ nextTurn :: Interact ()
 nextTurn =
   do state <- getState
      let turn = getField gameTurn state
-         nextPlayerId = playerAfter (turnCurrentPlayer turn) state
+         nextPlayerId = playerAfter (currentPlayer turn) state
          actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
      update (NewTurn (newTurn nextPlayerId actLvl))
 
@@ -41,8 +42,8 @@ nextTurn =
 startAction :: Game -> [(Turn,Player)]
 startAction state =
   do let turn = getField gameTurn state
-         playerState = getField (gamePlayer (turnCurrentPlayer turn)) state
-     guard (turnActionsDone turn < turnActionLimit turn)
+         playerState = getField (gamePlayer (currentPlayer turn)) state
+     guard (getField actionsDone turn < getField currentActionLimit turn)
      pure (turn, playerState)
 
 type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
@@ -50,8 +51,9 @@ type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
 tryEndTurn :: Bool -> PlayerOptions
 tryEndTurn forceEnd state =
   do let turn = getField gameTurn state
-     guard (forceEnd || turnActionsDone turn == turnActionLimit turn)
-     pure (turnCurrentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
+     guard (forceEnd ||
+            getField actionsDone turn == getField currentActionLimit turn)
+     pure (currentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
 
 tryPlace :: PlayerOptions
 tryPlace state =
@@ -59,9 +61,9 @@ tryPlace state =
      let workerT      = getWorkerPreference playerState
 
          board        = getField gameBoard state
-         player       = turnCurrentPlayer turn
+         player       = currentPlayer turn
 
-         gateways     = accessibleProvinces player (turnUsedGateways turn) board
+         gateways     = accessibleProvinces player (usedGateways turn) board
          accessible   = maybe True (`Map.member` gateways)
 
          totWorkers   = sum (map (getAvailable playerState) enumAll)
@@ -93,6 +95,7 @@ tryPlace state =
       ChEdgeEmpty edgeId spot workerT ->
         do let w = Worker { workerOwner = pid, workerType = workerT }
            update (ChangeAvailble w (-1))
+           -- XXX: use a gateway
            update (PlaceWorkerOnEdge edgeId spot w)
            update (ChangeDoneActions 1)
 
@@ -108,14 +111,14 @@ tryMove state0 =
      let pieces = movablePieces state0
          limit  = min (movementLimit (getLevel Movement playerState))
                                                           (length pieces)
-         player = turnCurrentPlayer turn
+         player = currentPlayer turn
      guard (limit > 0)
      pickupQuestion (1::Int) player limit pieces
   where
   movablePieces state =
      let board      = getField gameBoard state
          turn       = getField gameTurn state
-         player     = turnCurrentPlayer turn
+         player     = currentPlayer turn
          canMove w  = workerOwner w == player
      in pickupSpots board (const True) canMove
 
@@ -158,14 +161,14 @@ tryMove state0 =
 tryHire :: PlayerOptions
 tryHire state0 =
   do (turn,playerState) <- startAction state0
-     let player     = turnCurrentPlayer turn
+     let player     = currentPlayer turn
          limit      = hireLimit (getLevel Hire playerState)
          question t = (player :-> ChPassiveWorker t, "Hire worker", doHire limit t)
      [ question t | t <- enumAll, getUnavailable playerState t > 0 ]
   where
 {-
   hire n t =
-    do pid <- view (viewTurn turnCurrentPlayer
+    do pid <- view (viewTurn currentPlayer
        let w = worker t
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
@@ -174,7 +177,7 @@ tryHire state0 =
   doHire lim ch = undefined {-
     do state <- getState
        let turn   = gameStatus state
-           playerId = turnCurrentPlayer turn
+           playerId = currentPlayer turn
            player = viewPlayer playerId id
            cubes  = getUnavailable Cube
            discs  = getUnavailable Disc

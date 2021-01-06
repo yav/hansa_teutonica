@@ -14,7 +14,7 @@ library
   hs-source-dirs:      src
   exposed-modules:
     Basics, Player, Edge, Node, Stats, Bonus,
-    Question, Game, Board, Geometry,
+    Question, Game, Turn, Board, Geometry,
     Board.Index
     Board.Builder,
     Board.Britannia45,

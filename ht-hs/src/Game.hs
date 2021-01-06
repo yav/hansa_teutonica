@@ -1,22 +1,19 @@
 {-# Language TemplateHaskell #-}
 module Game
-  ( Game, GameFinished, GameStatus(..)
+  ( Game, GameFinished, GameStatus
+  , gameTurnOrder
   , gamePlayer
   , gameBoard
+  , gameTokens
   , gameTurn
 
   , initialGame
   , playerAfter
 
-    -- * Game State Manipulation
-  , Turn(..)
-  , newTurn
-  , nextPickedUp
   , GameUpdate(..)
   , doUpdate
   ) where
 
-import Data.Maybe(listToMaybe)
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
@@ -36,7 +33,7 @@ import Bonus
 import Player
 import Board
 import Edge
-import Question
+import Turn
 
 data GameUpdate =
     SetWorkerPreference Worker
@@ -60,16 +57,6 @@ data GameStatus s = Game
   , _gameBoard    :: Board
   , _gameStatus   :: s
   } deriving Show
-
-data Turn = Turn
-  { turnCurrentPlayer :: PlayerId
-  , turnActionsDone   :: Int
-  , turnActionLimit   :: Int
-  , turnUsedGateways  :: Set ProvinceId
-  , turnPlaceBonus    :: [BonusToken]
-  , turnPickedUp      :: [(Maybe ProvinceId,Worker)]
-  } deriving Show
-
 
 
 declareFields ''GameStatus
@@ -118,18 +105,16 @@ doUpdate upd =
     NewTurn turn -> Right . setField gameTurn turn
 
     ChangeDoneActions n ->
-      Right .
-        (gameTurn `updField` \t ->
-                              t { turnActionsDone = turnActionsDone t + n })
+      Right . (gameTurn `updField` updField actionsDone (+n))
 
-    ChangeActionLimit n -> Right .
-      (gameTurn `updField` \t -> t { turnActionLimit = turnActionLimit t + n })
+    ChangeActionLimit n ->
+      Right . (gameTurn `updField` updField currentActionLimit (+n))
 
-    AddWorkerToHand prov w -> Right .
-      (gameTurn `updField` \t -> t { turnPickedUp = (prov,w) : turnPickedUp t })
+    AddWorkerToHand prov w ->
+      Right . (gameTurn `updField` addWorkerToHand prov w)
 
-    RemoveWokerFromHand -> Right .
-      (gameTurn `updField` \t -> t { turnPickedUp = init (turnPickedUp t) })
+    RemoveWokerFromHand ->
+      Right .  (gameTurn `updField` removeWokerFromHand)
 
 
 playerAfter :: PlayerId -> Game -> PlayerId
@@ -139,21 +124,6 @@ playerAfter playerId state =
     (next : _, _)     -> next
     _                 -> playerId -- shouldn't happen
 
-
-
-newTurn :: PlayerId -> Int -> Turn
-newTurn playerId actLvl =
-  Turn
-    { turnCurrentPlayer = playerId
-    , turnActionsDone   = 0
-    , turnActionLimit   = actionLimit actLvl
-    , turnUsedGateways  = Set.empty
-    , turnPlaceBonus    = []
-    , turnPickedUp      = []
-    }
-
-nextPickedUp :: Turn -> Maybe (Maybe ProvinceId,Worker)
-nextPickedUp = listToMaybe  . reverse . turnPickedUp
 
 
 initialGame :: TFGen -> Board -> Set PlayerId -> Game
@@ -192,15 +162,6 @@ instance ToJSON status => ToJSON (GameStatus status) where
     , "status"    .= getField gameStatus g
     ]
 
-instance ToJSON Turn where
-  toJSON t =
-    JS.object
-      [ "player"   .= turnCurrentPlayer t
-      , "actDone"  .= turnActionsDone t
-      , "actLimit" .= turnActionLimit t
-      , "bonuses"  .= length (turnPlaceBonus t)
-      , "pickedUp" .= map snd (turnPickedUp t)
-      ]
 
 instance ToJSON FinalScore where
   toJSON FinalScore = JS.object
