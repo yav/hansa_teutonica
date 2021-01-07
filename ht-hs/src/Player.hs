@@ -57,7 +57,7 @@ zeroState :: Player
 zeroState = Player
   { playerStats         = Map.fromList [ (stat,0) | stat <- enumAll ]
   , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
-  , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
+  , unavailableWorkers  = Map.fromList [ (w,5)    | w    <- enumAll ]
   , availableBonuses    = []
   , usedBonuses         = []
   , points              = 0

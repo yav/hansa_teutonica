@@ -44,6 +44,10 @@ instance JS.FromJSON Choice where
              <*> (o .: "worker")
 
          "done" -> ChDone <$> (o .: "message")
+
+         "active"  -> ChActiveWorker  <$> (o .: "worker")
+         "passive" -> ChPassiveWorker <$> (o .: "worker")
+         -- "bonus"   -> ChBonusToken    <$> (o .: "worker")
          _ -> fail "XXX: more choices"
 
 instance JS.ToJSON Choice where

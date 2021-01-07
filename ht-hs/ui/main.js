@@ -120,6 +120,7 @@ function uiQuestions(ws,qs) {
         gui.playerUI().askWorker('available',q)
         break
       case 'passive':
+        gui.playerUI().askWorker('unavailable',q)
         break
       case 'bonus':
         break

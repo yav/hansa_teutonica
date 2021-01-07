@@ -208,7 +208,7 @@ function drawPlayer(pid,opts) {
 
   ui.askWorker = function(which,json) {
     const shapes = workerInfo[which]
-    const info = shapes[json.choice.shape]
+    const info = shapes[json.choice.worker]
     gui.questionAnnot(info.dom,json)
   }
 

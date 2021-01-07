@@ -23,7 +23,7 @@ nextAction :: Interact ()
 nextAction =
   do state <- getState
      -- XXX: check end game
-     let normalOpts = tryPlace state ++ tryMove state
+     let normalOpts = tryPlace state ++ tryMove state ++ tryHire state
          -- NOTE: this will not catch the corrner case of the player having
          -- active workers, but there being no place on the board for them.
          opts       = tryEndTurn (null normalOpts) state ++ normalOpts
@@ -167,8 +167,8 @@ tryHire state0 =
   do (turn,playerState) <- startAction state0
      let player     = currentPlayer turn
          limit      = hireLimit (getLevel Hire playerState)
-         question t = (player :-> ChPassiveWorker t, "Hire worker",
-                                                        doHire 1 limit t)
+         question t = (player :-> ChPassiveWorker t,
+                                  "Hire worker", hireFirst limit t)
      [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
   where
   hire n t =
@@ -177,30 +177,41 @@ tryHire state0 =
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
 
-  doHire hired limit ch =
+  hireAll =
+    do (_,cubes,discs) <- getWorkers
+       hire cubes Cube
+       hire discs Disc
+
+  hireFirst mbLimit ch =
+    do case mbLimit of
+         Nothing -> hireAll
+         Just limit -> hire 1 ch >> doHire 2 limit
+       update (ChangeDoneActions 1)
+
+  getWorkers =
     do game <- getState
        let playerId = gameCurrentPlayer game
            player   = getField (gamePlayer playerId) game
            cubes    = getUnavailable Cube player
            discs    = getUnavailable Disc player
-       case limit of
-         Just l
-           | cubes == 0 -> hire (min l discs) Disc >> done
-           | discs == 0 -> hire (min l cubes) Cube >> done
-           | cubes + discs > l -> undefined
-             do hire 1 ch
-                if hired == l
-                  then done
-                  else
-                    do let lab = mconcat
-                                   ["Hire ", showText hired, "/", showText l ]
-                       x  <- choose playerId
-                               [ (ChPassiveWorker t, lab) | t <- enumAll]
-                       let ChPassiveWorker ch' = x
-                       doHire (1+hired) limit ch'
+       pure (playerId,cubes,discs)
 
-         _ -> do hire discs Disc
-                 hire cubes Disc
-                 done
+  doHire hiring limit
+    | hiring > limit = pure ()
+    | otherwise =
+      do (playerId,cubes,discs) <- getWorkers
+         case 1 + limit - hiring of
+           todo
+             | cubes == 0 -> hire (min todo discs) Disc
+             | discs == 0 -> hire (min todo cubes) Cube
+             | cubes + discs <= limit -> hireAll
+             | otherwise ->
+               do let lab = mconcat ["Hire ", showText hiring, "/",
+                                                              showText limit ]
+                  x <- choose playerId
+                                  [ (ChPassiveWorker t, lab) | t <- enumAll]
+                  let ChPassiveWorker ch = x
+                  hire 1 ch
+                  doHire (1+hiring) limit
 
-  done = update (ChangeDoneActions 1)
+
