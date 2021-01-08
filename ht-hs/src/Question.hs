@@ -34,7 +34,7 @@ instance JS.FromJSON Choice where
            ChEdgeEmpty
               <$> (o .: "edge")
               <*> (o .: "spot")
-              <*> (o .: "worker")
+              <*> (o .: "shape")
 
          "edge-full" ->
            ChEdgeFull
@@ -62,8 +62,10 @@ instance JS.ToJSON Choice where
       ChActiveWorker wt   -> jsTagged "active"  [ "worker" .= wt ]
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
-      ChEdgeEmpty eid w   -> jsTagged "edge-empty"
-                                          [ "edge" .= eid, "worker" .= w ]
+      ChEdgeEmpty eid spot sh -> jsTagged "edge-empty"
+                                          [ "edge"  .= eid
+                                          , "spot"  .= spot
+                                          , "shape" .= sh ]
 
       ChEdgeFull eid spot sh w ->
         jsTagged "edge-full"  [ "edge" .= eid
@@ -72,8 +74,8 @@ instance JS.ToJSON Choice where
                               , "worker" .= w
                               ]
 
-      ChNodeEmpty nid spot sh ->
-        jsTagged "node-empty" [ "node" .= nid, "spot" .= spot, "shape" .= sh ]
+      ChNodeEmpty nid sh ->
+        jsTagged "node-empty" [ "node" .= nid, "shape" .= sh ]
 
       ChDone t -> jsTagged "done" [ "message" .= t ]
 

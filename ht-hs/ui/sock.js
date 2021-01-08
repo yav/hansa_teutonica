@@ -2,10 +2,7 @@ const handlers =
   { redraw: uiRedraw
   , ask: uiQuestions
 
-  , setWorkerPreference: function (ws,w) {
-      gui.playerUI(w.owner).setPreference(w.shape)
-    }
-
+    // board
   , setWorkerOnEdge: function(ws,edge,spot,worker) {
       gui.board.placeWorkerOnEdge(edge,spot,worker)
     }
@@ -13,7 +10,10 @@ const handlers =
       gui.board.removeWorkerFromEdge(edge,spot)
     }
 
-
+    // player
+  , setWorkerPreference: function (ws,w) {
+      gui.playerUI(w.owner).setPreference(w.shape)
+    }
   , changeAvailable: function(ws,w,n) {
       gui.playerUI(w.owner).changeWorkers('available',w.shape,n)
     }
@@ -23,6 +23,7 @@ const handlers =
   , useGateway: function(ws,g) {}
 
 
+    // turn
   , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }
   , changeDoneActions: function(ws,n) { gui.turn.changeDone(n) }
   , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }

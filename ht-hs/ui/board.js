@@ -172,6 +172,8 @@ function drawBoard(opts) {
       return loc
     }
 
+
+    // XXX
     const askFullOffice = function(node,ix) {
       const info = placedOffices[node][ix]
       question.addFull(info.dom,function() {
@@ -179,16 +181,17 @@ function drawBoard(opts) {
       })
     }
 
-    const askEmptyOffice = function(node,worker) {
-      const loc = nextOfficeLoc(node)
+    const askEmptyOffice = function(q) {
+      const loc = nextOfficeLoc(q.choice.node)
+      const worker = { owner: playerId, shape: q.choice.shape }
       const el = drawWorkerAt(loc,board.workerSize,worker)
-      question.addEmpty(el,function() {
-        console.log('new office in ' + node)
-      })
+      el.classList.add('empty')
+      dom.appendChild(el)
+      gui.questionNew(el,q)
     }
 
-    const addOffice = function(json) {
-      const loc = nextOfficeLoc(json.node)
+    const addOffice = function(node,worker) {
+      const loc = nextOfficeLoc(node)
       const el  = drawWorkerAt(loc,board.workerSize,worker)
       let placed = placedOffices[node]
       if (placed === undefined) { placed = []; placedOffices[node] = placed }
@@ -207,7 +210,6 @@ function drawBoard(opts) {
     // exported
     ui.placeWorkerInAnnex  = addAnnex
     ui.askAnnex            = askAnnex
-    ui.placeWorkerInOffice = addOffice
     ui.placeWorkerInOffice = addOffice
     ui.askFullOffice       = askFullOffice
     ui.askEmptyOffice      = askEmptyOffice

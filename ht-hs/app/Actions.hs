@@ -263,13 +263,14 @@ tryCompleteEdge state =
        guard (spotPrivilege spot <= getLevel Privilege playerState)
        (edgeSpotId,worker) <- maybeToList
                 $ msum $ map (suitableWorkerFor spot) $ edgeWorkers edgeInfo
-       pure ( workerOwner worker :-> ChNodeEmpty nodeId worker
+       pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
             , "Build office"
             , do giveVPs edgeId
                  update (RemoveWorkerFromEdge edgeId edgeSpotId)
                  update (PlaceWorkerInOffice nodeId worker)
                  activateBonus edgeId
                  returnWorkers edgeId
+                 update (ChangeDoneActions 1)
             )
 
 
