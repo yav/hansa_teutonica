@@ -187,8 +187,8 @@ function drawBoard(opts) {
       })
     }
 
-    const addOffice = function(node,worker) {
-      const loc = nextOfficeLoc(node)
+    const addOffice = function(json) {
+      const loc = nextOfficeLoc(json.node)
       const el  = drawWorkerAt(loc,board.workerSize,worker)
       let placed = placedOffices[node]
       if (placed === undefined) { placed = []; placedOffices[node] = placed }

@@ -1,9 +1,10 @@
 module Actions where
 
 import qualified Data.Map as Map
-import Control.Monad(guard)
+import Control.Monad(guard,msum,forM_)
 import Data.Text(Text)
 import qualified Data.Text as Text
+import Data.Maybe(maybeToList)
 
 import Common.Utils
 import Common.Interact
@@ -13,7 +14,9 @@ import Basics
 import Stats
 import Player
 import Board
+import Geometry
 import Edge
+import Node
 import Question
 import Game
 import Turn
@@ -23,7 +26,8 @@ nextAction :: Interact ()
 nextAction =
   do state <- getState
      -- XXX: check end game
-     let normalOpts = tryPlace state ++ tryMove state ++ tryHire state
+     let normalOpts = tryPlace state ++ tryMove state ++ tryHire state ++
+                      tryCompleteEdge state
          -- NOTE: this will not catch the corrner case of the player having
          -- active workers, but there being no place on the board for them.
          opts       = tryEndTurn (null normalOpts) state ++ normalOpts
@@ -214,4 +218,62 @@ tryHire state0 =
                   hire 1 ch
                   doHire (1+hiring) limit
 
+
+tryCompleteEdge :: PlayerOptions
+tryCompleteEdge state =
+  do (turn,playerState) <- startAction state
+     let playerId = currentPlayer turn
+         board    = getField gameBoard state
+     (edgeId,edgeInfo) <- fullEdgesFor playerId board
+     (nodeId,nodeInfo) <- getEdgeNodes edgeId state
+     concat [ tryJustComplete edgeInfo
+            , tryAnnex node playerState
+            , tryOffice nodeId nodeInfo playerState edgeId edgeInfo
+            , tryAction node playerState
+            ]
+
+  where
+  getEdgeNodes :: EdgeId -> Game -> [(NodeId,Node)]
+  getEdgeNodes edgeId s =
+    let board = getField gameBoard s
+        (x,y) = geoEdgeNodes edgeId (boardGeometry board)
+    in [ (n, getField (boardNode n) board) | n <- [x,y] ]
+
+  tryJustComplete _ = [] -- XXX
+  tryAnnex _ _      = [] -- XXX
+  tryAction _ _     = [] -- XXX
+
+  giveVPs edgeId =
+    do nodes <- view (getEdgeNodes edgeId)
+       forM_ nodes \(_,nodeInfo) ->
+         case nodeControlledBy nodeInfo of
+           Just playerId -> update (ChangeVP playerId 1)
+           Nothing -> pure ()
+
+  activateBonus edgeId = pure () -- XXX
+
+  returnWorkers edgeId =
+    do workers <- view (edgeWorkers . getField (gameBoard .> boardEdge edgeId))
+       forM_ workers \(spotId,_,w) ->
+         do update (RemoveWorkerFromEdge edgeId spotId)
+            update (ChangeUnavailable w 1)
+
+  tryOffice nodeId nodeInfo playerState edgeId edgeInfo =
+    do spot <- maybeToList (nodeNextFree nodeInfo)
+       guard (spotPrivilege spot <= getLevel Privilege playerState)
+       (edgeSpotId,worker) <- maybeToList
+                $ msum $ map (suitableWorkerFor spot) $ edgeWorkers edgeInfo
+       pure ( workerOwner worker :-> ChNodeEmpty nodeId worker
+            , "Build office"
+            , do giveVPs edgeId
+                 update (RemoveWorkerFromEdge edgeId edgeSpotId)
+                 update (PlaceWorkerInOffice nodeId worker)
+                 activateBonus edgeId
+                 returnWorkers edgeId
+            )
+
+
+  suitableWorkerFor spot (i,_,w)
+    | accepts (spotRequires spot) (workerType w) = Just (i,w)
+    | otherwise = Nothing
 

@@ -50,8 +50,8 @@ buildBoard builder =
     { boardName = name builder
     , boardMaxFull = maxFull builder
     , boardEndVP = Map.empty
-    , boardNodes = Map.fromList [ (i, node n) | i <- [ 0 .. ] | n <- nodeInits ]
-    , boardEdges = Map.fromList [ (i, edge e) | i <- [ 0 .. ] | e <- edgeInits ]
+    , _boardNodes = Map.fromList[ (i, node n) | i <- [ 0 .. ] | n <- nodeInits ]
+    , _boardEdges = Map.fromList[ (i, edge e) | i <- [ 0 .. ] | e <- edgeInits ]
     , boardGeometry = foldr addCon geoEmpty (zip [ 0 .. ] (edges builder))
     , boardEdgeProvince = Map.fromList
         [ (i, getProvince t) | (i,Just t) <- [ 0 .. ]

@@ -45,15 +45,15 @@ geoConnect from via to Geometry { nodeNeighbours, edgeNeighbours } =
 
 -- | Get the nodes associated with an edge.
 -- Assumes the edge is in the graph.
-geoEdgeNodes :: Geometry -> EdgeId -> (NodeId,NodeId)
-geoEdgeNodes Geometry { edgeNeighbours } edgeId = edgeNeighbours Map.! edgeId
+geoEdgeNodes :: EdgeId -> Geometry -> (NodeId,NodeId)
+geoEdgeNodes edgeId Geometry { edgeNeighbours } = edgeNeighbours Map.! edgeId
 
 -- | Edges connects to the given node
-geoNodeEdges :: Geometry -> NodeId -> [EdgeId]
-geoNodeEdges geo nodeId = map fst (geoNodeNeighbours geo nodeId)
+geoNodeEdges :: NodeId -> Geometry -> [EdgeId]
+geoNodeEdges nodeId geo = map fst (geoNodeNeighbours nodeId geo)
 
-geoNodeNeighbours :: Geometry -> NodeId -> [(EdgeId,NodeId)]
-geoNodeNeighbours Geometry { nodeNeighbours } nodeId =
+geoNodeNeighbours :: NodeId -> Geometry -> [(EdgeId,NodeId)]
+geoNodeNeighbours nodeId Geometry { nodeNeighbours } =
   Map.findWithDefault [] nodeId nodeNeighbours
 
 -- | How to treat edges when searching for neighbouring edges.
@@ -75,7 +75,7 @@ geoEdgeNeighbours geo consider edgeId =
   search visited cities =
     let opts = [ if status == EdgeUsable then Right via else Left (via,to)
                | city <- cities
-               , (via,to) <- geoNodeNeighbours geo city
+               , (via,to) <- geoNodeNeighbours city geo
                , let status = consider via
                , not (via `Set.member` visited) && status /= EdgeDisabled
                ]
@@ -99,7 +99,7 @@ geoHasPath geo usable from to = search Set.empty [from]
         | not (nodeId `Set.member` visited) && usable nodeId ->
           nodeId == to ||
           search (Set.insert nodeId visited)
-                 (map snd (geoNodeNeighbours geo nodeId) ++ more)
+                 (map snd (geoNodeNeighbours nodeId geo) ++ more)
         | otherwise -> search visited more
 
 

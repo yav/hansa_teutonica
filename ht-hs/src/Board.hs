@@ -1,3 +1,4 @@
+{-# Language TemplateHaskell #-}
 module Board where
 
 import Data.Text(Text)
@@ -12,6 +13,8 @@ import Control.Monad(guard)
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
 
+import Common.Field
+
 import Basics
 import Stats
 import Node
@@ -23,10 +26,10 @@ data Board = Board
   { boardName              :: Text
     -- ^ Identifier for the map
 
-  , boardNodes             :: Map NodeId Node
+  , _boardNodes            :: Map NodeId Node
     -- ^ State of the nodes on the board
 
-  , boardEdges             :: Map EdgeId Edge
+  , _boardEdges            :: Map EdgeId Edge
     -- ^ State of the edges on the board
 
   , boardGeometry          :: Geometry
@@ -59,9 +62,16 @@ data Province = Province
   } deriving Show
 
 
-modifyEdge :: EdgeId -> (Edge -> Edge) -> Board -> Board
-modifyEdge edgeId f board =
-  board { boardEdges = Map.adjust f edgeId (boardEdges board) }
+
+declareFields ''Board
+
+boardNode :: NodeId -> Field Board Node
+boardNode nodeId = boardNodes .> mapAt nodeId
+
+boardEdge :: EdgeId -> Field Board Edge
+boardEdge edgeId = boardEdges .> mapAt edgeId
+
+
 
 
 --------------------------------------------------------------------------------
@@ -83,7 +93,7 @@ provinceAccessible player used board prov =
   tryWith candidate =
     do capitalId <- candidate
        guard (not (capitalId `Set.member` used))
-       city <- Map.lookup capitalId (boardNodes board)
+       let city = getField (boardNode capitalId) board
        rightPlayer <- nodeRightMost city
        guard (player == rightPlayer)
        pure capitalId
@@ -107,7 +117,7 @@ freeSpots ::
   [Choice]                   {- ^ Available spots -}
 freeSpots board provinceOk workerT =
   [ ChEdgeEmpty edgeId spot workerT
-  | (edgeId,edgeState) <- Map.toList (boardEdges board)
+  | (edgeId,edgeState) <- Map.toList (getField boardEdges board)
   , provinceOk (edgeProvince board edgeId)
   , (spotReq,spot) <- edgeFreeSpots edgeState
   , accepts spotReq workerT
@@ -121,7 +131,7 @@ replaceSpots ::
   [Choice]
 replaceSpots board provinceOk workerT workerOk =
   [ ChEdgeFull edgeId spot (Just workerT) worker
-  | (edgeId, edgeState) <- Map.toList (boardEdges board)
+  | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
   , provinceOk (edgeProvince board edgeId)
   , (spot,spotReq,worker) <- edgeWorkers edgeState
   , accepts spotReq workerT && workerOk worker
@@ -134,29 +144,46 @@ pickupSpots ::
   [Choice]
 pickupSpots board provinceOk workerOk =
   [ ChEdgeFull edgeId spot Nothing worker
-  | (edgeId, edgeState) <- Map.toList (boardEdges board)
+  | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
   , provinceOk (edgeProvince board edgeId)
   , (spot,_,worker) <- edgeWorkers edgeState
   , workerOk worker
   ]
 
-
-
 countFull :: Board -> Int
-countFull = Map.size . Map.filter nodeIsFull . boardNodes
+countFull = Map.size . Map.filter nodeIsFull . getField boardNodes
+
+fullEdgesFor :: PlayerId -> Board -> [(EdgeId,Edge)]
+fullEdgesFor playerId =
+  Map.toList . Map.filter (edgeReadyFor playerId) . getField boardEdges
+
+--------------------------------------------------------------------------------
+instance JS.ToJSON Board where
+  toJSON b =
+    JS.object
+      [ "map"     .= boardName b
+      , "nodes"   .= doMap (getField boardNodes b)
+      , "edges"   .= doMap (getField boardEdges b)
+      , "fullMax" .= boardMaxFull b
+      , "full"    .= countFull b
+      , "endVP"   .= doMap (boardEndVP b)
+      ]
+    where
+    doMap m = JS.object [ (fromString (show k) .= v) | (k,v) <- Map.toList m ]
 
 
+-- for editor.  XXX: redo using aeson
 exportLayout :: Board -> String
 exportLayout board = unlines $
   [ "var map = { nodes:" ] ++
   list [ exportNodeSpot nid sid (nodeName n) spot
-       | (nid,n) <- Map.toList (boardNodes board)
+       | (nid,n) <- Map.toList (getField boardNodes board)
        , (spot,sid)  <- addFake (nodeFreeSpots n) `zip` [ 0 :: Int .. ]
        ] ++
 
   [ ", edges:" ] ++
   list [ exportEdgeSpot eid spot sid
-       | (eid,ed) <- Map.toList (boardEdges board)
+       | (eid,ed) <- Map.toList (getField boardEdges board)
        , (spot,sid) <- edgeRequires ed `zip` [ 0 :: Int .. ]
        ] ++
   [ "}" ]
@@ -181,7 +208,7 @@ exportLayout board = unlines $
     "}"
 
   exportEdgeSpot eid spot sid =
-    let (from,to) = geoEdgeNodes (boardGeometry board) eid
+    let (from,to) = geoEdgeNodes eid (boardGeometry board)
     in
     "{ edge: " ++ show eid ++
     ", from: " ++ lab from ++ ", to: " ++ lab to ++
@@ -189,24 +216,10 @@ exportLayout board = unlines $
     ", prov: " ++ maybe "-1" show (Map.lookup eid (boardEdgeProvince board)) ++
     "}"
 
-  lab i = show (nodeName (boardNodes board Map.! i))
+  lab i = show (nodeName (getField (boardNode i) board))
   req x = show $ case x of
                    Require Disc -> "disc" :: Text
                    _ -> "cube"
 
-
---------------------------------------------------------------------------------
-instance JS.ToJSON Board where
-  toJSON b =
-    JS.object
-      [ "map"     .= boardName b
-      , "nodes"   .= doMap (boardNodes b)
-      , "edges"   .= doMap (boardEdges b)
-      , "fullMax" .= boardMaxFull b
-      , "full"    .= countFull b
-      , "endVP"   .= doMap (boardEndVP b)
-      ]
-    where
-    doMap m = JS.object [ (fromString (show k) .= v) | (k,v) <- Map.toList m ]
 
 

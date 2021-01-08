@@ -130,6 +130,9 @@ function uiQuestions(ws,qs) {
       case 'edge-full':
         gui.board.askFullEdgeSpot(q)
         break
+      case 'node-empty':
+        gui.board.askEmptyOffice(q)
+        break
       case 'done':
         gui.turn.askDone(q)
         break

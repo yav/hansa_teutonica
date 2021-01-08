@@ -32,14 +32,19 @@ import Bonus
 import Player
 import Board
 import Edge
+import Node
 import Turn
 
 data GameUpdate =
-    SetWorkerPreference Worker
-  | PlaceWorkerOnEdge EdgeId Int Worker
+    PlaceWorkerOnEdge EdgeId Int Worker
   | RemoveWorkerFromEdge EdgeId Int
+
+  | PlaceWorkerInOffice NodeId Worker
+
+  | SetWorkerPreference Worker
   | ChangeAvailble Worker Int
   | ChangeUnavailable Worker Int
+  | ChangeVP PlayerId Int
 
   | ChangeDoneActions Int
   | ChangeActionLimit Int
@@ -79,6 +84,8 @@ doUpdate :: GameUpdate -> Game -> Either GameFinished Game
 doUpdate upd =
   case upd of
 
+    -- Player
+
     SetWorkerPreference Worker {..} ->
       Right .
         (gamePlayer workerOwner `updField` setWorkerPreference workerType)
@@ -91,16 +98,23 @@ doUpdate upd =
       Right .
         (gamePlayer workerOwner `updField` changeUnavailable workerType n)
 
+    ChangeVP playerId n ->
+      Right . (gamePlayer playerId `updField` addVP n)
+
+    -- nodes
+    PlaceWorkerInOffice nodeId worker ->
+      Right .
+      (gameBoard .> boardNode nodeId `updField` nodeAddWorker worker)
 
     -- edges
 
     PlaceWorkerOnEdge edgeId spot w ->
       Right .
-        (gameBoard `updField` modifyEdge edgeId (edgeSetWorker spot (Just w)))
+        (gameBoard .> boardEdge edgeId `updField` edgeSetWorker spot (Just w))
 
     RemoveWorkerFromEdge edgeId spot ->
       Right .
-        (gameBoard `updField` modifyEdge edgeId (edgeSetWorker spot Nothing))
+        (gameBoard .> boardEdge edgeId `updField` edgeSetWorker spot Nothing)
 
 
     -- turn
@@ -181,6 +195,9 @@ instance ToJSON GameUpdate where
       SetWorkerPreference w    -> jsCall "setWorkerPreference" [w]
       ChangeAvailble a b       -> jsCall "changeAvailable" [js a, js b]
       ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
+      ChangeVP a b             -> jsCall "changeVP" [js a, js b ]
+
+      PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
 
       PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
       RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]

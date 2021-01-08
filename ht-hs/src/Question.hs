@@ -9,7 +9,6 @@ import Common.Utils
 
 import Basics
 import Bonus
-import Node
 
 
 
@@ -20,6 +19,7 @@ data Choice =
   | ChBonusToken BonusToken
   | ChEdgeEmpty EdgeId Int WorkerType
   | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
+  | ChNodeEmpty NodeId WorkerType
   | ChDone Text
     deriving (Eq,Ord,Show)
 
@@ -34,7 +34,7 @@ instance JS.FromJSON Choice where
            ChEdgeEmpty
               <$> (o .: "edge")
               <*> (o .: "spot")
-              <*> (o .: "shape")
+              <*> (o .: "worker")
 
          "edge-full" ->
            ChEdgeFull
@@ -42,6 +42,11 @@ instance JS.FromJSON Choice where
              <*> (o .: "spot")
              <*> (o .: "shape")
              <*> (o .: "worker")
+
+         "node-empty" ->
+           ChNodeEmpty
+            <$> (o .: "node")
+            <*> (o .: "shape")
 
          "done" -> ChDone <$> (o .: "message")
 
@@ -57,8 +62,8 @@ instance JS.ToJSON Choice where
       ChActiveWorker wt   -> jsTagged "active"  [ "worker" .= wt ]
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
-      ChEdgeEmpty eid spot sh ->
-        jsTagged "edge-empty" [ "edge" .= eid, "spot" .= spot, "shape" .= sh ]
+      ChEdgeEmpty eid w   -> jsTagged "edge-empty"
+                                          [ "edge" .= eid, "worker" .= w ]
 
       ChEdgeFull eid spot sh w ->
         jsTagged "edge-full"  [ "edge" .= eid
@@ -66,6 +71,9 @@ instance JS.ToJSON Choice where
                               , "shape" .= sh
                               , "worker" .= w
                               ]
+
+      ChNodeEmpty nid spot sh ->
+        jsTagged "node-empty" [ "node" .= nid, "spot" .= spot, "shape" .= sh ]
 
       ChDone t -> jsTagged "done" [ "message" .= t ]
 

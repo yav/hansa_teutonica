@@ -15,6 +15,7 @@ module Edge
   , edgeFreeSpots
   , edgeRequires
   , edgeBonusSpot
+  , edgeReadyFor
   , BonusSpot(..)
   ) where
 
@@ -93,6 +94,12 @@ edgeWorkers e =
   [ (n,edgeSpotType spot, w) | (n,spot) <- zip [0..] (edgeSpots e)
                              , Just w   <- [ edgeSpotWorker spot ]
                              ]
+
+edgeReadyFor :: PlayerId -> Edge -> Bool
+edgeReadyFor playerId = all ok . edgeSpots
+  where ok spot = case edgeSpotWorker spot of
+                    Just worker -> workerOwner worker == playerId
+                    Nothing     -> False
 
 -- | Remove all workers from an edge.
 edgeRemoveWorkers :: Edge -> Edge

@@ -20,6 +20,7 @@ module Node
   , nodeRightMost
   , nodeControlledBy
   , nodeIsFull
+  , nodeAcceptsAnnex
   ) where
 
 import Data.Text(Text)
@@ -136,6 +137,10 @@ nodeIsFull :: Node -> Bool
 nodeIsFull n
   | nodeIsGreen n = not (null (fullSpots n))
   | otherwise = null (nodeFreeSpots n)
+
+-- | Can we build an annex here
+nodeAcceptsAnnex :: Node -> Bool
+nodeAcceptsAnnex n = nodeIsGreen n || not (null (fullSpots n))
 
 --------------------------------------------------------------------------------
 
