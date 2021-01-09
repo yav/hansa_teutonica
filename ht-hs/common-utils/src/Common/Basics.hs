@@ -15,6 +15,9 @@ data WithPlayer a = PlayerId :-> a
 instance Functor WithPlayer where
   fmap f (p :-> q) = p :-> f q
 
+playerAnnot :: WithPlayer a -> PlayerId
+playerAnnot (p :-> _) = p
+
 --------------------------------------------------------------------------------
 playerIdToKey :: PlayerId -> Text
 playerIdToKey (PlayerId t) = t

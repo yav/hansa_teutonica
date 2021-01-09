@@ -55,13 +55,12 @@ data Player = Player
 
 zeroState :: Player
 zeroState = Player
-  { playerStats         = Map.insert Actions 5
-                        $ Map.fromList [ (stat,0) | stat <- enumAll ]
+  { playerStats         = Map.fromList [ (stat,0) | stat <- enumAll ]
     -- XXX
     --
   , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
   , unavailableWorkers  = Map.fromList [ (w,5)    | w    <- enumAll ]
-    -- XX: testing
+    -- XXX: testing
 
   , availableBonuses    = []
   , usedBonuses         = []

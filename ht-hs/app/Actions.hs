@@ -21,7 +21,6 @@ import Question
 import Game
 import Turn
 
-
 nextAction :: Interact ()
 nextAction =
   do state <- getState
@@ -221,6 +220,7 @@ tryHire state0 =
 
 tryCompleteEdge :: PlayerOptions
 tryCompleteEdge state =
+  resolveAmbig
   do (turn,playerState) <- startAction state
      let playerId = currentPlayer turn
          board    = getField gameBoard state
@@ -263,6 +263,7 @@ tryCompleteEdge state =
   tryJustComplete edgeId playerId =
     [ ( playerId :-> ChEdgeBonus edgeId
       , "Complete with NO office/action"
+      , edgeId
       , do giveVPs edgeId
            activateBonus edgeId
            returnWorkers edgeId
@@ -277,6 +278,7 @@ tryCompleteEdge state =
                 $ msum $ map (suitableWorkerFor spot) $ edgeWorkers edgeInfo
        pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
             , "Build office"
+            , edgeId
             , do giveVPs edgeId
                  update (RemoveWorkerFromEdge edgeId edgeSpotId)
                  update (PlaceWorkerInOffice nodeId worker)
@@ -289,4 +291,19 @@ tryCompleteEdge state =
   suitableWorkerFor spot (i,_,w)
     | accepts (spotRequires spot) (workerType w) = Just (i,w)
     | otherwise = Nothing
+
+
+  resolveAmbig opts =
+    Map.elems $
+    fmap resolve $
+    Map.fromListWith (++) [ (q,[i]) | i@(q,_,_,_) <- opts ]
+
+  resolve opts =
+    case opts of
+      [(q,h,_,a)] -> (q,h,a)
+      _ -> let (q,h,_,_) = head opts
+           in (q, h, askInputs [ ( playerAnnot q :-> ChEdgeBonus e
+                                 , "Comlete this route"
+                                 , a
+                                 ) | (_,_,e,a) <- opts ])
 

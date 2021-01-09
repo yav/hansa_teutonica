@@ -26,7 +26,7 @@ function drawAskBonusAt(loc,h) {
   style.top = loc.y
   style.width = h
   style.height = h
-  style.transform = 'rotate(' + loc.rotate + 'deg)'
+  style.transform = 'rotate(' + loc.rotate + 'deg) scale(0.75)'
   return dom
 }
 
