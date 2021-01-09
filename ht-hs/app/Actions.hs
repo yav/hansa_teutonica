@@ -170,8 +170,11 @@ tryHire state0 =
   do (turn,playerState) <- startAction state0
      let player     = currentPlayer turn
          limit      = hireLimit (getLevel Hire playerState)
+         limTxt     = case limit of
+                        Nothing -> "Hire all"
+                        Just l  -> "Hire 1/" <> Text.pack (show l)
          question t = (player :-> ChPassiveWorker t,
-                                  "Hire worker", hireFirst limit t)
+                                  limTxt, hireFirst limit t)
      [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
   where
   hireFirst mbLimit ch =
