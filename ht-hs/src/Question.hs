@@ -19,7 +19,7 @@ data Choice =
   | ChBonusToken BonusToken
   | ChEdgeEmpty EdgeId Int WorkerType
   | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
-  | ChEdgeBonus EdgeId
+  | ChEdge      EdgeId
   | ChNodeEmpty NodeId WorkerType
   | ChDone Text
     deriving (Eq,Ord,Show)
@@ -44,7 +44,7 @@ instance JS.FromJSON Choice where
              <*> (o .: "shape")
              <*> (o .: "worker")
 
-         "edge-bonus" -> ChEdgeBonus <$> (o .: "edge")
+         "edge" -> ChEdge <$> (o .: "edge")
 
          "node-empty" ->
            ChNodeEmpty
@@ -66,7 +66,7 @@ instance JS.ToJSON Choice where
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
 
-      ChEdgeBonus eid         -> jsTagged "edge-bonus" [ "edge" .= eid ]
+      ChEdge eid          -> jsTagged "edge" [ "edge" .= eid ]
       ChEdgeEmpty eid spot sh -> jsTagged "edge-empty"
                                           [ "edge"  .= eid
                                           , "spot"  .= spot

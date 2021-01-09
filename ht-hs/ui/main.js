@@ -3,6 +3,7 @@ let gui
 
 function main() { srvConnect() }
 
+
 function newGUI(ws,container) {
   container.innerHTML = ''
 
@@ -131,8 +132,8 @@ function uiQuestions(ws,qs) {
       case 'edge-full':
         gui.board.askFullEdgeSpot(q)
         break
-      case 'edge-bonus':
-        gui.board.askBonus(q)
+      case 'edge':
+        gui.board.askEdge(q)
         break
 
       case 'node-empty':

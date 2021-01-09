@@ -24,8 +24,12 @@ function boardCoord(name,size) {
            }
 
          , edgeSpot: function(edge,ix) {
-             const it = map.edges[edge][ix]
+             const it = map.edges[edge].spots[ix]
              return { x: cosc * it.x, y: cosc * it.y }
+           }
+
+         , edgeLen: function(edge) {
+              return map.edges[edge].spots.length
            }
 
          , bonusSpot: function(edge) {
@@ -264,16 +268,23 @@ function drawBoard(opts) {
       placedBonuses[edge] = el
     }
 
-    const askBonus = function(q) {
+    const askEdge = function(q) {
       const edge = q.choice.edge
-      const have = placedBonuses[edge]
-      if (!have) {
-        const loc = board.bonusSpot(edge)
-        const el  = drawAskBonusAt(loc, board.bonusSize)
-        dom.appendChild(el)
-        gui.questionNew(el,q)
-      } else {
-        gui.questionAnnot(have,q)
+      const n    = board.edgeLen(edge) - 1
+      for (let i = 0; i < n; ++i) {
+        const from = board.edgeSpot(edge,i)
+        const to   = board.edgeSpot(edge,i+1)
+        const it = document.createElement('div')
+        it.classList.add('edge-marker')
+        const style = it.style
+        const w = board.workerSize / 2
+        style.left = (from.x + to.x + w) / 2
+        style.top  = (from.y + to.y + w) / 2
+        style.height = w
+        style.width  = w
+        console.log(it)
+        dom.appendChild(it)
+        gui.questionNew(it,q)
       }
     }
 
@@ -301,7 +312,7 @@ function drawBoard(opts) {
     ui.askFullEdgeSpot   = askFullWorker
     ui.removeWorkerFromEdge = removeWorker
 
-    ui.askBonus          = askBonus
+    ui.askEdge = askEdge
     ui.placeBonus        = placeBonus
     ui.removeBonus       = removeBonus
   }

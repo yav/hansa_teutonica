@@ -1,6 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="../style.css">
+<script src="../main.js"></script>
 <script src="../workers.js"></script>
 <script src="../bonus.js"></script>
 <script src="../map/britannia_45.js"></script>
@@ -17,6 +18,7 @@
 function main() {
   let body = document.getElementById('main')
   body.style.backgroundColor = 'white'
+  gui = newGUI(undefined,body)
   let board = editor(1000,'britannia_45')
   body.appendChild(board)
 }

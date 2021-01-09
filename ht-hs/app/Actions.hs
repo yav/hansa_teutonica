@@ -261,7 +261,7 @@ tryCompleteEdge state =
 
 
   tryJustComplete edgeId playerId =
-    [ ( playerId :-> ChEdgeBonus edgeId
+    [ ( playerId :-> ChEdge edgeId
       , "Complete with NO office/action"
       , edgeId
       , do giveVPs edgeId
@@ -302,7 +302,7 @@ tryCompleteEdge state =
     case opts of
       [(q,h,_,a)] -> (q,h,a)
       _ -> let (q,h,_,_) = head opts
-           in (q, h, askInputs [ ( playerAnnot q :-> ChEdgeBonus e
+           in (q, h, askInputs [ ( playerAnnot q :-> ChEdge e
                                  , "Comlete this route"
                                  , a
                                  ) | (_,_,e,a) <- opts ])

@@ -17,16 +17,3 @@ function drawBonusTokenAt(loc,h,b) {
   return dom
 }
 
-function drawAskBonusAt(loc,h) {
-  const dom = document.createElement('img')
-  dom.setAttribute('src','img/token/arrow.png')
-  dom.classList.add('bonus')
-  const style = dom.style
-  style.left = loc.x
-  style.top = loc.y
-  style.width = h
-  style.height = h
-  style.transform = 'rotate(' + loc.rotate + 'deg) scale(0.75)'
-  return dom
-}
-
