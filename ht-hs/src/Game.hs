@@ -203,7 +203,7 @@ instance ToJSON GameUpdate where
       RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
 
       NewTurn t                -> jsCall "newTurn" [t]
-      UseGateway g             -> jsCall "usedGateway" [g]
+      UseGateway g             -> jsCall "useGateway" [g]
       ChangeDoneActions n      -> jsCall "changeDoneActions" [n]
       ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
       AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]

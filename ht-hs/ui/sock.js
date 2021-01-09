@@ -9,6 +9,9 @@ const handlers =
   , removeWorkerFromEdge: function(ws,edge,spot) {
       gui.board.removeWorkerFromEdge(edge,spot)
     }
+  , placeWorkerInOffice: function(ws,node,worker) {
+      gui.board.placeWorkerInOffice(node,worker)
+    }
 
     // player
   , setWorkerPreference: function (ws,w) {

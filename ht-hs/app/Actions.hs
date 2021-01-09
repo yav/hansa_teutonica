@@ -175,30 +175,22 @@ tryHire state0 =
                                   "Hire worker", hireFirst limit t)
      [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
   where
-  hire n t =
-    do playerId <- view (currentPlayer . getField gameTurn)
-       let w = Worker { workerOwner = playerId, workerType = t }
-       update (ChangeUnavailable w (-n))
-       update (ChangeAvailble    w n)
-
-  hireAll =
-    do (_,cubes,discs) <- getWorkers
-       hire cubes Cube
-       hire discs Disc
-
   hireFirst mbLimit ch =
     do case mbLimit of
          Nothing -> hireAll
          Just limit -> hire 1 ch >> doHire 2 limit
        update (ChangeDoneActions 1)
 
-  getWorkers =
-    do game <- getState
-       let playerId = gameCurrentPlayer game
-           player   = getField (gamePlayer playerId) game
-           cubes    = getUnavailable Cube player
-           discs    = getUnavailable Disc player
-       pure (playerId,cubes,discs)
+  hireAll =
+    do (_,cubes,discs) <- getWorkers
+       hire cubes Cube
+       hire discs Disc
+
+  hire n t =
+    do playerId <- view (currentPlayer . getField gameTurn)
+       let w = Worker { workerOwner = playerId, workerType = t }
+       update (ChangeUnavailable w (-n))
+       update (ChangeAvailble    w n)
 
   doHire hiring limit
     | hiring > limit = pure ()
@@ -218,6 +210,14 @@ tryHire state0 =
                   hire 1 ch
                   doHire (1+hiring) limit
 
+  getWorkers =
+    do game <- getState
+       let playerId = gameCurrentPlayer game
+           player   = getField (gamePlayer playerId) game
+           cubes    = getUnavailable Cube player
+           discs    = getUnavailable Disc player
+       pure (playerId,cubes,discs)
+
 
 tryCompleteEdge :: PlayerOptions
 tryCompleteEdge state =
@@ -226,6 +226,8 @@ tryCompleteEdge state =
          board    = getField gameBoard state
      (edgeId,edgeInfo) <- fullEdgesFor playerId board
      (nodeId,nodeInfo) <- getEdgeNodes edgeId state
+     -- XXX: add code to resolve ambiguity in rare case where the
+     -- same node is accessible trhough multiple full edges
      concat [ tryJustComplete edgeInfo
             , tryAnnex node playerState
             , tryOffice nodeId nodeInfo playerState edgeId edgeInfo
