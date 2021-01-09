@@ -1,7 +1,7 @@
 module Actions where
 
 import qualified Data.Map as Map
-import Control.Monad(guard,msum,forM_)
+import Control.Monad(guard,msum,forM_,when)
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Data.Maybe(maybeToList)
@@ -332,7 +332,7 @@ tryCompleteEdge state =
      -- same node is accessible trhough multiple full edges
      concat [ tryJustComplete edgeId playerId
             , tryAnnex node playerState
-            , tryOffice nodeId nodeInfo playerState edgeId edgeInfo
+            , tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo
             , tryAction node playerState
             ]
 
@@ -373,7 +373,7 @@ tryCompleteEdge state =
       )
     ]
 
-  tryOffice nodeId nodeInfo playerState edgeId edgeInfo =
+  tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
     do spot <- maybeToList (nodeNextFree nodeInfo)
        guard (spotPrivilege spot <= getLevel Privilege playerState)
        (edgeSpotId,worker) <- maybeToList
@@ -384,6 +384,8 @@ tryCompleteEdge state =
             , do giveVPs edgeId
                  update (RemoveWorkerFromEdge edgeId edgeSpotId)
                  update (PlaceWorkerInOffice nodeId worker)
+                 when (spotVP spot > 0)
+                    $ update (ChangeVP playerId (spotVP spot))
                  activateBonus edgeId
                  returnWorkers edgeId
                  update (ChangeDoneActions 1)
