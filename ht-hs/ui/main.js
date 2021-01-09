@@ -124,12 +124,17 @@ function uiQuestions(ws,qs) {
         break
       case 'bonus':
         break
+
       case 'edge-empty':
         gui.board.askEmptyEdgeSpot(q)
         break
       case 'edge-full':
         gui.board.askFullEdgeSpot(q)
         break
+      case 'edge-bonus':
+        gui.board.askBonus(q)
+        break
+
       case 'node-empty':
         gui.board.askEmptyOffice(q)
         break

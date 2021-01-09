@@ -228,7 +228,7 @@ tryCompleteEdge state =
      (nodeId,nodeInfo) <- getEdgeNodes edgeId state
      -- XXX: add code to resolve ambiguity in rare case where the
      -- same node is accessible trhough multiple full edges
-     concat [ tryJustComplete edgeInfo
+     concat [ tryJustComplete edgeId playerId
             , tryAnnex node playerState
             , tryOffice nodeId nodeInfo playerState edgeId edgeInfo
             , tryAction node playerState
@@ -241,7 +241,6 @@ tryCompleteEdge state =
         (x,y) = geoEdgeNodes edgeId (boardGeometry board)
     in [ (n, getField (boardNode n) board) | n <- [x,y] ]
 
-  tryJustComplete _ = [] -- XXX
   tryAnnex _ _      = [] -- XXX
   tryAction _ _     = [] -- XXX
 
@@ -259,6 +258,17 @@ tryCompleteEdge state =
        forM_ workers \(spotId,_,w) ->
          do update (RemoveWorkerFromEdge edgeId spotId)
             update (ChangeUnavailable w 1)
+
+
+  tryJustComplete edgeId playerId =
+    [ ( playerId :-> ChEdgeBonus edgeId
+      , "Complete with NO office/action"
+      , do giveVPs edgeId
+           activateBonus edgeId
+           returnWorkers edgeId
+           update (ChangeDoneActions 1)
+      )
+    ]
 
   tryOffice nodeId nodeInfo playerState edgeId edgeInfo =
     do spot <- maybeToList (nodeNextFree nodeInfo)

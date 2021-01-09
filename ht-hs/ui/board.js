@@ -264,14 +264,17 @@ function drawBoard(opts) {
       placedBonuses[edge] = el
     }
 
-    // XXX:
-    const askBonus = function(edge) {
-      const loc = board.bonusSpot(edge)
-      const el = drawAskBonusAt(loc, board.bonusSize)
-      el.style.transform = 'rotate(' + loc.rotate + 'deg)'
-      question.addEmpty(el,function(ev) {
-        console.log('bonus space on ' + edge)
-      })
+    const askBonus = function(q) {
+      const edge = q.choice.edge
+      const have = placedBonuses[edge]
+      if (!have) {
+        const loc = board.bonusSpot(edge)
+        const el  = drawAskBonusAt(loc, board.bonusSize)
+        dom.appendChild(el)
+        gui.questionNew(el,q)
+      } else {
+        gui.questionAnnot(have,q)
+      }
     }
 
     const removeBonus = function(edge) {
@@ -297,8 +300,9 @@ function drawBoard(opts) {
     ui.askEmptyEdgeSpot  = askEmptyWorker
     ui.askFullEdgeSpot   = askFullWorker
     ui.removeWorkerFromEdge = removeWorker
-    ui.placeBonus        = placeBonus
+
     ui.askBonus          = askBonus
+    ui.placeBonus        = placeBonus
     ui.removeBonus       = removeBonus
   }
 

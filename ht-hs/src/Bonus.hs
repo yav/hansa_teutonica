@@ -51,4 +51,11 @@ bonusAsKey token =
 instance JS.ToJSON BonusToken where
   toJSON = JS.toJSON . bonusAsKey
 
+instance JS.FromJSON BonusToken where
+  parseJSON = JS.withText "bonus token" \t ->
+    case lookup t [ (bonusAsKey b,b) | b <- enumAll ] of
+      Just a    -> pure a
+      Nothing   -> fail "Invalid bonus token"
+
+
 
