@@ -58,22 +58,25 @@ geoNodeNeighbours nodeId Geometry { nodeNeighbours } =
 
 -- | How to treat edges when searching for neighbouring edges.
 data ConsiderEdge =
-    EdgeUsable      -- ^ We look for such edges
-  | EdgeFull        -- ^ We may follow these edges
-  | EdgeDisabled    -- ^ These edges are to be ignored
+    EdgeUsable [Int] -- ^ We look for such edges
+  | EdgeFull         -- ^ We may follow these edges
+  | EdgeDisabled     -- ^ These edges are to be ignored
   deriving Eq
 
 
 -- | Find closest usable neighbouring edges, without using disabled edges.
 -- Edges would be disabled if they are in a province that is not accessible.
-geoEdgeNeighbours :: Geometry -> (EdgeId -> ConsiderEdge) -> EdgeId -> [EdgeId]
+geoEdgeNeighbours ::
+  Geometry -> (EdgeId -> ConsiderEdge) -> EdgeId -> [(EdgeId,[Int])]
 geoEdgeNeighbours geo consider edgeId =
   case Map.lookup edgeId (edgeNeighbours geo) of
     Just (a,b) -> search (Set.singleton edgeId) [a,b]
     Nothing    -> []
   where
   search visited cities =
-    let opts = [ if status == EdgeUsable then Right via else Left (via,to)
+    let opts = [ case status of
+                   EdgeUsable xs -> Right (via,xs)
+                   _             -> Left (via,to)
                | city <- cities
                , (via,to) <- geoNodeNeighbours city geo
                , let status = consider via

@@ -58,6 +58,8 @@ tryEndTurn forceEnd state =
             getField actionsDone turn == getField currentActionLimit turn)
      pure (currentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
 
+
+
 tryPlace :: PlayerOptions
 tryPlace state =
   do (turn,playerState) <- startAction state
@@ -69,7 +71,7 @@ tryPlace state =
          gateways     = accessibleProvinces player (usedGateways turn) board
          accessible   = maybe True (`Map.member` gateways)
          gatewayFor edgeId =
-                        (`Map.lookup` gateways) =<< edgeProvince board edgeId
+                        (`Map.lookup` gateways) =<< edgeProvince edgeId board
 
          totWorkers   = sum (map (`getAvailable` playerState) enumAll)
          canReplace w = workerOwner w /= player &&
@@ -106,9 +108,108 @@ tryPlace state =
            update (PlaceWorkerOnEdge edgeId spot w)
            update (ChangeDoneActions 1)
 
-      ChEdgeFull {} -> error "XXX: place full"
+      ChEdgeFull edgeId spot ~(Just workerT) worker ->
+        do board <- view (getField gameBoard)
+           replaceFee pid 1 (replacementCost (workerType worker))
+           update (RemoveWorkerFromEdge edgeId spot)
+           update (AddWorkerToHand (edgeProvince edgeId board) worker)
+           otherPlayerMoveAndPlace edgeId worker
+           let ourWorker = Worker { workerOwner = pid, workerType = workerT }
+           update (ChangeAvailble ourWorker (-1))
+           update (PlaceWorkerOnEdge edgeId spot ourWorker)
+           update (ChangeDoneActions 1)
 
       _ -> pure ()
+
+  replaceFee playerId doing total
+    | doing > total = pure ()
+    | otherwise =
+      do playerState <- view (getField (gamePlayer playerId))
+         let cubes = getAvailable Cube playerState
+             discs = getAvailable Disc playerState
+             todo  = 1 + total - doing
+             disable n t =
+               do let w = Worker { workerOwner = playerId, workerType = t }
+                  update (ChangeAvailble w (-n))
+                  update (ChangeUnavailable w n)
+
+         if | cubes == 0 -> disable todo Disc
+            | discs == 0 -> disable todo Cube
+            | cubes + discs == todo ->
+              do disable cubes Cube
+                 disable discs Disc
+            | otherwise ->
+              do ~(ChActiveWorker ch) <-
+                     choose playerId
+                       [ ( ChActiveWorker t
+                         , "Replace cost " <> showText doing <> "/"
+                                           <> showText total
+                         ) | t <- enumAll ]
+                 disable 1 ch
+                 replaceFee playerId (doing + 1) total
+
+  placeOpts edgeId workerT =
+    do board <- view (getField gameBoard)
+       let accessible newEdgeProv =
+             case newEdgeProv of
+                Nothing -> True
+                Just p  -> edgeProvince edgeId board == Just p
+       pure (replaceTargets board accessible edgeId workerT)
+
+
+
+  otherPlayerMoveAndPlace edgeId worker =
+    do tgts <- placeOpts edgeId (workerType worker)
+       ~(ChEdgeEmpty tgtEdgeId spot _) <-
+            choose (workerOwner worker)
+              [ (ch, "Location for replaced worker") | ch <- tgts ]
+       update RemoveWokerFromHand
+       update (PlaceWorkerOnEdge tgtEdgeId spot worker)
+       placeExtra (workerOwner worker) edgeId
+                                  1 (replacementCost (workerType worker))
+
+  placeExtra playerId edgeId placing total
+    | placing > total = pure ()
+    | otherwise =
+      do playerState <- view (getField (gamePlayer playerId))
+         let optsFor t =
+               if getUnavailable t playerState > 0
+                  then do os <- placeOpts edgeId t
+                          pure [ (playerId :-> o,
+                                 "Place bonus worker " <> showText placing
+                                              <> "/" <> showText total
+                               , do let w = Worker { workerOwner = playerId
+                                                   , workerType = t
+                                                   }
+                                    update (ChangeUnavailable w (-1))
+                                    update (PlaceWorkerOnEdge eId spot w)
+                                    placeExtra playerId edgeId (placing+1) total
+                                ) | o@(ChEdgeEmpty eId spot _) <- os ]
+                  else pure []
+
+         let workerT = getWorkerPreference playerState
+             otherT  = otherType workerT
+         prefTgts  <- optsFor workerT
+         otherTgts <- optsFor otherT
+         case (prefTgts,otherTgts) of
+           ([],[]) -> placeExtraActive playerId edgeId placing total
+           (xs,[]) -> askInputs xs
+           ([],ys) -> askInputs ys
+           (xs,_)  -> askInputs (changePref : xs)
+              where changePref = ( playerId :-> ChSetPreference otherT
+                                 , "Change preference to " <>
+                                      workerTypeToKey otherT
+                                 , do update (SetWorkerPreference
+                                                Worker { workerOwner = playerId
+                                                       , workerType = otherT
+                                                       })
+                                      placeExtra playerId edgeId placing total
+                                 )
+
+
+
+  placeExtraActive _ _ _ _ = pure () -- XXX
+
 
 
 
@@ -137,7 +238,7 @@ tryMove state0 =
 
   pickup num limit edgeId spot w =
     do update (RemoveWorkerFromEdge edgeId spot)
-       prov <- view \g -> edgeProvince (getField gameBoard g) edgeId
+       prov <- view \g -> edgeProvince edgeId (getField gameBoard g)
        update (AddWorkerToHand prov w)
        opts <- view movablePieces
        if num < limit
@@ -198,19 +299,17 @@ tryHire state0 =
     | hiring > limit = pure ()
     | otherwise =
       do (playerId,cubes,discs) <- getWorkers
-         case 1 + limit - hiring of
-           todo
-             | cubes == 0 -> hire (min todo discs) Disc
-             | discs == 0 -> hire (min todo cubes) Cube
-             | cubes + discs <= limit -> hireAll
-             | otherwise ->
-               do let lab = mconcat ["Hire ", showText hiring, "/",
+         let todo = 1 + limit - hiring
+         if | cubes == 0 -> hire (min todo discs) Disc
+            | discs == 0 -> hire (min todo cubes) Cube
+            | cubes + discs <= limit -> hireAll
+            | otherwise ->
+              do let lab = mconcat ["Hire ", showText hiring, "/",
                                                               showText limit ]
-                  x <- choose playerId
-                                  [ (ChPassiveWorker t, lab) | t <- enumAll]
-                  let ChPassiveWorker ch = x
-                  hire 1 ch
-                  doHire (1+hiring) limit
+                 x <- choose playerId [ (ChPassiveWorker t, lab) | t <- enumAll]
+                 let ChPassiveWorker ch = x
+                 hire 1 ch
+                 doHire (1+hiring) limit
 
   getWorkers =
     do game <- getState

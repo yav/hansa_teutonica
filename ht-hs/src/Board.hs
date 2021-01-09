@@ -77,8 +77,8 @@ boardEdge edgeId = boardEdges .> mapAt edgeId
 --------------------------------------------------------------------------------
 
 -- | The province (if any) that the edge belongs to.
-edgeProvince :: Board -> EdgeId -> Maybe ProvinceId
-edgeProvince board edgeId = Map.lookup edgeId (boardEdgeProvince board)
+edgeProvince :: EdgeId -> Board -> Maybe ProvinceId
+edgeProvince edgeId board = Map.lookup edgeId (boardEdgeProvince board)
 
 -- | Is the province with the given captial accessible, and if so how.
 provinceAccessible ::
@@ -118,7 +118,7 @@ freeSpots ::
 freeSpots board provinceOk workerT =
   [ ChEdgeEmpty edgeId spot workerT
   | (edgeId,edgeState) <- Map.toList (getField boardEdges board)
-  , provinceOk (edgeProvince board edgeId)
+  , provinceOk (edgeProvince edgeId board)
   , (spotReq,spot) <- edgeFreeSpots edgeState
   , accepts spotReq workerT
   ]
@@ -132,10 +132,34 @@ replaceSpots ::
 replaceSpots board provinceOk workerT workerOk =
   [ ChEdgeFull edgeId spot (Just workerT) worker
   | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
-  , provinceOk (edgeProvince board edgeId)
+  , provinceOk (edgeProvince edgeId board)
   , (spot,spotReq,worker) <- edgeWorkers edgeState
   , accepts spotReq workerT && workerOk worker
   ]
+
+replaceTargets ::
+  Board ->
+  (Maybe ProvinceId -> Bool) ->
+  EdgeId ->
+  WorkerType ->
+  [Choice]
+replaceTargets board provinceOk edgeId workerT =
+  [ ChEdgeEmpty e spot workerT
+  | (e,spots) <- geoEdgeNeighbours (boardGeometry board) edgeStatus edgeId
+  , spot <- spots
+  ]
+  where
+  edgeStatus candidate
+    | candidate == edgeId = EdgeDisabled
+    | provinceOk (edgeProvince candidate board) =
+      let info  = getField (boardEdge candidate) board
+          spots = [ spot | (req,spot) <- edgeFreeSpots info
+                         , accepts req workerT ]
+      in case spots of
+           [] -> EdgeFull
+           _  -> EdgeUsable spots
+    | otherwise = EdgeDisabled
+
 
 pickupSpots ::
   Board ->
@@ -145,7 +169,7 @@ pickupSpots ::
 pickupSpots board provinceOk workerOk =
   [ ChEdgeFull edgeId spot Nothing worker
   | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
-  , provinceOk (edgeProvince board edgeId)
+  , provinceOk (edgeProvince edgeId board)
   , (spot,_,worker) <- edgeWorkers edgeState
   , workerOk worker
   ]
