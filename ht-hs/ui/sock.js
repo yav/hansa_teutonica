@@ -24,6 +24,9 @@ const handlers =
       gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
     }
   , useGateway: function(ws,g) {}
+  , changeVP: function(player,n) {
+      gui.playerUI(player).changeVP(n)
+    }
 
 
     // turn
