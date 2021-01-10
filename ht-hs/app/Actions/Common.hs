@@ -1,22 +1,13 @@
 module Actions.Common where
 
-import qualified Data.Map as Map
-import Control.Monad(guard,msum,forM_,when)
 import Data.Text(Text)
-import qualified Data.Text as Text
-import Data.Maybe(maybeToList)
+import Control.Monad(guard)
 
-import Common.Utils
 import Common.Interact
 import Common.Field
 
 import Basics
-import Stats
 import Player
-import Board
-import Geometry
-import Edge
-import Node
 import Question
 import Game
 import Turn
