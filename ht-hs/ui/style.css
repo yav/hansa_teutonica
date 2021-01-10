@@ -85,14 +85,22 @@ body {
   background-color: white;
   display: inline-block;
   font-size: smaller;
+  padding: 1em;
 }
 
 .log-item {
   margin: 0.5em;
 }
 
-.log-item .turn-player {
-  margin-right: 0.5em;
+.log-turn {
+  border: 1px solid black;
+  box-shadow: 0.1em 0.1em 0.1em 0.1em #666;
+  border-radius: 0.5em;
+}
+
+.log-action {
+  border-left: 1px solid black;
+  margin-left: 1em;
 }
 
 .log-unit {

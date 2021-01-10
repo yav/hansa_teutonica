@@ -20,6 +20,7 @@ import Node
 import Question
 import Game
 import Turn
+import Event
 
 nextAction :: Interact ()
 nextAction =
@@ -37,8 +38,11 @@ nextTurn :: Interact ()
 nextTurn =
   do state <- getState
      let turn = getField gameTurn state
-         nextPlayerId = playerAfter (currentPlayer turn) state
+         curP = currentPlayer turn
+         nextPlayerId = playerAfter curP state
          actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
+     update (Log (EndTurn curP))
+     update (Log (StartTurn nextPlayerId))
      update (NewTurn (newTurn nextPlayerId actLvl))
 
 -------------------------------------------------------------------------------
@@ -48,6 +52,13 @@ startAction state =
          playerState = getField (gamePlayer (currentPlayer turn)) state
      guard (getField actionsDone turn < getField currentActionLimit turn)
      pure (turn, playerState)
+
+doAction :: Interact () -> Interact ()
+doAction act =
+  do update (Log StartAction)
+     act
+     update (ChangeDoneActions 1)
+     update (Log EndAction)
 
 type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
 
@@ -100,24 +111,26 @@ tryPlace state =
            update (SetWorkerPreference w)
 
       ChEdgeEmpty edgeId spot workerT ->
+        doAction
         do let w = Worker { workerOwner = pid, workerType = workerT }
            update (ChangeAvailble w (-1))
            case gatewayFor edgeId of
              Just g -> update (UseGateway g)
              _      -> pure ()
            update (PlaceWorkerOnEdge edgeId spot w)
-           update (ChangeDoneActions 1)
+           update (Log (PlaceWorker w edgeId spot))
 
       ChEdgeFull edgeId spot ~(Just workerT) worker ->
+        doAction
         do board <- view (getField gameBoard)
            replaceFee pid 1 (replacementCost (workerType worker))
            update (RemoveWorkerFromEdge edgeId spot)
            update (AddWorkerToHand (edgeProvince edgeId board) worker)
-           otherPlayerMoveAndPlace edgeId worker
            let ourWorker = Worker { workerOwner = pid, workerType = workerT }
            update (ChangeAvailble ourWorker (-1))
            update (PlaceWorkerOnEdge edgeId spot ourWorker)
-           update (ChangeDoneActions 1)
+           update (Log (ReplaceWorker worker ourWorker edgeId spot))
+           otherPlayerMoveAndPlace edgeId worker
 
       _ -> pure ()
 
@@ -132,6 +145,7 @@ tryPlace state =
                do let w = Worker { workerOwner = playerId, workerType = t }
                   update (ChangeAvailble w (-n))
                   update (ChangeUnavailable w n)
+                  update (Log (Retire w n))
 
          if | cubes == 0 -> disable todo Disc
             | discs == 0 -> disable todo Cube
@@ -165,6 +179,7 @@ tryPlace state =
               [ (ch, "Location for replaced worker") | ch <- tgts ]
        update RemoveWokerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
+       update (Log (PlaceWorker worker tgtEdgeId spot))
        placeExtra (workerOwner worker) edgeId
                                   1 (replacementCost (workerType worker))
 
@@ -183,6 +198,7 @@ tryPlace state =
                                                    }
                                     update (ChangeUnavailable w (-1))
                                     update (PlaceWorkerOnEdge eId spot w)
+                                    update (Log (PlaceWorker w eId spot))
                                     placeExtra playerId edgeId (placing+1) total
                                 ) | o@(ChEdgeEmpty eId spot _) <- os ]
                   else pure []
@@ -233,13 +249,14 @@ tryMove state0 =
   pickupQuestion num player limit opts =
     [ ( player :-> ch
       , "Move worker " <> Text.pack (show num) <> "/" <> Text.pack (show limit)
-      , pickup num limit edgeId spot w
+      , (if num == 1 then doAction else id) (pickup num limit edgeId spot w)
       ) | ch@(ChEdgeFull edgeId spot _ w) <- opts ]
 
   pickup num limit edgeId spot w =
     do update (RemoveWorkerFromEdge edgeId spot)
        prov <- view \g -> edgeProvince edgeId (getField gameBoard g)
        update (AddWorkerToHand prov w)
+       update (Log (PickUp w edgeId spot))
        opts <- view movablePieces
        if num < limit
          then askInputs $ ( workerOwner w :-> ChDone "Done"
@@ -252,7 +269,7 @@ tryMove state0 =
     do board <- view (getField gameBoard)
        mb    <- view (nextPickedUp . getField gameTurn)
        case mb of
-         Nothing -> update (ChangeDoneActions 1)
+         Nothing -> pure ()
          Just (thisProv,w) ->
            do let accessible prov = prov == Nothing || prov == thisProv
               ~(ChEdgeEmpty tgtEdge tgtSpot _) <-
@@ -262,6 +279,7 @@ tryMove state0 =
 
               update RemoveWokerFromHand
               update (PlaceWorkerOnEdge tgtEdge tgtSpot w)
+              update (Log (PlaceWorker w tgtEdge tgtSpot))
               putDown
 
 
@@ -279,10 +297,10 @@ tryHire state0 =
      [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
   where
   hireFirst mbLimit ch =
-    do case mbLimit of
-         Nothing -> hireAll
-         Just limit -> hire 1 ch >> doHire 2 limit
-       update (ChangeDoneActions 1)
+    doAction
+    case mbLimit of
+      Nothing    -> hireAll
+      Just limit -> hire 1 ch >> doHire 2 limit
 
   hireAll =
     do (_,cubes,discs) <- getWorkers
@@ -294,6 +312,7 @@ tryHire state0 =
        let w = Worker { workerOwner = playerId, workerType = t }
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
+       update (Log (EvHire w n))
 
   doHire hiring limit
     | hiring > limit = pure ()
@@ -366,10 +385,10 @@ tryCompleteEdge state =
     [ ( playerId :-> ChEdge edgeId
       , "Complete with NO office/action"
       , edgeId
-      , do giveVPs edgeId
+      , doAction
+        do giveVPs edgeId
            activateBonus edgeId
            returnWorkers edgeId
-           update (ChangeDoneActions 1)
       )
     ]
 
@@ -381,14 +400,14 @@ tryCompleteEdge state =
        pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
             , "Build office"
             , edgeId
-            , do giveVPs edgeId
+            , doAction
+              do giveVPs edgeId
                  update (RemoveWorkerFromEdge edgeId edgeSpotId)
                  update (PlaceWorkerInOffice nodeId worker)
                  when (spotVP spot > 0)
                     $ update (ChangeVP playerId (spotVP spot))
                  activateBonus edgeId
                  returnWorkers edgeId
-                 update (ChangeDoneActions 1)
             )
 
 

@@ -49,7 +49,7 @@ newTurn playerId actLvl =
   Turn
     { turnCurrentPlayer   = playerId
     , _actionsDone        = 0
-    , _currentActionLimit = 10 -- actionLimit actLvl
+    , _currentActionLimit = actionLimit actLvl
     , turnUsedGateways    = Set.empty
     , turnPlaceBonus      = []
     , turnPickedUp        = []

@@ -34,6 +34,7 @@ import Board
 import Edge
 import Node
 import Turn
+import Event
 
 data GameUpdate =
     PlaceWorkerOnEdge EdgeId Int Worker
@@ -53,6 +54,7 @@ data GameUpdate =
   | UseGateway ProvinceId
 
   | NewTurn Turn
+  | Log Event
   deriving Show
 
 data GameStatus s = Game
@@ -60,6 +62,7 @@ data GameStatus s = Game
   , gameTurnOrder :: [PlayerId]
   , _gameTokens   :: [BonusToken]
   , _gameBoard    :: Board
+  , _gameLog      :: [Event]
   , _gameStatus   :: s
   } deriving Show
 
@@ -136,6 +139,9 @@ doUpdate upd =
     RemoveWokerFromHand ->
       Right . (gameTurn `updField` removeWokerFromHand)
 
+    -- events
+    Log e ->
+      Right . (gameLog `updField` (e:))
 
 playerAfter :: PlayerId -> Game -> PlayerId
 playerAfter playerId state =
@@ -154,6 +160,7 @@ initialGame rng0 board playerIds =
     , _gameTokens    = tokens
     , _gameBoard     = board
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
+    , _gameLog       = [StartTurn firstPlayer]
     }
 
   where
@@ -179,6 +186,7 @@ instance ToJSON status => ToJSON (GameStatus status) where
                   ]
     , "turnOrder" .= gameTurnOrder g
     , "board"     .= getField gameBoard g
+    , "log"      .= getField gameLog g
     , "status"    .= getField gameStatus g
     ]
 
@@ -208,4 +216,5 @@ instance ToJSON GameUpdate where
       ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
       AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]
       RemoveWokerFromHand      -> jsCall' "removeWokerFromHand"
+      Log e                    -> jsCall "log" [e]
 

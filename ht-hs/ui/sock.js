@@ -37,7 +37,7 @@ const handlers =
   , removeWokerFromHand: function(ws) { gui.turn.removeWorkerFromHand() }
 
   // log
-  , log: function(ws,m) { gui.log.addLog(true,m) }
+  , log: function(ws,m) { gui.log.addLog(m) }
   }
 
 function sendJSON(ws,obj) {
