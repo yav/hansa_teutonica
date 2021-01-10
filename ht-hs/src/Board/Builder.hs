@@ -49,7 +49,6 @@ buildBoard builder =
   Board
     { boardName = name builder
     , boardMaxFull = maxFull builder
-    , boardEndVP = Map.empty
     , _boardNodes = Map.fromList[ (i, node n) | i <- [ 0 .. ] | n <- nodeInits ]
     , _boardEdges = Map.fromList[ (i, edge e) | i <- [ 0 .. ] | e <- edgeInits ]
     , boardGeometry = foldr addCon geoEmpty (zip [ 0 .. ] (edges builder))

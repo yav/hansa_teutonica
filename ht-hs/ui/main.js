@@ -149,6 +149,11 @@ function uiQuestions(ws,qs) {
       case 'node-empty':
         gui.board.askEmptyOffice(q)
         break
+
+      case 'node-upgrade':
+        gui.board.askUpgrade(q)
+        break
+
       case 'done':
         gui.turn.askDone(q)
         break

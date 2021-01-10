@@ -71,8 +71,9 @@ initialPlayer :: Int -> Player
 initialPlayer turnOrder =
      hireWorker Cube (turnOrder + 1)
   $  changeUnavailable Cube 7
-  $ foldr levelUp zeroState enumAll
-
+  $ foldr levelUp' zeroState enumAll
+  where
+  levelUp' stat = changeAvailable (statWorker stat) 1 . levelUp stat
 
 
 --------------------------------------------------------------------------------
@@ -132,11 +133,9 @@ getUsedBonuses = usedBonuses
 
 --------------------------------------------------------------------------------
 
--- | Increase a player's state.  This will also give them an extra worker.
+-- | Increase a player's state.  Note that this does not give the extra worker.
 levelUp :: Stat -> Player -> Player
-levelUp stat = changeAvailable (statWorker stat) 1 . bumpLevel
-  where
-  bumpLevel s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
+levelUp stat s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
 
 -- | Get the level of the specified stat
 getLevel :: Stat -> Player -> Level

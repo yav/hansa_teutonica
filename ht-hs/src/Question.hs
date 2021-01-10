@@ -9,6 +9,7 @@ import Common.Utils
 
 import Basics
 import Bonus
+import Stats
 
 
 
@@ -21,6 +22,8 @@ data Choice =
   | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
   | ChEdge      EdgeId
   | ChNodeEmpty NodeId WorkerType
+  | ChNodeUpgrade NodeId Stat
+  | ChEndVPSpot Level
   | ChDone Text
     deriving (Eq,Ord,Show)
 
@@ -50,6 +53,11 @@ instance JS.FromJSON Choice where
            ChNodeEmpty
             <$> (o .: "node")
             <*> (o .: "shape")
+
+         "node-upgrade" ->
+            ChNodeUpgrade <$> (o .: "node") <*> (o .: "action")
+
+         "end-vp" -> ChEndVPSpot <$> (o .: "level")
 
          "done" -> ChDone <$> (o .: "message")
 
@@ -81,6 +89,11 @@ instance JS.ToJSON Choice where
 
       ChNodeEmpty nid sh ->
         jsTagged "node-empty" [ "node" .= nid, "shape" .= sh ]
+
+      ChNodeUpgrade nid act ->
+        jsTagged "node-upgrade" [ "node" .= nid, "action" .= act ]
+
+      ChEndVPSpot lvl -> jsTagged "end-vp" [ "level" .= lvl ]
 
       ChDone t -> jsTagged "done" [ "message" .= t ]
 

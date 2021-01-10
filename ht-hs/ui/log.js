@@ -50,6 +50,7 @@ function drawLog() {
           turnBox.classList.add('log-turn')
           dom.appendChild(turnBox)
           sayPlayer(msg.player)
+          lab('\'s trun')
           break
         }
 
@@ -141,6 +142,11 @@ function drawLog() {
           break
         }
 
+       case 'upgrade': {
+         lab('Upgraded ' + msg.action)
+         break
+       }
+
 
 
         default:
@@ -149,7 +155,6 @@ function drawLog() {
 
       { const el = actionBox ? actionBox
                  : (turnBox   ? turnBox : dom)
-        console.log(el)
         el.appendChild(box)
       }
     }

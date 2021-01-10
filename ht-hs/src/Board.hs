@@ -16,7 +16,6 @@ import Data.Aeson ((.=))
 import Common.Field
 
 import Basics
-import Stats
 import Node
 import Edge
 import Geometry
@@ -50,8 +49,6 @@ data Board = Board
   , boardInitialTokens     :: Set EdgeId
     -- ^ Where to place initial tokens
 
-  , boardEndVP             :: Map Level PlayerId
-    -- ^ Occupied spots on end-game point track, indexed by privilege
   } deriving Show
 
 
@@ -190,7 +187,6 @@ instance JS.ToJSON Board where
       , "edges"   .= doMap (getField boardEdges b)
       , "fullMax" .= boardMaxFull b
       , "full"    .= countFull b
-      , "endVP"   .= doMap (boardEndVP b)
       , "geo"     .= doMap geo
       ]
     where

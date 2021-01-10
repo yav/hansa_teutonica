@@ -1,7 +1,10 @@
 module Stats where
 
 import Data.Text(Text)
+import Data.Aeson(FromJSON,ToJSON)
+import qualified Data.Aeson as JS
 
+import Common.Utils
 import Basics
 
 data Stat = Keys | Actions | Privilege | Movement | Hire
@@ -90,3 +93,10 @@ statAsKey stat =
     Privilege -> "privilege"
     Movement  -> "movement"
     Hire      -> "hire"
+
+instance FromJSON Stat where
+  parseJSON = jsParseEnum "stat" statAsKey
+
+instance ToJSON Stat where
+  toJSON = JS.toJSON . statAsKey
+

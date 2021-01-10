@@ -3,7 +3,7 @@ module Actions.Complete (tryCompleteEdge) where
 import qualified Data.Map as Map
 import Control.Monad(guard,msum,forM_,when)
 import Data.Text(Text)
-import Data.Maybe(maybeToList)
+import Data.Maybe(maybeToList,isNothing)
 
 import Common.Interact
 import Common.Field
@@ -35,7 +35,7 @@ tryCompleteEdge state =
           concat [ tryAnnex nodeInfo playerState
                  , tryOffice nodeId nodeInfo playerId playerState
                                                               edgeId edgeInfo
-                 , tryAction nodeInfo playerState
+                 , tryAction state nodeId nodeInfo edgeId playerId playerState
                  ]
 
 type ChoiceWithEdge = (WithPlayer Choice, Text, EdgeId, Interact ())
@@ -87,6 +87,15 @@ returnWorkers edgeId =
        do update (RemoveWorkerFromEdge edgeId spotId)
           update (ChangeUnavailable w 1)
 
+completeAction :: EdgeId -> Interact () -> Interact ()
+completeAction edgeId act =
+  doAction
+  do update (Log (CompleteRoute edgeId))
+     giveVPs edgeId
+     act
+     activateBonus edgeId
+     returnWorkers edgeId
+
 --------------------------------------------------------------------------------
 
 -- | Complete an edge without extra benefits
@@ -95,11 +104,7 @@ tryJustComplete edgeId playerId =
   [ ( playerId :-> ChEdge edgeId
     , "Complete with NO office/action"
     , edgeId
-    , doAction
-      do update (Log (CompleteRoute edgeId))
-         giveVPs edgeId
-         activateBonus edgeId
-         returnWorkers edgeId
+    , completeAction edgeId (pure ())
     )
   ]
 
@@ -117,17 +122,14 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
      pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
           , "Build office"
           , edgeId
-          , doAction
-            do update (Log (CompleteRoute edgeId))
-               giveVPs edgeId
-               update (RemoveWorkerFromEdge edgeId edgeSpotId)
+          , completeAction edgeId
+            do update (RemoveWorkerFromEdge edgeId edgeSpotId)
                update (PlaceWorkerInOffice nodeId worker)
                update (Log (BuildOffice nodeId worker))
                when (spotVP spot > 0)
                   do update (ChangeVP playerId (spotVP spot))
                      update (Log (GainVP playerId (spotVP spot)))
-               activateBonus edgeId
-               returnWorkers edgeId
+               -- XXX: full update?
           )
   where
   suitableWorkerFor spot (i,_,w)
@@ -140,7 +142,40 @@ tryAnnex :: Node -> Player -> [ChoiceWithEdge]
 tryAnnex _ _      = [] -- XXX
 
 -- | Complete an edge and use a special action
-tryAction :: Node -> Player -> [ChoiceWithEdge]
-tryAction _ _     = [] -- XXX
+tryAction ::
+  Game ->
+  NodeId -> Node ->
+  EdgeId ->
+  PlayerId -> Player ->
+  [ChoiceWithEdge]
+tryAction state nodeId nodeInfo edgeId playerId player =
+  concatMap actOpts (nodeActions nodeInfo)
+  where
+  actOpts act =
+    case act of
+      UpdgradeStat stat
+        | getLevel stat player < maxStat stat ->
+          [ ( playerId :-> ChNodeUpgrade nodeId stat
+            , "Upgrade " <> statAsKey stat
+            , edgeId
+            , completeAction edgeId
+              do update (Upgrade playerId stat)
+                 let worker = Worker { workerOwner = playerId
+                                     , workerType = statWorker stat }
+                 update (ChangeAvailble worker 1)
+                 update (Log (Upgraded playerId stat))
+                 when (stat == Actions)
+                   do let lvl = getLevel Actions player
+                          diff = actionLimit (lvl+1) - actionLimit lvl
+                      when (diff > 0) $
+                         update (ChangeActionLimit diff)
+            )
+          ]
+        | otherwise -> []
+
+      GainEndGamePoints ->
+        do lvl <- [ 0 .. getLevel Privilege player ]
+           guard (isNothing (gameEndVPSpot lvl state))
+           undefined
 
 

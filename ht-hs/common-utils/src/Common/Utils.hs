@@ -52,3 +52,13 @@ jsCall' f = jsTagged f [ "args" JS..= ([] :: [JS.Value]) ]
 
 js :: JS.ToJSON a => a -> JS.Value
 js = JS.toJSON
+
+jsParseEnum ::
+  (Bounded a, Enum a) => String -> (a -> Text) -> JS.Value -> JS.Parser a
+jsParseEnum lab toTxt =
+  JS.withText lab \txt ->
+  case lookup txt [ (toTxt s, s) | s <- enumAll ] of
+    Just a  -> pure a
+    Nothing -> fail ("Invalid " ++ lab)
+
+

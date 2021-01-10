@@ -352,8 +352,9 @@ function drawBoard(opts) {
   }
 
   { // upgrade actions
-    const askUpgrade = function (name) {
-      const loc = board.upgradeSpot(name)
+    const askUpgrade = function (q) {
+      console.log(q)
+      const loc = board.upgradeSpot(q.choice.action)
       const el = document.createElement('div')
       el.classList.add('upgrade-action')
       const style = el.style
@@ -361,9 +362,8 @@ function drawBoard(opts) {
       style.height = board.upgradeSize
       style.left   = loc.x
       style.top    = loc.y
-      question.addEmpty(el,function() {
-        console.log('upgrade ' + name)
-      })
+      dom.appendChild(el)
+      gui.questionNew(el,q)
     }
 
     ui.askUpgrade = askUpgrade

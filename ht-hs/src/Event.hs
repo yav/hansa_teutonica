@@ -6,6 +6,7 @@ import qualified Data.Aeson as JS
 import Common.Utils
 
 import Basics
+import Stats
 
 -- User readable events desribing the game flow
 data Event =
@@ -22,6 +23,7 @@ data Event =
   | GainVP PlayerId Int
   | CompleteRoute EdgeId
   | BuildOffice NodeId Worker
+  | Upgraded PlayerId Stat
     deriving Show
 
 instance ToJSON Event where
@@ -37,6 +39,9 @@ instance ToJSON Event where
 
       Retire w n ->
         jsTagged "retire" [ "worker" .= w, "number" .= n ]
+
+      Upgraded p a ->
+        jsTagged "upgrade" [ "player" .= p, "action" .= a ]
 
       PickUp w edgeId spot ->
         jsTagged "pick-up" [ "worker" .= w, "edge" .= edgeId, "spot" .= spot ]

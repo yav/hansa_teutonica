@@ -6,6 +6,8 @@ module Basics
 import Data.Text(Text)
 import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
+import Common.Utils
+
 import Common.Basics
 
 type NodeId       = Int      -- ^ Identifies a city
@@ -71,11 +73,6 @@ instance JS.FromJSON Worker where
 
 
 instance JS.FromJSON WorkerType where
-  parseJSON = JS.withText "worker type" \txt ->
-    case txt of
-      "cube" -> pure Cube
-      "disc" -> pure Disc
-      _      -> fail "Malformed worker type"
-
+  parseJSON = jsParseEnum "worker type" workerTypeToKey
 
 

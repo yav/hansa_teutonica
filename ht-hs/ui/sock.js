@@ -27,6 +27,7 @@ const handlers =
   , changeVP: function(ws,player,n) {
       gui.playerUI(player).changeVP(n)
     }
+  , upgrade: function(ws,player,stat) { gui.playerUI(player).upgrade(stat) }
 
 
     // turn

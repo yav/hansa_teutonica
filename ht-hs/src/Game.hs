@@ -9,6 +9,7 @@ module Game
   , gameBoard
   , gameTokens
   , gameTurn
+  , gameEndVPSpot
   , GameUpdate(..)
   , doUpdate
   ) where
@@ -46,6 +47,7 @@ data GameUpdate =
   | ChangeAvailble Worker Int
   | ChangeUnavailable Worker Int
   | ChangeVP PlayerId Int
+  | Upgrade PlayerId Stat
 
   | ChangeDoneActions Int
   | ChangeActionLimit Int
@@ -64,6 +66,7 @@ data GameStatus s = Game
   , _gameBoard    :: Board
   , _gameLog      :: [Event]
   , _gameStatus   :: s
+  , _gameEndVPSpots :: Map Level PlayerId
   } deriving Show
 
 
@@ -82,6 +85,9 @@ gameTurn = gameStatus
 
 gameCurrentPlayer :: Game -> PlayerId
 gameCurrentPlayer = currentPlayer . getField gameTurn
+
+gameEndVPSpot :: Level -> Game -> Maybe PlayerId
+gameEndVPSpot lvl = getField (gameEndVPSpots .> mapAtMaybe lvl)
 
 doUpdate :: GameUpdate -> Game -> Either GameFinished Game
 doUpdate upd =
@@ -103,6 +109,9 @@ doUpdate upd =
 
     ChangeVP playerId n ->
       Right . (gamePlayer playerId `updField` addVP n)
+
+    Upgrade playerId act ->
+      Right . (gamePlayer playerId `updField` levelUp act)
 
     -- nodes
     PlaceWorkerInOffice nodeId worker ->
@@ -161,6 +170,7 @@ initialGame rng0 board playerIds =
     , _gameBoard     = board
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
     , _gameLog       = [StartTurn firstPlayer]
+    , _gameEndVPSpots= Map.empty
     }
 
   where
@@ -204,6 +214,7 @@ instance ToJSON GameUpdate where
       ChangeAvailble a b       -> jsCall "changeAvailable" [js a, js b]
       ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
       ChangeVP a b             -> jsCall "changeVP" [js a, js b ]
+      Upgrade a b              -> jsCall "upgrade" [js a, js b]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
 
