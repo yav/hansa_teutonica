@@ -56,6 +56,7 @@ data GameUpdate =
   | UseGateway ProvinceId
 
   | NewTurn Turn
+  | SetEndVPAt Level Worker
   | Log Event
   deriving Show
 
@@ -66,7 +67,7 @@ data GameStatus s = Game
   , _gameBoard    :: Board
   , _gameLog      :: [Event]
   , _gameStatus   :: s
-  , _gameEndVPSpots :: Map Level PlayerId
+  , _gameEndVPSpots :: Map Level Worker
   } deriving Show
 
 
@@ -86,7 +87,7 @@ gameTurn = gameStatus
 gameCurrentPlayer :: Game -> PlayerId
 gameCurrentPlayer = currentPlayer . getField gameTurn
 
-gameEndVPSpot :: Level -> Game -> Maybe PlayerId
+gameEndVPSpot :: Level -> Game -> Maybe Worker
 gameEndVPSpot lvl = getField (gameEndVPSpots .> mapAtMaybe lvl)
 
 doUpdate :: GameUpdate -> Game -> Either GameFinished Game
@@ -117,6 +118,10 @@ doUpdate upd =
     PlaceWorkerInOffice nodeId worker ->
       Right .
       (gameBoard .> boardNode nodeId `updField` nodeAddWorker worker)
+
+    SetEndVPAt lvl worker ->
+      Right .
+        (setField (gameEndVPSpots .> mapAtMaybe lvl) (Just worker))
 
     -- edges
 
@@ -191,12 +196,13 @@ initialGame rng0 board playerIds =
 instance ToJSON status => ToJSON (GameStatus status) where
   toJSON g = JS.object
     [ "players" .=
-        JS.object [ playerIdToKey pId .= p
+        JS.object [ jsKey pId .= p
                   | (pId,p) <- Map.toList (getField gamePlayers g)
                   ]
     , "turnOrder" .= gameTurnOrder g
     , "board"     .= getField gameBoard g
-    , "log"      .= getField gameLog g
+    , "endVP"     .= jsMap (getField gameEndVPSpots g)
+    , "log"       .= getField gameLog g
     , "status"    .= getField gameStatus g
     ]
 
@@ -217,6 +223,7 @@ instance ToJSON GameUpdate where
       Upgrade a b              -> jsCall "upgrade" [js a, js b]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
+      SetEndVPAt a b           -> jsCall "setEndVP" [ js a, js b ]
 
       PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
       RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]

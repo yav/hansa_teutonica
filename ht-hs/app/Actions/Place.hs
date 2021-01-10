@@ -42,7 +42,7 @@ tryPlace state =
          changePref   = do let otherT = otherType workerT
                            guard (getAvailable otherT playerState > 0)
                            let help = "Change preference to " <>
-                                      workerTypeToKey otherT
+                                      jsKey otherT
                            pure (ChSetPreference otherT, help)
 
      (ch,help) <- [ (player :-> c,help) |
@@ -159,8 +159,7 @@ tryPlace state =
            ([],ys) -> askInputs ys
            (xs,_)  -> askInputs (changePref : xs)
               where changePref = ( playerId :-> ChSetPreference otherT
-                                 , "Change preference to " <>
-                                      workerTypeToKey otherT
+                                 , "Change preference to " <> jsKey otherT
                                  , do update (SetWorkerPreference
                                                 Worker { workerOwner = playerId
                                                        , workerType = otherT

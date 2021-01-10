@@ -155,9 +155,9 @@ getVP = points
 
 instance JS.ToJSON Player where
   toJSON p = JS.object $
-    [ statAsKey s .= v | (s,v) <- Map.toList (playerStats p) ] ++
-    [ "available"     .= workerObject (availableWorkers p)
-    , "unavailable"   .= workerObject (unavailableWorkers p)
+    [ jsKey s .= v | (s,v) <- Map.toList (playerStats p) ] ++
+    [ "available"     .= jsMap (availableWorkers p)
+    , "unavailable"   .= jsMap (unavailableWorkers p)
     , "vp"            .= points p
     , "bonuses"       .= bonusObj
     , "spentBonuses"  .= length (usedBonuses p)
@@ -166,8 +166,6 @@ instance JS.ToJSON Player where
 
 
     where
-    workerObject mp =
-      JS.object [ workerTypeToKey w .= v | (w,v) <- Map.toList mp ]
     usedBonusMap = Map.fromListWith (+) [ (b,1::Int) | b <- availableBonuses p ]
     bonusObj = JS.object [bonusAsKey b .= v | (b,v) <- Map.toList usedBonusMap]
 

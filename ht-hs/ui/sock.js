@@ -12,6 +12,9 @@ const handlers =
   , placeWorkerInOffice: function(ws,node,worker) {
       gui.board.placeWorkerInOffice(node,worker)
     }
+  , setEndVP: function(ws,lvl,worker) {
+      gui.board.placeWorkerOnVP(lvl,worker)
+    }
 
     // player
   , setWorkerPreference: function (ws,w) {

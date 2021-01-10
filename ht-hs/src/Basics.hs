@@ -3,7 +3,6 @@ module Basics
   , module Common.Basics
   ) where
 
-import Data.Text(Text)
 import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
 import Common.Utils
@@ -50,14 +49,15 @@ data Worker = Worker
 
 
 --------------------------------------------------------------------------------
-workerTypeToKey :: WorkerType -> Text
-workerTypeToKey workerType =
-  case workerType of
-    Disc -> "disc"
-    Cube -> "cube"
+
+instance JSKey WorkerType where
+  jsKey wt =
+    case wt of
+      Disc -> "disc"
+      Cube -> "cube"
 
 instance JS.ToJSON WorkerType where
-  toJSON = JS.toJSON . workerTypeToKey
+  toJSON = jsEnum
 
 instance JS.ToJSON Worker where
   toJSON worker =
@@ -73,6 +73,6 @@ instance JS.FromJSON Worker where
 
 
 instance JS.FromJSON WorkerType where
-  parseJSON = jsParseEnum "worker type" workerTypeToKey
+  parseJSON = jsParseEnum "worker type"
 
 

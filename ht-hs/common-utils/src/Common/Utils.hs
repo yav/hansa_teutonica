@@ -1,5 +1,7 @@
 module Common.Utils where
 
+import Data.Map(Map)
+import qualified Data.Map as Map
 import Data.Text(Text)
 import qualified Data.Text as Text
 import Control.Monad.ST
@@ -7,6 +9,7 @@ import System.Random.TF
 import System.Random.TF.Instances
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Mutable as MVector
+import Data.Aeson (ToJSON(toJSON),(.=))
 import qualified Data.Aeson as JS
 import qualified Data.Aeson.Types as JS
 
@@ -53,12 +56,25 @@ jsCall' f = jsTagged f [ "args" JS..= ([] :: [JS.Value]) ]
 js :: JS.ToJSON a => a -> JS.Value
 js = JS.toJSON
 
-jsParseEnum ::
-  (Bounded a, Enum a) => String -> (a -> Text) -> JS.Value -> JS.Parser a
-jsParseEnum lab toTxt =
+jsParseEnum :: (Bounded a, Enum a, JSKey a) => String -> JS.Value -> JS.Parser a
+jsParseEnum lab =
   JS.withText lab \txt ->
-  case lookup txt [ (toTxt s, s) | s <- enumAll ] of
+  case lookup txt [ (jsKey s, s) | s <- enumAll ] of
     Just a  -> pure a
     Nothing -> fail ("Invalid " ++ lab)
 
+jsEnum :: JSKey a => a -> JS.Value
+jsEnum = toJSON . jsKey
+
+jsMap :: (JSKey a, ToJSON b) => Map a b -> JS.Value
+jsMap mp = JS.object [ jsKey a .= b | (a,b) <- Map.toList mp ]
+
+class JSKey a where
+  jsKey :: a -> Text
+
+instance JSKey Text where
+  jsKey = id
+
+instance JSKey Int where
+  jsKey = showText
 

@@ -38,7 +38,7 @@ function boardCoord(name,size) {
            }
 
          , ptsSpot: function(ix) {
-             const it = map.pts[ix]
+             const it = map.pts[ix - 1]
              return { x: cosc * it.x, y: cosc * it.y }
            }
 
@@ -328,23 +328,20 @@ function drawBoard(opts) {
 
     // first spot is 1 (required priv)
     const placeWorker = function(spot, worker) {
-      const loc = board.ptsSpot(spot - 1)
+      const loc = board.ptsSpot(spot)
       const el = drawWorkerAt(loc, board.workerSize, worker)
       dom.appendChild(el)
     }
 
-    const askWorker = function(spot, worker) {
-      const loc = board.ptsSpot(spot)
+    const askWorker = function(q) {
+      const loc = board.ptsSpot(q.choice.level)
+      const worker = { shape: 'disc', owner: playerId }
       const el = drawWorkerAt(loc, board.workerSize, worker)
-      question.addEmpty(el,function(ev) {
-        console.log('vp spot',spot)
-      })
+      el.classList.add('empty')
+      dom.append(el)
+      gui.questionNew(el,q)
     }
 
-    // Initialize
-    for (const i in opts.endVP) placeWorker(i, { shape: 'disc'
-                                               , owner: opts.endVP[i]
-                                               })
 
     // exported:
     ui.placeWorkerOnVP = placeWorker

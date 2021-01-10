@@ -25,7 +25,7 @@ function drawLog() {
         const nodes = gui.board.edgeNodes[edgeId]
         const from  = gui.board.nodeNames[nodes[0]]
         const to    = gui.board.nodeNames[nodes[1]]
-        let msg = from + '--' + to
+        let msg = from + '-' + to
         if (spot !== undefined) {
           msg = msg + ', spot ' + spot
         }
@@ -146,6 +146,15 @@ function drawLog() {
          lab('Upgraded ' + msg.action)
          break
        }
+
+      case 'invested': {
+        lab('Placed ')
+        sayWorker(msg.worker)
+        lab(' on ')
+        sayNode(msg.node)
+        lab(' ' + msg.points + ' VP')
+        break
+      }
 
 
 

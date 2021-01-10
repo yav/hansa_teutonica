@@ -24,6 +24,7 @@ data Event =
   | CompleteRoute EdgeId
   | BuildOffice NodeId Worker
   | Upgraded PlayerId Stat
+  | Invested NodeId Int Worker
     deriving Show
 
 instance ToJSON Event where
@@ -42,6 +43,9 @@ instance ToJSON Event where
 
       Upgraded p a ->
         jsTagged "upgrade" [ "player" .= p, "action" .= a ]
+
+      Invested nodeId pts w ->
+        jsTagged "invested" [ "node" .= nodeId, "points" .= pts, "worker" .= w ]
 
       PickUp w edgeId spot ->
         jsTagged "pick-up" [ "worker" .= w, "edge" .= edgeId, "spot" .= spot ]

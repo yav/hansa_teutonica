@@ -100,6 +100,9 @@ function uiRedraw(ws,state) {
     gui.playerUI = function(x) { return gui[x ? x : playerId] }
   }
 
+  // End VP
+  for (const i in game.endVP) gui.board.placeWorkerOnVP(i, game.endVP[i])
+
   { // Log
     gui.log = drawLog()
     const n = game.log.length
@@ -152,6 +155,10 @@ function uiQuestions(ws,qs) {
 
       case 'node-upgrade':
         gui.board.askUpgrade(q)
+        break
+
+      case 'end-vp':
+        gui.board.askWorkerOnVP(q)
         break
 
       case 'done':

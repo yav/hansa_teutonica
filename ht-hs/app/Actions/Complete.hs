@@ -5,6 +5,7 @@ import Control.Monad(guard,msum,forM_,when)
 import Data.Text(Text)
 import Data.Maybe(maybeToList,isNothing)
 
+import Common.Utils
 import Common.Interact
 import Common.Field
 
@@ -35,7 +36,8 @@ tryCompleteEdge state =
           concat [ tryAnnex nodeInfo playerState
                  , tryOffice nodeId nodeInfo playerId playerState
                                                               edgeId edgeInfo
-                 , tryAction state nodeId nodeInfo edgeId playerId playerState
+                 , tryAction state nodeId nodeInfo edgeId edgeInfo
+                                                           playerId playerState
                  ]
 
 type ChoiceWithEdge = (WithPlayer Choice, Text, EdgeId, Interact ())
@@ -145,10 +147,10 @@ tryAnnex _ _      = [] -- XXX
 tryAction ::
   Game ->
   NodeId -> Node ->
-  EdgeId ->
+  EdgeId -> Edge ->
   PlayerId -> Player ->
   [ChoiceWithEdge]
-tryAction state nodeId nodeInfo edgeId playerId player =
+tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
   concatMap actOpts (nodeActions nodeInfo)
   where
   actOpts act =
@@ -156,7 +158,7 @@ tryAction state nodeId nodeInfo edgeId playerId player =
       UpdgradeStat stat
         | getLevel stat player < maxStat stat ->
           [ ( playerId :-> ChNodeUpgrade nodeId stat
-            , "Upgrade " <> statAsKey stat
+            , "Upgrade " <> jsKey stat
             , edgeId
             , completeAction edgeId
               do update (Upgrade playerId stat)
@@ -174,8 +176,21 @@ tryAction state nodeId nodeInfo edgeId playerId player =
         | otherwise -> []
 
       GainEndGamePoints ->
-        do lvl <- [ 0 .. getLevel Privilege player ]
+        do lvl <- [ 1 .. getLevel Privilege player ]
            guard (isNothing (gameEndVPSpot lvl state))
-           undefined
+
+           let ws = edgeWorkers edgeInfo
+               isDisc (_,_,w) = workerType w == Disc
+           case break isDisc ws of
+             (_,[]) -> []
+             (_,(spot,_,worker) : _) ->
+                pure ( playerId :-> ChEndVPSpot lvl
+                     , "Gain end game VP"
+                     , edgeId
+                     , completeAction edgeId
+                       do update (RemoveWorkerFromEdge edgeId spot)
+                          update (SetEndVPAt lvl worker)
+                          update (Log (Invested nodeId (endVPTrack lvl) worker))
+                     )
 
 

@@ -1,6 +1,5 @@
 module Stats where
 
-import Data.Text(Text)
 import Data.Aeson(FromJSON,ToJSON)
 import qualified Data.Aeson as JS
 
@@ -85,18 +84,18 @@ endVPTrack priv =
     _ -> 0
 
 --------------------------------------------------------------------------------
-statAsKey :: Stat -> Text
-statAsKey stat =
-  case stat of
-    Keys      -> "keys"
-    Actions   -> "actions"
-    Privilege -> "privilege"
-    Movement  -> "movement"
-    Hire      -> "hire"
+instance JSKey Stat where
+  jsKey stat =
+    case stat of
+      Keys      -> "keys"
+      Actions   -> "actions"
+      Privilege -> "privilege"
+      Movement  -> "movement"
+      Hire      -> "hire"
 
 instance FromJSON Stat where
-  parseJSON = jsParseEnum "stat" statAsKey
+  parseJSON = jsParseEnum "stat"
 
 instance ToJSON Stat where
-  toJSON = JS.toJSON . statAsKey
+  toJSON = JS.toJSON . jsKey
 

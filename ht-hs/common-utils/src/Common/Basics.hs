@@ -4,6 +4,7 @@ import Data.Text(Text)
 import Data.Aeson (ToJSON(..),FromJSON,(.=))
 import qualified Data.Aeson as JS
 
+import Common.Utils
 
 
 newtype PlayerId  = PlayerId Text
@@ -19,11 +20,11 @@ playerAnnot :: WithPlayer a -> PlayerId
 playerAnnot (p :-> _) = p
 
 --------------------------------------------------------------------------------
-playerIdToKey :: PlayerId -> Text
-playerIdToKey (PlayerId t) = t
+instance JSKey PlayerId where
+  jsKey (PlayerId t) = t
 
 instance ToJSON PlayerId where
-  toJSON = toJSON . playerIdToKey
+  toJSON = jsEnum
 
 instance FromJSON PlayerId where
   parseJSON = JS.withText "player id" \txt -> pure (PlayerId txt)
