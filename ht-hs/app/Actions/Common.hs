@@ -22,7 +22,8 @@ import Game
 import Turn
 import Event
 
-type PlayerOptions = Game -> [(WithPlayer Choice, Text, Interact ())]
+type PlayerChoice  = (WithPlayer Choice, Text, Interact ())
+type PlayerOptions = Game -> [PlayerChoice]
 
 startAction :: Game -> [(Turn,Player)]
 startAction state =
