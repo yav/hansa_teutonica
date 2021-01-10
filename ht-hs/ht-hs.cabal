@@ -60,13 +60,6 @@ executable ht-hs
 
   ghc-options:         -Wall
 
-executable ht-editor
-  hs-source-dirs:      app
-  main-is:             EditorMain.hs
-  build-depends:       base, ht-hs
-  default-language:    Haskell2010
-  ghc-options:         -Wall
-
 
 
 
