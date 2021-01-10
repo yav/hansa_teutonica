@@ -22,7 +22,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Control.Monad(liftM,ap)
 
-import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:))
+import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:), (.:?))
 import qualified Data.Aeson as JS
 
 import Common.Utils
@@ -33,7 +33,7 @@ import AppTypes(State,Finished,Input,Update,doUpdate)
 startGame :: Set PlayerId -> State -> Interact () -> InteractState
 startGame ps g begin =
   fst
-  $ interaction begin
+  $ interaction (Left begin)
     InteractState
       { iPlayers = ps
       , iGame0   = g
@@ -46,6 +46,7 @@ startGame ps g begin =
 data OutMsg =
     CurGameState InteractState
   | AskQuestions [ChoiceHelp]
+  | LogResponse (WithPlayer ChoiceHelp)
   | GameUpdate Update
 
 data ChoiceHelp = ChoiceHelp
@@ -55,7 +56,7 @@ data ChoiceHelp = ChoiceHelp
 
 data PlayerRequest =
     Reload
-  | PlayerResponse Input
+  | PlayerResponse ChoiceHelp
 
 
 handleMessage ::
@@ -70,7 +71,7 @@ handleMessage (p :-> req) =
 
     PlayerResponse ch ->
       askQuestions .
-      interaction (continueWith (p :-> ch))
+      interaction (Right (p :-> ch))
 
 
   where
@@ -95,7 +96,7 @@ data InteractState =
     , iGame0  :: State
       -- ^ Initial game state
 
-    , iLog    :: [WithPlayer Input]
+    , iLog    :: [WithPlayer ChoiceHelp]
       -- ^ A record of all responses made by the players
 
     , iGame   :: Either Finished State
@@ -124,12 +125,18 @@ type R = InteractState -> [Update] -> (InteractState, [Update])
 
 -- | Perform an interaction
 interaction ::
-  Interact () ->
+  Either (Interact ()) (WithPlayer ChoiceHelp) ->
   InteractState -> (InteractState, [WithPlayer OutMsg])
-interaction (Interact m) s = (s1,msgs)
+interaction how s = (s1,msgs)
   where
+  (Interact m,extLog) =
+     case how of
+       Left m'    -> (m',[])
+       Right resp -> (continueWith resp,[LogResponse resp])
+
   (s1,os) = m (\_ -> (,)) s []
-  msgs    = [ p :-> GameUpdate o | p <- Set.toList (iPlayers s1), o <- os ]
+  msgs    = [ p :-> o | p <- Set.toList (iPlayers s1)
+                      , o <- extLog ++ map GameUpdate os ]
 
 choose :: PlayerId -> [(Input,Text)] -> Interact Input
 choose playerId opts =
@@ -144,11 +151,11 @@ askInputs opts =
   in (curS { iAsk = Map.union (Map.fromList (map cont opts)) (iAsk curS) }, os)
 
 -- | Resume execution based on player input
-continueWith :: WithPlayer Input -> Interact a
+continueWith :: WithPlayer ChoiceHelp -> Interact a
 continueWith msg = Interact $
   \_ ->
   \s os ->
-    case Map.lookup msg (iAsk s) of
+    case Map.lookup (chChoice <$> msg) (iAsk s) of
       Just (_,f)  ->
         let s1 = s { iAsk = Map.empty, iLog = msg : iLog s }
         in f s1 os
@@ -187,6 +194,7 @@ instance ToJSON OutMsg where
     case msg of
       GameUpdate upd  -> toJSON upd
       AskQuestions qs -> jsCall "ask" [qs]
+      LogResponse ch  -> jsCall "log" [ch]
       CurGameState s  -> jsCall "redraw" [s]
 
 instance ToJSON InteractState where
@@ -207,12 +215,19 @@ instance ToJSON InteractState where
 instance FromJSON PlayerRequest where
   parseJSON =
     JS.withObject "request" \o ->
-    do tag <- o .: "tag"
-       case tag :: Text of
-         "reload" -> pure Reload
-         _        -> PlayerResponse <$> parseJSON (JS.Object o)
+    do tag <- o .:? "tag"
+       case tag :: Maybe Text of
+         Just "reload" -> pure Reload
+         _  -> PlayerResponse <$> parseJSON (JS.Object o)
 
 
 instance ToJSON ChoiceHelp where
   toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
+
+
+instance FromJSON ChoiceHelp where
+  parseJSON = JS.withObject "choice help" \o ->
+    do help <- o .: "help"
+       ch   <- o .: "choice"
+       pure ChoiceHelp { chHelp = help, chChoice = ch }
 

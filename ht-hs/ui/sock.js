@@ -35,6 +35,9 @@ const handlers =
   , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
   , addWorkerToHand: function(ws,w) { gui.turn.addWorkerToHand(w) }
   , removeWokerFromHand: function(ws) { gui.turn.removeWorkerFromHand() }
+
+  // log
+  , log: function(ws,m) { gui.log.addLog(true,m) }
   }
 
 function sendJSON(ws,obj) {

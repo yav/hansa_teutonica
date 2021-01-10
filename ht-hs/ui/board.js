@@ -80,6 +80,8 @@ function drawBoard(opts) {
     return dom
   } ()
 
+
+
   const question = function() {
     const questionsEmpty = []
     const questionsFull  = []
@@ -205,13 +207,16 @@ function drawBoard(opts) {
 
 
     // Initialize
+    const nodeNames = {}
     for (const i in opts.nodes) {
       const node = opts.nodes[i]
+      nodeNames[i] = node.name
       for (let j = 0; j < node.annex.length; ++j) addAnnex(i,node.annex[j])
       for (let j = 0; j < node.office.length; ++j) addOffice(i,node.office[j])
     }
 
     // exported
+    ui.nodeNames           = nodeNames
     ui.placeWorkerInAnnex  = addAnnex
     ui.askAnnex            = askAnnex
     ui.placeWorkerInOffice = addOffice
@@ -282,7 +287,6 @@ function drawBoard(opts) {
         style.top  = (from.y + to.y + w) / 2
         style.height = w
         style.width  = w
-        console.log(it)
         dom.appendChild(it)
         gui.questionNew(it,q)
       }
@@ -295,9 +299,10 @@ function drawBoard(opts) {
     }
 
 
-    // Initialize board;  XXX: we should probably add questions too...
-    // but the initialization could be factored out.
+    // Initialize board.
+    const edgeNodes = {}
     for (const i in opts.edges) {
+      edgeNodes[i] = opts.geo[i]
       const edge = opts.edges[i]
       if (edge.bonus) placeBonus(i,edge.bonus)
 
@@ -307,6 +312,7 @@ function drawBoard(opts) {
 
 
     // exported:
+    ui.edgeNodes = edgeNodes
     ui.placeWorkerOnEdge = placeWorker
     ui.askEmptyEdgeSpot  = askEmptyWorker
     ui.askFullEdgeSpot   = askFullWorker

@@ -191,9 +191,14 @@ instance JS.ToJSON Board where
       , "fullMax" .= boardMaxFull b
       , "full"    .= countFull b
       , "endVP"   .= doMap (boardEndVP b)
+      , "geo"     .= doMap geo
       ]
     where
     doMap m = JS.object [ (fromString (show k) .= v) | (k,v) <- Map.toList m ]
+    geo = Map.fromList
+            [ (k, geoEdgeNodes k (boardGeometry b))
+            | k <- Map.keys (getField boardEdges b)
+            ]
 
 
 -- for editor.  XXX: redo using aeson

@@ -148,5 +148,6 @@ instance JS.ToJSON Node where
   toJSON n =
     JS.object [ "annex"  .= reverse (nodeExtra n)
               , "office" .= reverse (fullSpots n)
+              , "name"   .= nodeName n
               ]
 

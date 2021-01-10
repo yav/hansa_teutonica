@@ -35,8 +35,8 @@ function newGUI(ws,container) {
     const funClick = function(ev) {
       removeQuestions()
       console.log('sending:')
-      console.log(val.choice)
-      ws.send(JSON.stringify(val.choice))
+      console.log(val)
+      ws.send(JSON.stringify(val))
     }
     const funEnter = function(ev) { tip.style.display = 'inline-block' }
     const funLeave = function(ev) { tip.style.display = 'none' }
@@ -81,7 +81,6 @@ function uiRedraw(ws,state) {
   }
 
 
-
   { // Board
     const board = game.board
     board.size = 700
@@ -101,6 +100,15 @@ function uiRedraw(ws,state) {
     gui.playerUI = function(x) { return gui[x ? x : playerId] }
   }
 
+  { // Log
+    gui.log = drawLog()
+    for (let i = 0; i < state.log.length; ++i) {
+      gui.log.addLog(false,state.log[i])
+    }
+  }
+
+
+
   { // Current turn
     // XXX: check for finished
     gui.turn = drawTurn(game.status)
@@ -108,6 +116,75 @@ function uiRedraw(ws,state) {
 
   // questions
   uiQuestions(ws, state.questions)
+}
+
+
+function drawLog() {
+  const dom = document.createElement('div')
+  dom.classList.add('log')
+  gui.container.appendChild(dom)
+  return {
+    addLog: function(front,msg) {
+
+      const box = document.createElement('div')
+      box.classList.add('log-item')
+
+      const lab = function(x,cl) {
+        const el = document.createElement('span')
+        el.textContent = x
+        if (cl !== undefined)
+          for (let i = 0; i < cl.length; ++i)
+            el.classList.add(cl[i])
+        box.appendChild(el)
+      }
+
+      const sayEdge = function(edgeId,spot) {
+        const nodes = gui.board.edgeNodes[edgeId]
+        const from  = gui.board.nodeNames[nodes[0]]
+        const to    = gui.board.nodeNames[nodes[1]]
+        let msg = from + ' to ' + to
+        if (spot !== undefined) {
+          msg = msg + ', spot ' + spot
+        }
+        lab(msg,['log-unit'])
+      }
+
+      const question = msg.thing.help
+      const playerId = msg.player
+      const answer   = msg.thing.choice
+
+      lab(playerId, ['turn-player', gui.colors[playerId]])
+      lab(question)
+
+      switch (answer.tag) {
+        case 'edge-empty': {
+          lab(' ')
+          const worker = { owner: playerId, shape: answer.shape }
+          lab(' ')
+          box.appendChild(drawWorker(gui.board.workerSize,worker))
+          lab(' on ')
+          sayEdge(answer.edge,answer.spot)
+          break
+        }
+
+/*
+        case 'edge-full': {
+          lab(' ')
+        }
+*/
+        case 'prefer': {
+          lab(' ')
+          const worker = { owner: playerId, shape: answer.worker }
+          box.appendChild(drawWorker(gui.board.workerSize,worker))
+          break
+        }
+
+        default:
+          lab(JSON.stringify(answer))
+      }
+      if (front) { dom.appendChild(box) } else { dom.prepend(box) }
+    }
+  }
 }
 
 function uiQuestions(ws,qs) {
