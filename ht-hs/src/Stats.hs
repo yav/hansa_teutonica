@@ -7,6 +7,11 @@ import Basics
 data Stat = Keys | Actions | Privilege | Movement | Hire
   deriving (Eq,Ord,Show,Bounded,Enum)
 
+-- | Special actions associated with a node
+data NodeAction = UpdgradeStat Stat | GainEndGamePoints
+  deriving (Eq,Ord,Show)
+
+
 type Level = Int
 
 maxStat :: Stat -> Level
