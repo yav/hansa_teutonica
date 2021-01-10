@@ -40,6 +40,11 @@ executable ht-hs
   main-is:             Main.hs
   other-modules:
     Actions
+    Actions.Common
+    Actions.Place
+    Actions.Move
+    Actions.Hire
+    Actions.Complete
   build-depends:
     base >=4.13,
     common-utils,
