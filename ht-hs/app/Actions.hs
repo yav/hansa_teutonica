@@ -346,14 +346,13 @@ tryCompleteEdge state =
      let playerId = currentPlayer turn
          board    = getField gameBoard state
      (edgeId,edgeInfo) <- fullEdgesFor playerId board
-     (nodeId,nodeInfo) <- getEdgeNodes edgeId state
-     -- XXX: add code to resolve ambiguity in rare case where the
-     -- same node is accessible trhough multiple full edges
-     concat [ tryJustComplete edgeId playerId
-            , tryAnnex node playerState
-            , tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo
-            , tryAction node playerState
-            ]
+     tryJustComplete edgeId playerId ++
+       do (nodeId,nodeInfo) <- getEdgeNodes edgeId state
+          concat [ tryAnnex node playerState
+                 , tryOffice nodeId nodeInfo playerId playerState
+                                                              edgeId edgeInfo
+                 , tryAction node playerState
+                 ]
 
   where
   getEdgeNodes :: EdgeId -> Game -> [(NodeId,Node)]
