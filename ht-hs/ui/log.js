@@ -40,12 +40,16 @@ function drawLog() {
         box.appendChild(drawWorker(gui.board.workerSize,worker))
       }
 
+      const sayPlayer = function(player) {
+        lab(player, [ 'turn-player', gui.colors[player]])
+      }
+
       switch (msg.tag) {
         case 'start-turn': {
           turnBox = document.createElement('div')
           turnBox.classList.add('log-turn')
           dom.appendChild(turnBox)
-          lab(msg.player, [ 'turn-player', gui.colors[msg.player]])
+          sayPlayer(msg.player)
           break
         }
 
@@ -83,6 +87,16 @@ function drawLog() {
           break
         }
 
+        case 'move-worker': {
+          lab('Moved ')
+          sayWorker(msg.worker)
+          lab(' to ')
+          sayEdge(msg.edge,msg.spot)
+          break
+        }
+
+
+
         case 'replace-worker': {
           lab('Replaced ')
           sayWorker(msg.workerOld)
@@ -90,6 +104,19 @@ function drawLog() {
           sayWorker(msg.workerNew)
           lab(' on ')
           sayEdge(msg.edge,msg.spot)
+          break
+        }
+
+        case 'complete-route': { 
+          lab('Completed ')
+          sayEdge(msg.edge)
+          break
+        }
+
+        case 'build-office': {
+          sayWorker(msg.worker)
+          lab (' established office in ')
+          sayNode(msg.node)
           break
         }
 
@@ -105,6 +132,12 @@ function drawLog() {
         case 'retire': {
           lab('Laid off ' + msg.number + ' ')
           sayWorker(msg.worker)
+          break
+        }
+
+        case 'vp': {
+          sayPlayer(msg.player)
+          lab(' gained ' + msg.vp + ' VP')
           break
         }
 

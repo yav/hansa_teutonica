@@ -14,10 +14,14 @@ data Event =
   | StartAction
   | EndAction
   | PlaceWorker Worker EdgeId Int
+  | MoveWorkerTo EdgeId Int Worker
   | ReplaceWorker Worker Worker EdgeId Int
   | PickUp Worker EdgeId Int
   | EvHire Worker Int
   | Retire Worker Int
+  | GainVP PlayerId Int
+  | CompleteRoute EdgeId
+  | BuildOffice NodeId Worker
     deriving Show
 
 instance ToJSON Event where
@@ -40,8 +44,15 @@ instance ToJSON Event where
       PlaceWorker w e s ->
         jsTagged "place-worker" [ "worker" .= w, "edge" .= e, "spot" .= s ]
 
+      MoveWorkerTo e s w ->
+        jsTagged "move-worker" [ "worker" .= w, "edge" .= e, "spot" .= s ]
+
       ReplaceWorker w1 w2 e s ->
         jsTagged "replace-worker" [ "workerOld" .= w1, "workerNew" .= w2
                                   , "edge" .= e, "spot" .= s ]
+
+      GainVP p n -> jsTagged "vp" [ "player" .= p, "vp" .= n ]
+      CompleteRoute e -> jsTagged "complete-route" [ "edge" .= e ]
+      BuildOffice n w -> jsTagged "build-office" [ "node" .= n, "worker" .= w ]
 
 

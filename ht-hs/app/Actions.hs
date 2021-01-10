@@ -179,7 +179,7 @@ tryPlace state =
               [ (ch, "Location for replaced worker") | ch <- tgts ]
        update RemoveWokerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
-       update (Log (PlaceWorker worker tgtEdgeId spot))
+       update (Log (MoveWorkerTo tgtEdgeId spot worker))
        placeExtra (workerOwner worker) edgeId
                                   1 (replacementCost (workerType worker))
 
@@ -279,7 +279,7 @@ tryMove state0 =
 
               update RemoveWokerFromHand
               update (PlaceWorkerOnEdge tgtEdge tgtSpot w)
-              update (Log (PlaceWorker w tgtEdge tgtSpot))
+              update (Log (MoveWorkerTo tgtEdge tgtSpot w))
               putDown
 
 
@@ -368,7 +368,9 @@ tryCompleteEdge state =
     do nodes <- view (getEdgeNodes edgeId)
        forM_ nodes \(_,nodeInfo) ->
          case nodeControlledBy nodeInfo of
-           Just playerId -> update (ChangeVP playerId 1)
+           Just playerId ->
+             do update (ChangeVP playerId 1)
+                update (Log (GainVP playerId 1))
            Nothing -> pure ()
 
   activateBonus edgeId = pure () -- XXX
@@ -385,7 +387,8 @@ tryCompleteEdge state =
       , "Complete with NO office/action"
       , edgeId
       , doAction
-        do giveVPs edgeId
+        do update (Log (CompleteRoute edgeId))
+           giveVPs edgeId
            activateBonus edgeId
            returnWorkers edgeId
       )
@@ -400,11 +403,14 @@ tryCompleteEdge state =
             , "Build office"
             , edgeId
             , doAction
-              do giveVPs edgeId
+              do update (Log (CompleteRoute edgeId))
+                 giveVPs edgeId
                  update (RemoveWorkerFromEdge edgeId edgeSpotId)
                  update (PlaceWorkerInOffice nodeId worker)
+                 update (Log (BuildOffice nodeId worker))
                  when (spotVP spot > 0)
-                    $ update (ChangeVP playerId (spotVP spot))
+                    do update (ChangeVP playerId (spotVP spot))
+                       update (Log (GainVP playerId (spotVP spot)))
                  activateBonus edgeId
                  returnWorkers edgeId
             )
@@ -423,9 +429,10 @@ tryCompleteEdge state =
   resolve opts =
     case opts of
       [(q,h,_,a)] -> (q,h,a)
-      _ -> let (q,h,_,_) = head opts
-           in (q, h, askInputs [ ( playerAnnot q :-> ChEdge e
-                                 , "Comlete this route"
-                                 , a
-                                 ) | (_,_,e,a) <- opts ])
+      _ ->
+         let (q,h,_,_) = head opts
+         in (q, h, askInputs [ ( playerAnnot q :-> ChEdge e
+                               , "Complete this route"
+                               , a
+                               ) | (_,_,e,a) <- opts ])
 
