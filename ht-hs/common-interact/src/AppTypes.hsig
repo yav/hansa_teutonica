@@ -18,5 +18,3 @@ instance ToJSON   Input
 instance FromJSON Input
 instance Ord Input
 
-
-

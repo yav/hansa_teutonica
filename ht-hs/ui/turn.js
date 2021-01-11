@@ -27,6 +27,16 @@ function drawTurn(turn) {
   dom.classList.add('turn')
   dom.style.fontSize = 1.5 * gui.board.fontSize
 
+  { // undo btn
+    const btn = document.createElement('span')
+    btn.classList.add('question')
+    btn.classList.add('undo')
+    btn.innerHTML = '&#x2190;'
+    btn.addEventListener('click',function() { gui.undo() })
+    dom.appendChild(btn)
+  }
+
+
 
   const player = lab(turn.player)
   player.classList.add('turn-player')
@@ -53,7 +63,10 @@ function drawTurn(turn) {
 
   // XXX: the "hand": bonuses, picked up things, etc
 
+
   gui.container.appendChild(dom)
+
+
 
   // exported
   return {

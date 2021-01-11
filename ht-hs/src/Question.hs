@@ -25,7 +25,7 @@ data Choice =
   | ChNodeUpgrade NodeId Stat
   | ChEndVPSpot Level
   | ChDone Text
-    deriving (Eq,Ord,Show)
+    deriving (Eq,Ord,Show,Read)
 
 instance JS.FromJSON Choice where
   parseJSON = JS.withObject "choice" \o ->

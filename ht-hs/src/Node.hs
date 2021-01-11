@@ -42,14 +42,14 @@ data Node = Node
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
   , nodeIsGreen   :: Bool
-  } deriving Show
+  } deriving (Read,Show)
 
 -- | A spot in a node
 data NodeSpot = NodeSpot
   { spotRequires  :: RequireWorker
   , spotPrivilege :: Int
   , spotVP        :: Int
-  } deriving Show
+  } deriving (Read,Show)
 
 -- | Description of an empty node
 data InitNode = InitNode

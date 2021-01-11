@@ -35,8 +35,8 @@ function newGUI(ws,container) {
     const funClick = function(ev) {
       removeQuestions()
       console.log('sending:')
-      console.log(val.choice)
-      ws.send(JSON.stringify(val.choice))
+      console.log(val)
+      ws.send(JSON.stringify(val))
     }
     const funEnter = function(ev) { tip.style.display = 'inline-block' }
     const funLeave = function(ev) { tip.style.display = 'none' }
@@ -61,6 +61,13 @@ function newGUI(ws,container) {
   }
 
   ui.container = container
+
+  ui.undo = function() {
+    const msg = { tag: 'undo' }
+    console.log('sending:')
+    console.log(msg)
+    ws.send(JSON.stringify(msg))
+  }
 
   return ui
 }

@@ -31,7 +31,7 @@ import Bonus
 data EdgeSpot = EdgeSpot
   { edgeSpotType    :: RequireWorker
   , edgeSpotWorker  :: Maybe Worker
-  } deriving Show
+  } deriving (Read,Show)
 
 setSpotWorker :: Maybe Worker -> EdgeSpot -> EdgeSpot
 setSpotWorker mb = \e -> e { edgeSpotWorker = mb }
@@ -44,13 +44,13 @@ data BonusSpot =
     FixedBonus FixedBonus
   | Bonus BonusToken
   | NoBonus
-    deriving Show
+    deriving (Read,Show)
 
 -- | Information associated with an edge on the map.
 data Edge = Edge
   { edgeSpots :: [EdgeSpot]
   , edgeBonus :: BonusSpot
-  } deriving Show
+  } deriving (Read,Show)
 
 -- | Information about the bonus spot on the edge.
 edgeBonusSpot :: Edge -> BonusSpot

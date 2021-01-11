@@ -68,7 +68,7 @@ data GameStatus s = Game
   , _gameLog      :: [Event]
   , _gameStatus   :: s
   , _gameEndVPSpots :: Map Level Worker
-  } deriving Show
+  } deriving (Read,Show)
 
 
 declareFields ''GameStatus

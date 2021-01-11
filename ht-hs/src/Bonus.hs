@@ -12,7 +12,7 @@ data BonusToken =
   | BonusExtra
   | BonusAct4
   | BonusAct3
-  deriving (Eq,Ord,Show,Enum,Bounded)
+  deriving (Eq,Ord,Show,Read,Enum,Bounded)
 
 tokenNumber :: BonusToken -> Int
 tokenNumber token =
@@ -33,7 +33,7 @@ data FixedBonus =
   | BonusGainPrivilege
   | BonusBuildInGreen
   | BonusReuse2
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 

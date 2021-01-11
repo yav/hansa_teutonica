@@ -7,11 +7,11 @@ import Common.Utils
 import Basics
 
 data Stat = Keys | Actions | Privilege | Movement | Hire
-  deriving (Eq,Ord,Show,Bounded,Enum)
+  deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
 -- | Special actions associated with a node
 data NodeAction = UpdgradeStat Stat | GainEndGamePoints
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 type Level = Int

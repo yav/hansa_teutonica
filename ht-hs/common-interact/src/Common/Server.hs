@@ -1,10 +1,12 @@
-module Common.Server where
+module Common.Server
+  ( newServer
+  , GameInfo(..)
+  ) where
 
 import qualified Data.ByteString.Char8 as BS8
 import Data.Text(Text)
 import Data.Map(Map)
 import qualified Data.Map as Map
-import Data.Set(Set)
 import Data.IORef(IORef,newIORef,readIORef,atomicModifyIORef')
 import Control.Exception(catch,SomeException(..))
 
@@ -18,7 +20,6 @@ import qualified Network.WebSockets.Snap as WS
 
 import Common.Basics
 import Common.Interact
-import AppTypes(State)
 
 
 --------------------------------------------------------------------------------
@@ -33,10 +34,10 @@ data ServerState = ServerState
   , gameState :: InteractState
   }
 
-newServer :: Set PlayerId -> State -> Interact () -> IO ()
-newServer ps s doInit =
+newServer :: GameInfo -> IO ()
+newServer ginfo =
   do ref <- newIORef ServerState { connected = Map.empty
-                                 , gameState = startGame ps s doInit
+                                 , gameState = startGame ginfo []
                                  }
      logger <- newLogger "-"
      let srv = Server { serverRef = ref, serverLogger = logger }

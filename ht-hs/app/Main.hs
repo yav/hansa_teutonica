@@ -24,7 +24,11 @@ main =
              do rng <- newTFGen
                 let mkP = PlayerId . Text.pack
                     players = Set.fromList (map mkP ps)
-                newServer players (initialGame rng board players) nextAction
+                newServer GameInfo
+                  { gPlayers = players
+                  , gState = initialGame rng board players
+                  , gInit = nextAction
+                  }
            Nothing -> fail "unknown board"
        _ -> fail "Usage: board_name player1 player2 ..."
 

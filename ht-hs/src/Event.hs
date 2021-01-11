@@ -25,7 +25,7 @@ data Event =
   | BuildOffice NodeId Worker
   | Upgraded PlayerId Stat
   | Invested NodeId Int Worker
-    deriving Show
+    deriving (Read,Show)
 
 instance ToJSON Event where
   toJSON ev =

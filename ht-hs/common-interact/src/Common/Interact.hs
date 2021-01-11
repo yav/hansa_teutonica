@@ -2,6 +2,7 @@ module Common.Interact
   ( -- * InteractionState
     InteractState
   , startGame
+  , GameInfo(..)
   , handleMessage
   , PlayerRequest
   , OutMsg
@@ -20,9 +21,10 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
+import Data.List(foldl')
 import Control.Monad(liftM,ap)
 
-import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:))
+import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:), (.:?))
 import qualified Data.Aeson as JS
 
 import Common.Utils
@@ -30,17 +32,25 @@ import Common.Basics
 import AppTypes(State,Finished,Input,Update,doUpdate)
 
 
-startGame :: Set PlayerId -> State -> Interact () -> InteractState
-startGame ps g begin =
-  fst
-  $ interaction (Left begin)
-    InteractState
-      { iPlayers = ps
-      , iGame0   = g
-      , iLog     = []
-      , iGame    = Right g
-      , iAsk     = Map.empty
-      }
+
+
+startGame :: GameInfo -> [WithPlayer Input] -> InteractState
+startGame ginfo moves = foldl' step state0 moves
+  where
+  state0 = interaction_ (Left (gInit ginfo))
+           InteractState { iInit    = ginfo
+                         , iLog     = []
+                         , iName    = 0
+                         , iGame    = Right (gState ginfo)
+                         , iAsk     = Map.empty
+                         }
+  step state i = interaction_ (Right i) state
+
+data GameInfo = GameInfo
+  { gPlayers :: Set PlayerId
+  , gState   :: State
+  , gInit    :: Interact ()
+  }
 
 
 data OutMsg =
@@ -49,13 +59,15 @@ data OutMsg =
   | GameUpdate Update
 
 data ChoiceHelp = ChoiceHelp
-  { chChoice :: Input
-  , chHelp   :: Text
+  { chChoice    :: Input
+  , chHelp      :: Text
+  , chStateName :: Int    -- ties question to state
   }
 
 data PlayerRequest =
     Reload
-  | PlayerResponse Input
+  | Undo
+  | PlayerResponse ChoiceHelp
 
 
 handleMessage ::
@@ -63,14 +75,15 @@ handleMessage ::
   InteractState -> (InteractState, [WithPlayer OutMsg])
 handleMessage (p :-> req) =
   case req of
-    Reload -> \s ->
-                let forMe (q :-> _) _ = p == q
-                    ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
-                in (s, [p :-> CurGameState ps])
+    Reload -> \s -> (s, [reload s p])
+
+    Undo -> \s -> let s1 = startGame (iInit s) (reverse (drop 1 (iLog s)))
+                  in (s1, map (reload s1) (iPlayers s1))
 
     PlayerResponse ch ->
-      askQuestions .
-      interaction (Right (p :-> ch))
+      \s -> if chStateName ch == iName s
+              then askQuestions (interaction (Right (p :-> chChoice ch)) s)
+              else (s,[])
 
 
   where
@@ -82,21 +95,29 @@ handleMessage (p :-> req) =
                 $ Map.fromListWith (++)
                   [ (q,[ChoiceHelp { chChoice = ch
                                    , chHelp = help
+                                   , chStateName = iName s
                                    }])
                       | (q :-> ch,(help,_))  <- Map.toList (iAsk s) ]
       ]
     )
 
 
+reload :: InteractState -> PlayerId -> WithPlayer OutMsg
+reload s p =
+  let forMe (q :-> _) _ = p == q
+      ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
+  in p :-> CurGameState ps
+
+
+
 data InteractState =
   InteractState
-    { iPlayers :: Set PlayerId
-
-    , iGame0  :: State
-      -- ^ Initial game state
+    { iInit   :: GameInfo
 
     , iLog    :: [WithPlayer Input]
       -- ^ A record of all responses made by the players
+
+    , iName   :: !Int
 
     , iGame   :: Either Finished State
       -- ^ The current game state.
@@ -105,6 +126,9 @@ data InteractState =
     , iAsk     :: Map (WithPlayer Input) (Text, R)
       -- ^ Choices avialable to the players.
     }
+
+iPlayers :: InteractState -> [PlayerId]
+iPlayers = Set.toList . gPlayers . iInit
 
 
 newtype Interact a = Interact ((a -> R) -> R)
@@ -134,8 +158,12 @@ interaction how s = (s1,msgs)
        Right resp -> continueWith resp
 
   (s1,os) = m (\_ -> (,)) s []
-  msgs    = [ p :-> o | p <- Set.toList (iPlayers s1)
+  msgs    = [ p :-> o | p <- iPlayers s1
                       , o <- map GameUpdate os ]
+
+interaction_ :: Either (Interact ()) (WithPlayer Input) ->
+               InteractState -> InteractState
+interaction_ how = fst . interaction how
 
 choose :: PlayerId -> [(Input,Text)] -> Interact Input
 choose playerId opts =
@@ -149,6 +177,8 @@ askInputs opts =
   let cont (ch,help,Interact m) = (ch, (help, m curK))
   in (curS { iAsk = Map.union (Map.fromList (map cont opts)) (iAsk curS) }, os)
 
+
+
 -- | Resume execution based on player input
 continueWith :: WithPlayer Input -> Interact a
 continueWith msg = Interact $
@@ -156,7 +186,8 @@ continueWith msg = Interact $
   \s os ->
     case Map.lookup msg (iAsk s) of
       Just (_,f)  ->
-        let s1 = s { iAsk = Map.empty, iLog = msg : iLog s }
+        let s1 = s { iAsk = Map.empty
+                   , iLog = msg : iLog s, iName = iName s + 1 }
         in f s1 os
       Nothing -> (s,os)
 
@@ -202,24 +233,33 @@ instance ToJSON InteractState where
           Right a -> "game" .= a
           Left a  -> "finished" .= a
       , "questions" .= toChoiceHelp g
-      -- , "log"       .= iLog g
       ]
     where
     toChoiceHelp :: InteractState -> [ ChoiceHelp ]
     toChoiceHelp s =
-      [ ChoiceHelp { chChoice = q, chHelp = help }
+      [ ChoiceHelp { chChoice = q, chHelp = help, chStateName = iName s }
       | (_ :-> q,(help,_)) <- Map.toList (iAsk s) ]
 
 instance FromJSON PlayerRequest where
   parseJSON =
     JS.withObject "request" \o ->
-    do tag <- o .: "tag"
+    do tag <- o .:? "tag"
        case tag :: Maybe Text of
          Just "reload" -> pure Reload
-         _  -> PlayerResponse <$> parseJSON (JS.Object o)
+         Just "undo"   -> pure Undo
+         _ -> PlayerResponse <$> parseJSON (JS.Object o)
 
 
 instance ToJSON ChoiceHelp where
-  toJSON ch = JS.object [ "help" .= chHelp ch, "choice" .= chChoice ch ]
+  toJSON ch = JS.object [ "help" .= chHelp ch
+                        , "choice" .= chChoice ch
+                        , "state" .= chStateName ch
+                        ]
 
+instance FromJSON ChoiceHelp where
+  parseJSON = JS.withObject "choice help" \o ->
+    do help <- o .: "help"
+       ch   <- o .: "choice"
+       nm   <- o .: "state"
+       pure ChoiceHelp { chHelp = help, chChoice = ch, chStateName = nm }
 

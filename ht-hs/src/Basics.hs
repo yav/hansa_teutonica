@@ -14,7 +14,7 @@ type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 
 data WorkerType   = Cube | Disc
-  deriving (Eq,Ord,Show,Bounded,Enum)
+  deriving (Eq,Ord,Show,Read,Bounded,Enum)
 
 replacementCost :: WorkerType -> Int
 replacementCost wt =
@@ -31,7 +31,7 @@ otherType ty =
 
 
 data RequireWorker = AnyWorker | Require WorkerType
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Read,Show)
 
 accepts :: RequireWorker -> WorkerType -> Bool
 accepts requirement workerType =
@@ -43,7 +43,7 @@ accepts requirement workerType =
 data Worker = Worker
   { workerOwner :: PlayerId
   , workerType  :: WorkerType
-  } deriving (Show,Eq,Ord)
+  } deriving (Read,Show,Eq,Ord)
 
 
 

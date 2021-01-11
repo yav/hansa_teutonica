@@ -49,14 +49,14 @@ data Board = Board
   , boardInitialTokens     :: Set EdgeId
     -- ^ Where to place initial tokens
 
-  } deriving Show
+  } deriving (Read,Show)
 
 
 data Province = Province
   { provinceName    :: Text           -- ^ Name of the province
   , provinceCapital :: NodeId         -- ^ This city gives access to province
   , provinceNodes   :: Set NodeId     -- ^ These cities are in the province
-  } deriving Show
+  } deriving (Read,Show)
 
 
 

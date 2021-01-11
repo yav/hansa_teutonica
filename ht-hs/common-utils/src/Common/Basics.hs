@@ -8,10 +8,10 @@ import Common.Utils
 
 
 newtype PlayerId  = PlayerId Text
-  deriving (Show,Eq,Ord)
+  deriving (Show,Read,Eq,Ord)
 
 data WithPlayer a = PlayerId :-> a
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 instance Functor WithPlayer where
   fmap f (p :-> q) = p :-> f q
