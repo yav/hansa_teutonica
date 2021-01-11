@@ -9,6 +9,7 @@ function drawPlayer(pid,opts) {
 
   dom.classList.add('player')
   dom.style.height = height + 'px'
+  dom.style.width  = opts.width + 'px'
   dom.style.fontSize = 0.08 * height
 
   const img = document.createElement('img')
@@ -283,7 +284,7 @@ function drawPlayer(pid,opts) {
 
   drawSupply('unavailable','Unavailable')
 
-  gui.container.appendChild(dom)
+  gui.playerContainer.appendChild(dom)
   return ui
 }
 

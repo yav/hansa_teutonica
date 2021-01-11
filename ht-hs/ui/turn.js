@@ -34,6 +34,7 @@ function drawTurn(turn) {
     btn.innerHTML = '&#x2190;'
     btn.addEventListener('click',function() { gui.undo() })
     dom.appendChild(btn)
+    gui.tooltip(btn,'Undo')
   }
 
 
@@ -64,8 +65,7 @@ function drawTurn(turn) {
   // XXX: the "hand": bonuses, picked up things, etc
 
 
-  gui.container.appendChild(dom)
-
+  gui.panel.prepend(dom)
 
 
   // exported

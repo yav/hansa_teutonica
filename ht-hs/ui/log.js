@@ -1,7 +1,8 @@
 function drawLog() {
   const dom = document.createElement('div')
   dom.classList.add('log')
-  gui.container.appendChild(dom)
+  dom.style.fontSize = 1.5 * gui.board.fontSize
+  gui.panel.appendChild(dom)
 
   let turnBox = null
   let actionBox = null
@@ -48,7 +49,7 @@ function drawLog() {
         case 'start-turn': {
           turnBox = document.createElement('div')
           turnBox.classList.add('log-turn')
-          dom.appendChild(turnBox)
+          dom.prepend(turnBox)
           sayPlayer(msg.player)
           lab('\'s trun')
           break

@@ -20,16 +20,27 @@ function newGUI(ws,container) {
     for (let i = 0; i < questionsElems.length; ++i) questionsElems[i]()
   }
 
-  const makeQuestion = function(el,val) {
+  const tooltip = function(el,lab) {
     const tip = document.createElement('div')
-    newQuestionExtra(tip)
     tip.classList.add('tooltip')
-    tip.textContent = val.help
+    tip.textContent = lab
     tip.style.left = el.offsetLeft + 20
     tip.style.top  = el.offsetTop + 20
+    el.parentNode.appendChild(tip)
+
+    const funEnter = function(ev) { tip.style.display = 'inline-block' }
+    const funLeave = function(ev) { tip.style.display = 'none' }
+    el.addEventListener('mouseenter',funEnter)
+    el.addEventListener('mouseleave',funLeave)
+
+    return { dom: tip, enter: funEnter, leave: funLeave }
+  }
+
+  const makeQuestion = function(el,val) {
+    const tip = tooltip(el,val.help)
+    newQuestionExtra(tip.dom)
 
     // place them in the same parent so that z-indexes work correctly
-    el.parentNode.appendChild(tip)
     el.classList.add('question')
 
     const funClick = function(ev) {
@@ -38,18 +49,16 @@ function newGUI(ws,container) {
       console.log(val)
       ws.send(JSON.stringify(val))
     }
-    const funEnter = function(ev) { tip.style.display = 'inline-block' }
-    const funLeave = function(ev) { tip.style.display = 'none' }
     el.addEventListener('click',funClick)
-    el.addEventListener('mouseenter',funEnter)
-    el.addEventListener('mouseleave',funLeave)
     return function() {
       el.classList.remove('question')
       el.removeEventListener('click',funClick)
-      el.removeEventListener('mouseenter',funEnter)
-      el.removeEventListener('mouseleave',funLeave)
+      el.removeEventListener('mouseenter',tip.enter)
+      el.removeEventListener('mouseleave',tip.leave)
     }
   }
+
+  ui.tooltip = tooltip
 
   ui.questionAnnot = function(el,val) {
     questionsElems[questionsElems.length] = makeQuestion(el,val)
@@ -95,11 +104,21 @@ function uiRedraw(ws,state) {
   }
 
   { // Players
+    const height = 120
+    const width  = 3 * height
+
     gui.players = {}
+    const cont = document.createElement('div')
+    gui.playerContainer = cont
+    cont.classList.add('player-container')
+    //cont.style.width = width
+    gui.container.appendChild(cont)
+
     for (let i = 0; i < game.turnOrder.length; ++i) {
       const pid = game.turnOrder[i]
       const s   = game.players[pid]
-      s.height  = 120
+      s.height  = height
+      s.width   = width
       s.name    = pid
       const p = drawPlayer(pid,s)
       gui[pid] = p
@@ -110,6 +129,15 @@ function uiRedraw(ws,state) {
   // End VP
   for (const i in game.endVP) gui.board.placeWorkerOnVP(i, game.endVP[i])
 
+  gui.panel = document.createElement('div')
+  gui.panel.classList.add('panel')
+  gui.container.appendChild(gui.panel)
+
+  { // Current turn
+    // XXX: check for finished
+    gui.turn = drawTurn(game.status)
+  }
+
   { // Log
     gui.log = drawLog()
     const n = game.log.length
@@ -119,11 +147,6 @@ function uiRedraw(ws,state) {
   }
 
 
-
-  { // Current turn
-    // XXX: check for finished
-    gui.turn = drawTurn(game.status)
-  }
 
   // questions
   uiQuestions(ws, state.questions)
