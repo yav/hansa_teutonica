@@ -77,8 +77,12 @@ handleMessage (p :-> req) =
   case req of
     Reload -> \s -> (s, [reload s p])
 
-    Undo -> \s -> let s1 = startGame (iInit s) (reverse (drop 1 (iLog s)))
-                  in (s1, map (reload s1) (iPlayers s1))
+    Undo -> \s ->
+      case iLog s of
+        (q :-> _) : more | p == q ->
+           let s1 = startGame (iInit s) (reverse more)
+           in (s1, map (reload s1) (iPlayers s1))
+        _ -> (s,[])
 
     PlayerResponse ch ->
       \s -> if chStateName ch == iName s
