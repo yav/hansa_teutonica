@@ -35,6 +35,13 @@ body {
   border-radius: 20%;
 }
 
+.token-count {
+  position: absolute;
+  display: inline-block;
+  background-image: url("img/token/back.png");
+}
+
+
 .upgrade-action {
   position: absolute;
 }
@@ -318,6 +325,7 @@ body {
   align-items: center;
   background-color: white;
   color: black;
+  position: relative;
 }
 
 .turn-group {

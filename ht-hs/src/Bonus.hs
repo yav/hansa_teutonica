@@ -14,15 +14,20 @@ data BonusToken =
   | BonusAct3
   deriving (Eq,Ord,Show,Read,Enum,Bounded)
 
+-- | Not counting the starting ones
 tokenNumber :: BonusToken -> Int
 tokenNumber token =
   case token of
-    BonusUpgrade -> 3
-    BonusSwap    -> 2
-    BonusMove    -> 2
-    BonusExtra   -> 5
+    BonusUpgrade -> 2
     BonusAct4    -> 2
     BonusAct3    -> 2
+    BonusSwap    -> 2
+    BonusMove    -> 1
+    BonusExtra   -> 3
+
+
+startTokens :: [BonusToken]
+startTokens = [ BonusExtra, BonusMove, BonusSwap ]
 
 tokenList :: [BonusToken]
 tokenList = [ tok | ty <- enumAll, tok <- replicate (tokenNumber ty) ty ]

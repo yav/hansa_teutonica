@@ -59,9 +59,7 @@ buildBoard builder =
 
     , boardProvinces = foldr addProvs capitals (nodes builder)
     , boardInitialTokens =
-      Set.fromList [ i | i <- [ 0 .. ]
-                       | e <- edges builder, startBonus e
-                       ]
+      Set.fromList [ i | (i,e) <- [ 0 .. ] `zip` edges builder, startBonus e ]
     }
   where
   nodeInits = map nodeInit (nodes builder)

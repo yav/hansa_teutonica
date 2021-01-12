@@ -171,7 +171,7 @@ initialGame rng0 board playerIds =
   Game
     { _gamePlayers   = playerState
     , gameTurnOrder  = playerOrder
-    , _gameTokens    = drop (length startToks) allTokens
+    , _gameTokens    = otherTokens
     , _gameBoard     = foldr addToken board startToks
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
     , _gameLog       = [StartTurn firstPlayer]
@@ -179,11 +179,13 @@ initialGame rng0 board playerIds =
     }
 
   where
-  (playerOrder,allTokens) =
-    case shuffle (Set.toList playerIds) rng0 of
-      (ps, rng1) -> (ps, fst (shuffle tokenList rng1))
+  (playerOrder,initialToks,otherTokens) =
+    let (ps, rng1)    = shuffle (Set.toList playerIds) rng0
+        (start, rng2) = shuffle startTokens rng1
+        (toks,_)      = shuffle tokenList rng2
+    in (ps,start,toks)
 
-  startToks = zip allTokens (Set.toList (boardInitialTokens board))
+  startToks = zip initialToks (Set.toList (boardInitialTokens board))
   addToken (tok,loc) = updField (boardEdge loc) (edgeSetBonus tok)
 
   firstPlayer = head playerOrder
@@ -206,6 +208,7 @@ instance ToJSON status => ToJSON (GameStatus status) where
     , "board"     .= getField gameBoard g
     , "endVP"     .= jsMap (getField gameEndVPSpots g)
     , "log"       .= getField gameLog g
+    , "tokens"    .= length (getField gameTokens g)
     , "status"    .= getField gameStatus g
     ]
 

@@ -103,6 +103,29 @@ function uiRedraw(ws,state) {
     gui.board = drawBoard(board)
   }
 
+  { // Token count
+    const el = document.createElement('div')
+    el.classList.add('token-count')
+    const loc = gui.board.tokenCountSpot
+    const style = el.style
+    style.left = loc.x
+    style.top  = loc.y
+
+    let amt = game.tokens
+    const lab = document.createElement('div')
+    const sz = gui.board.bonusSize
+    lab.classList.add('label')
+    lab.textContent = amt
+    el.appendChild(lab)
+    gui.tooltip(lab,'Remaining bonus tokens')
+    gui.container.appendChild(el)
+
+    gui.changeTokenCount = function(n) {
+      amt = amt + n
+      lab.textContent = amt
+    }
+  }
+
   { // Players
     const height = 120
     const width  = 3 * height

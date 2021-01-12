@@ -17,6 +17,8 @@ function boardCoord(name,size) {
          , upgradeSize: 4.5 * sz
          , fontSize: sz
 
+         , tokenCountSpot: { x: cosc * map.bonus.x, y: cosc * map.bonus.y }
+
          , nodeSpot: function(node,ix) {
              const it = map.nodes[node][ix]
              if (it === undefined) return undefined
@@ -63,7 +65,9 @@ function drawBoard(opts) {
   const ui    = {}
   const board = boardCoord(opts.map, opts.size)
   ui.workerSize = board.workerSize
+  ui.bonusSize  = board.bonusSize
   ui.fontSize   = board.fontSize
+  ui.tokenCountSpot = board.tokenCountSpot
 
   const dom = function() {
     const dom = document.createElement('div')
@@ -131,7 +135,6 @@ function drawBoard(opts) {
     // exported:
     ui.setFull = setFull
   }
-
 
   { // offices
     const lastAnnex = {} // locaiton of last annex, indexed by node
