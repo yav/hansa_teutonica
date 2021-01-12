@@ -9,6 +9,9 @@ const handlers =
   , removeWorkerFromEdge: function(ws,edge,spot) {
       gui.board.removeWorkerFromEdge(edge,spot)
     }
+  , edgeRemoveBonus: function(ws, edge) {
+      gui.board.removeBonus(edge)
+    }
   , placeWorkerInOffice: function(ws,node,worker) {
       gui.board.placeWorkerInOffice(node,worker)
     }
@@ -31,6 +34,9 @@ const handlers =
       gui.playerUI(player).changeVP(n)
     }
   , upgrade: function(ws,player,stat) { gui.playerUI(player).upgrade(stat) }
+  , gainBonusToken: function(ws,player,token) {
+      gui.playerUI(player).addBonus(token)
+    }
 
 
     // turn
@@ -39,6 +45,10 @@ const handlers =
   , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
   , addWorkerToHand: function(ws,w) { gui.turn.addWorkerToHand(w) }
   , removeWokerFromHand: function(ws) { gui.turn.removeWorkerFromHand() }
+  , drawBonusToken: function(ws) {
+      gui.turn
+      gui.changeTokenCount(-1)
+    }
 
   // log
   , log: function(ws,m) { gui.log.addLog(m) }

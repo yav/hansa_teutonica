@@ -10,6 +10,7 @@ module Game
   , gameTokens
   , gameTurn
   , gameEndVPSpot
+  , gameTokenRemaining
   , GameUpdate(..)
   , doUpdate
   ) where
@@ -40,6 +41,9 @@ import Event
 data GameUpdate =
     PlaceWorkerOnEdge EdgeId Int Worker
   | RemoveWorkerFromEdge EdgeId Int
+  | EdgeRemoveBonus EdgeId
+  | EdgeSetBonus EdgeId BonusToken
+  | SetEndVPAt Level Worker
 
   | PlaceWorkerInOffice NodeId Worker
 
@@ -48,15 +52,17 @@ data GameUpdate =
   | ChangeUnavailable Worker Int
   | ChangeVP PlayerId Int
   | Upgrade PlayerId Stat
+  | GainBonusToken PlayerId BonusToken
 
+  | NewTurn Turn
   | ChangeDoneActions Int
   | ChangeActionLimit Int
   | AddWorkerToHand (Maybe ProvinceId) Worker
   | RemoveWokerFromHand
   | UseGateway ProvinceId
+  | DrawBonusToken
+  | PlacingBonus BonusToken
 
-  | NewTurn Turn
-  | SetEndVPAt Level Worker
   | Log Event
   deriving Show
 
@@ -64,6 +70,7 @@ data GameStatus s = Game
   { _gamePlayers  :: Map PlayerId Player
   , gameTurnOrder :: [PlayerId]
   , _gameTokens   :: [BonusToken]
+  , _gameTokenRemaining :: Int
   , _gameBoard    :: Board
   , _gameLog      :: [Event]
   , _gameStatus   :: s
@@ -114,6 +121,9 @@ doUpdate upd =
     Upgrade playerId act ->
       Right . (gamePlayer playerId `updField` levelUp act)
 
+    GainBonusToken playerId bonus ->
+      Right . (gamePlayer playerId `updField` gainBonus bonus)
+
     -- nodes
     PlaceWorkerInOffice nodeId worker ->
       Right .
@@ -132,6 +142,14 @@ doUpdate upd =
     RemoveWorkerFromEdge edgeId spot ->
       Right .
         (gameBoard .> boardEdge edgeId `updField` edgeSetWorker spot Nothing)
+
+    EdgeRemoveBonus edgeId ->
+      Right .
+        (gameBoard .> boardEdge edgeId `updField` edgeRemoveBonus)
+
+    EdgeSetBonus edgeId bonus ->
+      Right .
+        (gameBoard .> boardEdge edgeId `updField` edgeSetBonus bonus)
 
 
     -- turn
@@ -153,6 +171,13 @@ doUpdate upd =
     RemoveWokerFromHand ->
       Right . (gameTurn `updField` removeWokerFromHand)
 
+    DrawBonusToken ->
+      Right . (gameTokenRemaining `updField` subtract 1)
+
+    PlacingBonus b ->
+      Right . (gameTokens `updField` drop 1)
+            . (gameTurn   `updField` setTurnPlacing b)
+
     -- events
     Log e ->
       Right . (gameLog `updField` (e:))
@@ -172,6 +197,7 @@ initialGame rng0 board playerIds =
     { _gamePlayers   = playerState
     , gameTurnOrder  = playerOrder
     , _gameTokens    = otherTokens
+    , _gameTokenRemaining = length otherTokens
     , _gameBoard     = foldr addToken board startToks
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
     , _gameLog       = [StartTurn firstPlayer]
@@ -208,7 +234,7 @@ instance ToJSON status => ToJSON (GameStatus status) where
     , "board"     .= getField gameBoard g
     , "endVP"     .= jsMap (getField gameEndVPSpots g)
     , "log"       .= getField gameLog g
-    , "tokens"    .= length (getField gameTokens g)
+    , "tokens"    .= getField gameTokenRemaining g
     , "status"    .= getField gameStatus g
     ]
 
@@ -227,12 +253,15 @@ instance ToJSON GameUpdate where
       ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
       ChangeVP a b             -> jsCall "changeVP" [js a, js b ]
       Upgrade a b              -> jsCall "upgrade" [js a, js b]
+      GainBonusToken a b       -> jsCall "gainBonusToken" [ js a, js b ]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
       SetEndVPAt a b           -> jsCall "setEndVP" [ js a, js b ]
 
       PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
       RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
+      EdgeRemoveBonus a        -> jsCall "edgeRemoveBonus" [a]
+      EdgeSetBonus a b         -> jsCall "edgeSetBonus" [js a, js b]
 
       NewTurn t                -> jsCall "newTurn" [t]
       UseGateway g             -> jsCall "useGateway" [g]
@@ -240,5 +269,7 @@ instance ToJSON GameUpdate where
       ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
       AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]
       RemoveWokerFromHand      -> jsCall' "removeWokerFromHand"
+      DrawBonusToken           -> jsCall' "drawBonusToken"
+      PlacingBonus b           -> jsCall  "placingBonus" [b]
       Log e                    -> jsCall "log" [e]
 

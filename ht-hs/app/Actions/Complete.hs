@@ -79,8 +79,18 @@ giveVPs edgeId =
               update (Log (GainVP playerId 1))
          Nothing -> pure ()
 
-activateBonus :: EdgeId -> Interact ()
-activateBonus edgeId = pure () -- XXX
+activateBonus :: EdgeId -> PlayerId -> Interact ()
+activateBonus edgeId playerId =
+  do ed <- view (getField (gameBoard .> boardEdge edgeId))
+     case edgeBonusSpot ed of
+       NoBonus -> pure ()
+       Bonus token ->
+          do update (EdgeRemoveBonus edgeId)
+             update (GainBonusToken playerId token)
+             update DrawBonusToken
+       FixedBonus bf ->
+         -- XXX: do bonuses
+         pure ()
 
 returnWorkers :: EdgeId -> Interact ()
 returnWorkers edgeId =
@@ -89,13 +99,13 @@ returnWorkers edgeId =
        do update (RemoveWorkerFromEdge edgeId spotId)
           update (ChangeUnavailable w 1)
 
-completeAction :: EdgeId -> Interact () -> Interact ()
-completeAction edgeId act =
+completeAction :: EdgeId -> PlayerId -> Interact () -> Interact ()
+completeAction edgeId playerId act =
   doAction
   do update (Log (CompleteRoute edgeId))
      giveVPs edgeId
      act
-     activateBonus edgeId
+     activateBonus edgeId playerId
      returnWorkers edgeId
 
 --------------------------------------------------------------------------------
@@ -106,7 +116,7 @@ tryJustComplete edgeId playerId =
   [ ( playerId :-> ChEdge edgeId
     , "Complete with NO office/action"
     , edgeId
-    , completeAction edgeId (pure ())
+    , completeAction edgeId playerId (pure ())
     )
   ]
 
@@ -124,7 +134,7 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
      pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
           , "Build office"
           , edgeId
-          , completeAction edgeId
+          , completeAction edgeId playerId
             do update (RemoveWorkerFromEdge edgeId edgeSpotId)
                update (PlaceWorkerInOffice nodeId worker)
                update (Log (BuildOffice nodeId worker))
@@ -160,7 +170,7 @@ tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
           [ ( playerId :-> ChNodeUpgrade nodeId stat
             , "Upgrade " <> jsKey stat
             , edgeId
-            , completeAction edgeId
+            , completeAction edgeId playerId
               do update (Upgrade playerId stat)
                  let worker = Worker { workerOwner = playerId
                                      , workerType = statWorker stat }
@@ -187,7 +197,7 @@ tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
                 pure ( playerId :-> ChEndVPSpot lvl
                      , "Gain end game VP"
                      , edgeId
-                     , completeAction edgeId
+                     , completeAction edgeId playerId
                        do update (RemoveWorkerFromEdge edgeId spot)
                           update (SetEndVPAt lvl worker)
                           update (Log (Invested nodeId (endVPTrack lvl) worker))

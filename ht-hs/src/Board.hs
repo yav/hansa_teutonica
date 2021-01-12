@@ -178,6 +178,10 @@ fullEdgesFor :: PlayerId -> Board -> [(EdgeId,Edge)]
 fullEdgesFor playerId =
   Map.toList . Map.filter (edgeReadyFor playerId) . getField boardEdges
 
+
+tokenSpots :: Board -> [Choice]
+tokenSpots _ = [] -- XXX
+
 --------------------------------------------------------------------------------
 instance JS.ToJSON Board where
   toJSON b =

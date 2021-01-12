@@ -1,6 +1,6 @@
 module Actions where
 
-import Control.Monad(guard)
+import Control.Monad(guard,when)
 
 import Common.Interact
 import Common.Field
@@ -12,6 +12,7 @@ import Question
 import Game
 import Turn
 import Event
+import Board
 
 import Actions.Common
 import Actions.Place
@@ -47,6 +48,24 @@ tryEndTurn forceEnd state =
   do let turn = getField gameTurn state
      guard (forceEnd ||
             getField actionsDone turn == getField currentActionLimit turn)
-     pure (currentPlayer turn :-> ChDone "End Turn", "End turn", nextTurn)
+     pure (currentPlayer turn :-> ChDone "End Turn", "End turn",
+              do replaceTokens
+                 nextTurn)
+
+replaceTokens :: Interact ()
+replaceTokens =
+  do n <- view (getField gameTokenRemaining)
+     ts <- view (getField gameTokens)
+     when (n < length ts)
+       do p <- view gameCurrentPlayer
+          spots <- view (tokenSpots . getField gameBoard)
+          let t = head ts
+          update (PlacingBonus t)
+          ~(ChEdge edgeId) <- choose p [ (spot,"Place token here")
+                                                              | spot <- spots ]
+          update (EdgeSetBonus edgeId t)
+          replaceTokens
+
+
 
 

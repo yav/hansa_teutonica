@@ -17,6 +17,8 @@ module Turn
   , addWorkerToHand
   , removeWokerFromHand
   , nextPickedUp
+  , setTurnPlacing
+  , turnPlacing
   ) where
 
 import Data.Maybe(listToMaybe)
@@ -38,7 +40,7 @@ data Turn = Turn
   , _actionsDone        :: Int
   , _currentActionLimit :: Int
   , turnUsedGateways    :: Set ProvinceId
-  , turnPlaceBonus      :: [BonusToken]
+  , turnPlacing         :: Maybe BonusToken
   , turnPickedUp        :: [(Maybe ProvinceId,Worker)]
   } deriving (Read,Show)
 
@@ -51,9 +53,12 @@ newTurn playerId actLvl =
     , _actionsDone        = 0
     , _currentActionLimit = actionLimit actLvl
     , turnUsedGateways    = Set.empty
-    , turnPlaceBonus      = []
+    , turnPlacing         = Nothing
     , turnPickedUp        = []
     }
+
+setTurnPlacing :: BonusToken -> Turn -> Turn
+setTurnPlacing b t = t { turnPlacing = Just b }
 
 currentPlayer :: Turn -> PlayerId
 currentPlayer = turnCurrentPlayer
@@ -74,6 +79,7 @@ nextPickedUp :: Turn -> Maybe (Maybe ProvinceId,Worker)
 nextPickedUp = listToMaybe  . reverse . turnPickedUp
 
 
+
 --------------------------------------------------------------------------------
 
 instance ToJSON Turn where
@@ -82,7 +88,6 @@ instance ToJSON Turn where
       [ "player"   .= currentPlayer t
       , "actDone"  .= getField actionsDone t
       , "actLimit" .= getField currentActionLimit t
-      , "bonuses"  .= length (turnPlaceBonus t)
       , "pickedUp" .= map snd (turnPickedUp t)
       ]
 

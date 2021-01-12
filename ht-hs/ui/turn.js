@@ -62,9 +62,6 @@ function drawTurn(turn) {
   }
   const pickedGroup = group(picked)
 
-  // XXX: the "hand": bonuses, picked up things, etc
-
-
   gui.panel.prepend(dom)
 
 

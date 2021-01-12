@@ -122,6 +122,7 @@ function uiRedraw(ws,state) {
 
     gui.changeTokenCount = function(n) {
       amt = amt + n
+      if (amt < 0) amt = 0
       lab.textContent = amt
     }
   }
