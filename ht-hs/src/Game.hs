@@ -171,17 +171,20 @@ initialGame rng0 board playerIds =
   Game
     { _gamePlayers   = playerState
     , gameTurnOrder  = playerOrder
-    , _gameTokens    = tokens
-    , _gameBoard     = board
+    , _gameTokens    = drop (length startToks) allTokens
+    , _gameBoard     = foldr addToken board startToks
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
     , _gameLog       = [StartTurn firstPlayer]
     , _gameEndVPSpots= Map.empty
     }
 
   where
-  (playerOrder,tokens) =
+  (playerOrder,allTokens) =
     case shuffle (Set.toList playerIds) rng0 of
       (ps, rng1) -> (ps, fst (shuffle tokenList rng1))
+
+  startToks = zip allTokens (Set.toList (boardInitialTokens board))
+  addToken (tok,loc) = updField (boardEdge loc) (edgeSetBonus tok)
 
   firstPlayer = head playerOrder
   firstPlayerState = playerState Map.! firstPlayer
