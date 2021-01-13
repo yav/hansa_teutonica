@@ -120,10 +120,23 @@ function uiRedraw(ws,state) {
     gui.tooltip(lab,'Remaining bonus tokens')
     gui.container.appendChild(el)
 
+    let placing = null
+
     gui.changeTokenCount = function(n) {
       amt = amt + n
       if (amt < 0) amt = 0
       lab.textContent = amt
+    }
+    gui.setPlacing = function(mb) {
+      if (placing) placing.remove()
+      if (mb) {
+        if (placing) placing.remove()
+        placing = drawBonusToken(gui.board.bonusSize,mb)
+        el.appendChild(placing)
+        gui.tooltip(placing,'Place this token')
+      } else {
+        placing = null
+      }
     }
   }
 

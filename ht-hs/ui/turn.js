@@ -37,6 +37,8 @@ function drawTurn(turn) {
     gui.tooltip(btn,'Undo')
   }
 
+  // placing a token at end of turn?
+  gui.setPlacing(turn.placing)
 
 
   const player = lab(turn.player)

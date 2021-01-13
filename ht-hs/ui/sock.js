@@ -12,6 +12,9 @@ const handlers =
   , edgeRemoveBonus: function(ws, edge) {
       gui.board.removeBonus(edge)
     }
+  , edgeSetBonus: function(ws, edge, bonus) {
+      gui.board.placeBonus(edge,bonus)
+    }
   , placeWorkerInOffice: function(ws,node,worker) {
       gui.board.placeWorkerInOffice(node,worker)
     }
@@ -49,6 +52,7 @@ const handlers =
       gui.turn
       gui.changeTokenCount(-1)
     }
+  , placingBonus: function(ws,b) { gui.setPlacing(b) }
 
   // log
   , log: function(ws,m) { gui.log.addLog(m) }

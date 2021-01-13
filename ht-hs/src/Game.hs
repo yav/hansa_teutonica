@@ -19,6 +19,7 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
+import Data.Maybe(isJust)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=),ToJSON(..))
@@ -61,7 +62,7 @@ data GameUpdate =
   | RemoveWokerFromHand
   | UseGateway ProvinceId
   | DrawBonusToken
-  | PlacingBonus BonusToken
+  | PlacingBonus (Maybe BonusToken)
 
   | Log Event
   deriving Show
@@ -175,8 +176,8 @@ doUpdate upd =
       Right . (gameTokenRemaining `updField` subtract 1)
 
     PlacingBonus b ->
-      Right . (gameTokens `updField` drop 1)
-            . (gameTurn   `updField` setTurnPlacing b)
+      Right . (if isJust b then (gameTokens `updField` drop 1) else id)
+            . (gameTurn .> turnPlacing   `setField` b)
 
     -- events
     Log e ->

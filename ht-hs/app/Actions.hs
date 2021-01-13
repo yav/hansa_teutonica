@@ -60,10 +60,12 @@ replaceTokens =
        do p <- view gameCurrentPlayer
           spots <- view (tokenSpots . getField gameBoard)
           let t = head ts
-          update (PlacingBonus t)
+          update (PlacingBonus (Just t))
           ~(ChEdge edgeId) <- choose p [ (spot,"Place token here")
                                                               | spot <- spots ]
+          update (PlacingBonus Nothing)
           update (EdgeSetBonus edgeId t)
+          update (Log (PlacedBonus edgeId t))
           replaceTokens
 
 

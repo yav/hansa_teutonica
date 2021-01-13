@@ -7,6 +7,7 @@ import Common.Utils
 
 import Basics
 import Stats
+import Bonus
 
 -- User readable events desribing the game flow
 data Event =
@@ -25,6 +26,7 @@ data Event =
   | BuildOffice NodeId Worker
   | Upgraded PlayerId Stat
   | Invested NodeId Int Worker
+  | PlacedBonus EdgeId BonusToken
     deriving (Read,Show)
 
 instance ToJSON Event where
@@ -63,5 +65,7 @@ instance ToJSON Event where
       GainVP p n -> jsTagged "vp" [ "player" .= p, "vp" .= n ]
       CompleteRoute e -> jsTagged "complete-route" [ "edge" .= e ]
       BuildOffice n w -> jsTagged "build-office" [ "node" .= n, "worker" .= w ]
+
+      PlacedBonus e b -> jsTagged "place-bonus" [ "edge" .= e, "bonus" .= b ]
 
 

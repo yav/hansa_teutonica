@@ -44,7 +44,7 @@ data BonusSpot =
     FixedBonus FixedBonus
   | Bonus BonusToken
   | NoBonus
-    deriving (Read,Show)
+    deriving (Read,Show,Eq)
 
 -- | Information associated with an edge on the map.
 data Edge = Edge

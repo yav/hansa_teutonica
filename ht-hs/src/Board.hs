@@ -180,7 +180,17 @@ fullEdgesFor playerId =
 
 
 tokenSpots :: Board -> [Choice]
-tokenSpots _ = [] -- XXX
+tokenSpots board =
+  [ ChEdge edgeId
+  | (edgeId,info) <- Map.toList (getField boardEdges board)
+  , edgeBonusSpot info == NoBonus
+  , null (edgeWorkers info)
+  , edgeProvince edgeId board == Nothing
+  , let (x,y) = geoEdgeNodes edgeId (boardGeometry board)
+  , let isFull n = null (nodeFreeSpots (getField (boardNode n) board))
+    -- here we assume that green cities (east) are always full
+  , not (isFull x && isFull y)
+  ]
 
 --------------------------------------------------------------------------------
 instance JS.ToJSON Board where

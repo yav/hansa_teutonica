@@ -17,7 +17,6 @@ module Turn
   , addWorkerToHand
   , removeWokerFromHand
   , nextPickedUp
-  , setTurnPlacing
   , turnPlacing
   ) where
 
@@ -40,7 +39,7 @@ data Turn = Turn
   , _actionsDone        :: Int
   , _currentActionLimit :: Int
   , turnUsedGateways    :: Set ProvinceId
-  , turnPlacing         :: Maybe BonusToken
+  , _turnPlacing        :: Maybe BonusToken
   , turnPickedUp        :: [(Maybe ProvinceId,Worker)]
   } deriving (Read,Show)
 
@@ -53,12 +52,9 @@ newTurn playerId actLvl =
     , _actionsDone        = 0
     , _currentActionLimit = actionLimit actLvl
     , turnUsedGateways    = Set.empty
-    , turnPlacing         = Nothing
+    , _turnPlacing        = Nothing
     , turnPickedUp        = []
     }
-
-setTurnPlacing :: BonusToken -> Turn -> Turn
-setTurnPlacing b t = t { turnPlacing = Just b }
 
 currentPlayer :: Turn -> PlayerId
 currentPlayer = turnCurrentPlayer
@@ -89,5 +85,6 @@ instance ToJSON Turn where
       , "actDone"  .= getField actionsDone t
       , "actLimit" .= getField currentActionLimit t
       , "pickedUp" .= map snd (turnPickedUp t)
+      , "placing"  .= getField turnPlacing t
       ]
 

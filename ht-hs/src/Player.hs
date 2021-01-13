@@ -55,7 +55,7 @@ data Player = Player
 
 zeroState :: Player
 zeroState = Player
-  { playerStats         = Map.fromList [ (stat,0) | stat <- enumAll ]
+  { playerStats         = Map.fromList [ (stat,1) | stat <- enumAll ] -- XXX
   , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
   , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
 

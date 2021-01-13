@@ -45,6 +45,10 @@ function drawLog() {
         lab(player, [ 'turn-player', gui.colors[player]])
       }
 
+      const sayBonus = function(bonus) {
+        box.appendChild(drawBonusToken(gui.board.bonusSize,bonus))
+      }
+
       switch (msg.tag) {
         case 'start-turn': {
           turnBox = document.createElement('div')
@@ -154,6 +158,14 @@ function drawLog() {
         lab(' on ')
         sayNode(msg.node)
         lab(' ' + msg.points + ' VP')
+        break
+      }
+
+      case 'place-bonus': {
+        lab('Placed ')
+        sayBonus(msg.bonus)
+        lab(' on ')
+        sayEdge(msg.edge)
         break
       }
 
