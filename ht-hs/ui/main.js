@@ -204,7 +204,8 @@ function uiQuestions(ws,qs) {
         gui.playerUI().askWorker('unavailable',q)
         break
       case 'bonus':
-        break
+        gui.playerUI().askBonus(q)
+        break;
 
       case 'edge-empty':
         gui.board.askEmptyEdgeSpot(q)
@@ -231,6 +232,7 @@ function uiQuestions(ws,qs) {
       case 'done':
         gui.turn.askDone(q)
         break
+
     }
   }
 }

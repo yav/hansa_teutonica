@@ -2,6 +2,7 @@ module Actions where
 
 import Control.Monad(guard,when)
 
+import Common.Utils
 import Common.Interact
 import Common.Field
 
@@ -19,13 +20,15 @@ import Actions.Place
 import Actions.Move
 import Actions.Hire
 import Actions.Complete
+import Actions.Bonus
 
 nextAction :: Interact ()
 nextAction =
   do state <- getState
      -- XXX: check end game
      let normalOpts = tryPlace state ++ tryMove state ++ tryHire state ++
-                      tryCompleteEdge state
+                      tryCompleteEdge state ++
+                      [ a | b <- enumAll, a <- bonusAction b state ]
          -- NOTE: this will not catch the corrner case of the player having
          -- active workers, but there being no place on the board for them.
          opts       = tryEndTurn (null normalOpts) state ++ normalOpts

@@ -267,6 +267,11 @@ function drawPlayer(pid,opts) {
         info.lab.textContent = info.num > 1? ('x' + info.num) : ''
       }
     }
+
+    ui.askBonus = function(q) {
+      const info = bonusInfo[q.choice.bonus]
+      gui.questionAnnot(info.dom,q)
+    }
   }
 
   { // VP

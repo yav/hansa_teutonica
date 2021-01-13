@@ -45,6 +45,7 @@ data GameUpdate =
   | EdgeRemoveBonus EdgeId
   | EdgeSetBonus EdgeId BonusToken
   | SetEndVPAt Level Worker
+  | UseBonusToken PlayerId BonusToken
 
   | PlaceWorkerInOffice NodeId Worker
 
@@ -124,6 +125,9 @@ doUpdate upd =
 
     GainBonusToken playerId bonus ->
       Right . (gamePlayer playerId `updField` gainBonus bonus)
+
+    UseBonusToken playerId bonus ->
+      Right . (gamePlayer playerId `updField` useBonus bonus)
 
     -- nodes
     PlaceWorkerInOffice nodeId worker ->
@@ -255,6 +259,7 @@ instance ToJSON GameUpdate where
       ChangeVP a b             -> jsCall "changeVP" [js a, js b ]
       Upgrade a b              -> jsCall "upgrade" [js a, js b]
       GainBonusToken a b       -> jsCall "gainBonusToken" [ js a, js b ]
+      UseBonusToken a b        -> jsCall "useBonusToken" [ js a, js b ]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
       SetEndVPAt a b           -> jsCall "setEndVP" [ js a, js b ]

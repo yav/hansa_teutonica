@@ -27,6 +27,7 @@ data Event =
   | Upgraded PlayerId Stat
   | Invested NodeId Int Worker
   | PlacedBonus EdgeId BonusToken
+  | UsedBonus BonusToken
     deriving (Read,Show)
 
 instance ToJSON Event where
@@ -67,5 +68,6 @@ instance ToJSON Event where
       BuildOffice n w -> jsTagged "build-office" [ "node" .= n, "worker" .= w ]
 
       PlacedBonus e b -> jsTagged "place-bonus" [ "edge" .= e, "bonus" .= b ]
+      UsedBonus b -> jsTagged "used-bonus" [ "bonus" .= b ]
 
 

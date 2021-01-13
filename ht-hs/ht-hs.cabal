@@ -45,6 +45,7 @@ executable ht-hs
     Actions.Move
     Actions.Hire
     Actions.Complete
+    Actions.Bonus
   build-depends:
     base >=4.13,
     common-utils,

@@ -40,6 +40,11 @@ const handlers =
   , gainBonusToken: function(ws,player,token) {
       gui.playerUI(player).addBonus(token)
     }
+  , useBonusToken: function(ws,player,bonus) {
+      const ui = gui.playerUI(player)
+      ui.removeBonus(bonus)
+      ui.addSpentBonus()
+    }
 
 
     // turn

@@ -59,7 +59,7 @@ zeroState = Player
   , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
   , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
 
-  , availableBonuses    = []
+  , availableBonuses    = [BonusAct3,BonusAct3,BonusAct4]
   , usedBonuses         = []
   , points              = 0
   , preference          = Cube

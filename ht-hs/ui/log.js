@@ -169,6 +169,12 @@ function drawLog() {
         break
       }
 
+      case 'used-bonus': {
+        lab('Used ')
+        sayBonus(msg.bonus)
+        break
+      }
+
 
 
         default:
