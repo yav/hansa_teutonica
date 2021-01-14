@@ -16,6 +16,8 @@ import qualified Network.WebSockets as WS
 
 import System.FastLogger(Logger,logMsg,newLogger)
 import qualified Snap.Http.Server as Snap
+import qualified Snap.Core as Snap
+import qualified Snap.Util.FileServe as Snap
 import qualified Network.WebSockets.Snap as WS
 
 import Common.Basics
@@ -41,9 +43,14 @@ newServer ginfo =
                                  }
      logger <- newLogger "-"
      let srv = Server { serverRef = ref, serverLogger = logger }
-     Snap.quickHttpServe $ WS.runWebSocketsSnap \pending ->
-       do conn <- WS.acceptRequest pending
-          WS.withPingThread conn 30 (pure ()) (newClient srv conn)
+     Snap.quickHttpServe $
+       Snap.route
+         [ ("/ws", WS.runWebSocketsSnap \pending ->
+                   do conn <- WS.acceptRequest pending
+                      WS.withPingThread conn 30 (pure ()) (newClient srv conn)
+           )
+         , ("/", Snap.serveDirectory "ui")
+         ]
 
 serverLog :: Server -> String -> IO ()
 serverLog server = logMsg (serverLogger server) . BS8.pack

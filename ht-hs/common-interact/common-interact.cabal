@@ -18,7 +18,7 @@ library
     base >=4.13,
     common-utils,
     containers, text, aeson, bytestring,
-    websockets-snap, websockets, snap-server
+    websockets-snap, snap-core, websockets, snap-server
   ghc-options:         -Wall
   default-language:    Haskell2010
   default-extensions:

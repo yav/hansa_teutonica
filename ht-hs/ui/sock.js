@@ -71,11 +71,11 @@ function sendJSON(ws,obj) {
 }
 
 function srvConnect() {
-  const info = new URL(window.location).searchParams
-  const url = info.get('url')
-  const actulaURL = 'ws://' + (url ? url : 'localhost:8000')
-  console.log("Connecting to: " + actulaURL)
-  const ws = new WebSocket(actulaURL)
+  const obj = new URL(window.location)
+  const info = obj.searchParams
+  const url = 'ws://' + obj.host + '/ws'
+  console.log("Connecting to: " + url)
+  const ws = new WebSocket(url)
 
   ws.onopen = function(e) {
     console.log('Connected.')
