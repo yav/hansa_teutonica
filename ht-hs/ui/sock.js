@@ -48,6 +48,9 @@ const handlers =
       ui.removeBonus(bonus)
       ui.addSpentBonus()
     }
+  , prepare: function(ws,player,msg) {
+      if (player == playerId) gui.alert(msg)
+    }
 
 
     // turn

@@ -20,6 +20,7 @@ import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Maybe(isJust)
+import Data.Text(Text)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=),ToJSON(..))
@@ -67,6 +68,7 @@ data GameUpdate =
   | PlacingBonus (Maybe BonusToken)
 
   | Log Event
+  | Prepare PlayerId Text
   deriving Show
 
 data GameStatus s = Game
@@ -129,6 +131,8 @@ doUpdate upd =
 
     UseBonusToken playerId bonus ->
       Right . (gamePlayer playerId `updField` useBonus bonus)
+
+    Prepare _ _ -> Right . id
 
     -- nodes
     PlaceWorkerInOffice nodeId worker ->
@@ -264,6 +268,7 @@ instance ToJSON GameUpdate where
       Upgrade a b              -> jsCall "upgrade" [js a, js b]
       GainBonusToken a b       -> jsCall "gainBonusToken" [ js a, js b ]
       UseBonusToken a b        -> jsCall "useBonusToken" [ js a, js b ]
+      Prepare a b              -> jsCall "prepare" [ js a, js b ]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
       SwapWorkers a b          -> jsCall "swapWorkers" [ js a, js b ]

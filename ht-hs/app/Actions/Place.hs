@@ -77,6 +77,7 @@ tryPlace state =
            replaceFee pid 1 (replacementCost (workerType worker))
            update (Log (ReplaceWorker worker ourWorker edgeId spot))
            otherPlayerMoveAndPlace edgeId worker
+           update (Prepare pid "Continue turn")
 
       _ -> pure ()
 
@@ -120,6 +121,7 @@ tryPlace state =
 
   otherPlayerMoveAndPlace edgeId worker =
     do tgts <- placeOpts edgeId (workerType worker)
+       update (Prepare (workerOwner worker) "Your worker was replaced")
        ~(ChEdgeEmpty tgtEdgeId spot _) <-
             choose (workerOwner worker)
               [ (ch, "Location for replaced worker") | ch <- tgts ]

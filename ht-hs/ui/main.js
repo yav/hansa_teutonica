@@ -78,6 +78,14 @@ function newGUI(ws,container) {
     ws.send(JSON.stringify(msg))
   }
 
+  ui.alert = function(msg) {
+    const it = document.createElement('div')
+    it.classList.add('alert')
+    it.textContent = msg
+    it.addEventListener('click',function() { it.remove() })
+    container.appendChild(it)
+  }
+
   return ui
 }
 
@@ -187,6 +195,8 @@ function uiRedraw(ws,state) {
 
   // questions
   uiQuestions(ws, state.questions)
+  if (state.questions.length > 0)
+    gui.alert('You have pending actions')
 }
 
 

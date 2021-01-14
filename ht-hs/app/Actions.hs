@@ -43,6 +43,7 @@ nextTurn =
          nextPlayerId = playerAfter curP state
          actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
      update (Log (EndTurn curP))
+     update (Prepare nextPlayerId "Your turn")
      update (Log (StartTurn nextPlayerId))
      update (NewTurn (newTurn nextPlayerId actLvl))
 
