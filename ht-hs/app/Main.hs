@@ -14,6 +14,9 @@ import Actions(nextAction)
 import Basics
 import Board.Index
 
+import Game
+import Common.Interact
+
 main :: IO ()
 main =
   do args <- getArgs
@@ -27,7 +30,13 @@ main =
                 newServer GameInfo
                   { gPlayers = players
                   , gState = initialGame rng board players
-                  , gInit = nextAction
+                  , gInit = do let w1 = Worker { workerOwner = mkP (ps !! 0)
+                                               , workerType = Cube }
+                               let w2 = Worker { workerOwner = mkP (ps !! 1)
+                                               , workerType = Cube }
+                               update (PlaceWorkerInOffice 0 w1)
+                               update (PlaceWorkerInOffice 0 w2)
+                               nextAction
                   }
            Nothing -> fail "unknown board"
        _ -> fail "Usage: board_name player1 player2 ..."

@@ -221,6 +221,10 @@ function uiQuestions(ws,qs) {
         gui.board.askEmptyOffice(q)
         break
 
+      case 'node-full':
+        gui.board.askFullOffice(q)
+        break
+
       case 'node-upgrade':
         gui.board.askUpgrade(q)
         break

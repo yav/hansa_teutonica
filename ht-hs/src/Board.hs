@@ -192,6 +192,16 @@ tokenSpots board =
   , not (isFull x && isFull y)
   ]
 
+swappableOffices :: PlayerId -> Board -> [Choice]
+swappableOffices playerId board =
+  [ ChNodeFull nodeId spot
+  | (nodeId,nodeInfo) <- Map.toList (getField boardNodes board)
+  , let ws = zip [ 0 .. ] (reverse (nodeWorkers nodeInfo))
+  , ((_,prevW),(spot,curW)) <- zip ws (drop 1 ws)
+  , workerOwner curW /= playerId && workerOwner curW /= workerOwner prevW
+  ]
+
+
 --------------------------------------------------------------------------------
 instance JS.ToJSON Board where
   toJSON b =

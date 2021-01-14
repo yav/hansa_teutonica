@@ -91,11 +91,13 @@ nodeAddWorker w = \n -> n { fullSpots = w : fullSpots n
                           }
 
 -- | Swap two workers in this node.
--- The number is the index of a worker (counting from the right),
--- and it is swapped with the worker beofre (i.e., one spot to the left)
+-- The number is the index of a worker (counting from the left),
+-- and it is swapped with the worker before (i.e., one spot to the left)
 nodeSwap :: Int -> Node -> Node
-nodeSwap i = \n -> n { fullSpots = case splitAt i (fullSpots n) of
-                                     (as,b:c:ds) -> as ++ c : b : ds
+nodeSwap i = \n -> n { fullSpots = case splitAt (i-1) (reverse (fullSpots n)) of
+                                     (as,b:c:ds) ->
+                                        reverse ds ++ b : c : reverse as
+
                                      _ -> fullSpots n }
 
 -- | Get the next free worker space in this node.

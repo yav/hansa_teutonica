@@ -28,6 +28,7 @@ data Event =
   | Invested NodeId Int Worker
   | PlacedBonus EdgeId BonusToken
   | UsedBonus BonusToken
+  | SwappedWorkers NodeId Int BonusToken
     deriving (Read,Show)
 
 instance ToJSON Event where
@@ -70,4 +71,6 @@ instance ToJSON Event where
       PlacedBonus e b -> jsTagged "place-bonus" [ "edge" .= e, "bonus" .= b ]
       UsedBonus b -> jsTagged "used-bonus" [ "bonus" .= b ]
 
+      SwappedWorkers n s b ->
+        jsTagged "used-bonus-swap" [ "bonus" .= b, "node" .= n, "spot" .= s ]
 

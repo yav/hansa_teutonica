@@ -182,12 +182,9 @@ function drawBoard(opts) {
     }
 
 
-    // XXX
-    const askFullOffice = function(node,ix) {
-      const info = placedOffices[node][ix]
-      question.addFull(info.dom,function() {
-        console.log('office in ' + node + ' at position ' + ix)
-      })
+    const askFullOffice = function(q) {
+      const info = placedOffices[q.choice.node][q.choice.spot]
+      gui.questionAnnot(info.dom,q)
     }
 
     const askEmptyOffice = function(q) {
@@ -204,8 +201,23 @@ function drawBoard(opts) {
       const el  = drawWorkerAt(loc,board.workerSize,worker)
       let placed = placedOffices[node]
       if (placed === undefined) { placed = []; placedOffices[node] = placed }
-      placed[placed.length] = { loc: loc, shape: worker.shape, dom: el }
+      placed[placed.length] = { loc: loc, worker: worker, dom: el }
       dom.appendChild(el)
+    }
+
+    const swapWorkers = function(node,spot) {
+      const info = placedOffices[node]
+      const w1   = info[spot]
+      const w2   = info[spot-1]
+      w1.dom.style.left = w2.loc.x
+      w1.dom.style.top  = w2.loc.y
+      w2.dom.style.left = w1.loc.x
+      w2.dom.style.top  = w1.loc.y
+      const tmp = w2.loc
+      w2.loc = w1.loc
+      w1.loc = tmp
+      info[spot] = w2
+      info[spot-1] = w1
     }
 
 
@@ -225,6 +237,7 @@ function drawBoard(opts) {
     ui.placeWorkerInOffice = addOffice
     ui.askFullOffice       = askFullOffice
     ui.askEmptyOffice      = askEmptyOffice
+    ui.swapWorkers         = swapWorkers
   }
 
 

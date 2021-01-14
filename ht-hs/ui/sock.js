@@ -18,6 +18,9 @@ const handlers =
   , placeWorkerInOffice: function(ws,node,worker) {
       gui.board.placeWorkerInOffice(node,worker)
     }
+  , swapWorkers: function(ws,node,spot) {
+      gui.board.swapWorkers(node,spot)
+    }
   , setEndVP: function(ws,lvl,worker) {
       gui.board.placeWorkerOnVP(lvl,worker)
     }

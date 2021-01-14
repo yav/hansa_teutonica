@@ -175,6 +175,15 @@ function drawLog() {
         break
       }
 
+      case 'used-bonus-swap': {
+        lab('Used ')
+        sayBonus(msg.bonus)
+        lab(' on ')
+        sayNode(msg.node)
+        lab(', spot ' + msg.spot)
+        break
+      }
+
 
 
         default:

@@ -48,6 +48,7 @@ data GameUpdate =
   | UseBonusToken PlayerId BonusToken
 
   | PlaceWorkerInOffice NodeId Worker
+  | SwapWorkers NodeId Int  -- swap the worker at the given spot and the prev
 
   | SetWorkerPreference Worker
   | ChangeAvailble Worker Int
@@ -133,6 +134,9 @@ doUpdate upd =
     PlaceWorkerInOffice nodeId worker ->
       Right .
       (gameBoard .> boardNode nodeId `updField` nodeAddWorker worker)
+
+    SwapWorkers nodeId spot ->
+      Right . (gameBoard .> boardNode nodeId `updField` nodeSwap spot)
 
     SetEndVPAt lvl worker ->
       Right .
@@ -262,6 +266,7 @@ instance ToJSON GameUpdate where
       UseBonusToken a b        -> jsCall "useBonusToken" [ js a, js b ]
 
       PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
+      SwapWorkers a b          -> jsCall "swapWorkers" [ js a, js b ]
       SetEndVPAt a b           -> jsCall "setEndVP" [ js a, js b ]
 
       PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
