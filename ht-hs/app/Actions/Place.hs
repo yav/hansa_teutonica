@@ -69,12 +69,12 @@ tryPlace state =
       ChEdgeFull edgeId spot ~(Just workerT) worker ->
         doAction
         do board <- view (getField gameBoard)
-           replaceFee pid 1 (replacementCost (workerType worker))
            update (RemoveWorkerFromEdge edgeId spot)
            update (AddWorkerToHand (edgeProvince edgeId board) worker)
            let ourWorker = Worker { workerOwner = pid, workerType = workerT }
            update (ChangeAvailble ourWorker (-1))
            update (PlaceWorkerOnEdge edgeId spot ourWorker)
+           replaceFee pid 1 (replacementCost (workerType worker))
            update (Log (ReplaceWorker worker ourWorker edgeId spot))
            otherPlayerMoveAndPlace edgeId worker
 
