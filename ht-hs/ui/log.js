@@ -55,7 +55,7 @@ function drawLog() {
           turnBox.classList.add('log-turn')
           dom.prepend(turnBox)
           sayPlayer(msg.player)
-          lab('\'s trun')
+          lab('\'s turn')
           break
         }
 
