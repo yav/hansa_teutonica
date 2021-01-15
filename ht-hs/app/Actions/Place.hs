@@ -34,11 +34,20 @@ tryPlace state =
          canReplace w = workerOwner w /= player &&
                         totWorkers > replacementCost (workerType w)
 
-         getFree      = do guard (getAvailable workerT playerState > 0)
-                           x <- freeSpots board accessible workerT
-                           pure (x, "Place a worker")
-         getFull      = do x <- replaceSpots board accessible workerT canReplace
-                           pure (x, "Replace a worker")
+         disambig     = map snd . Map.elems . Map.fromListWith pickPref
+           where pickPref a@(t1,_) b = if t1 == workerT then a else b
+
+         getFree      = disambig
+                      $ do t <- enumAll
+                           guard (getAvailable t playerState > 0)
+                           x <- freeSpots board accessible t
+                           let ChEdgeEmpty e s _ = x
+                           pure ((e,s), (t,(x,"Place a worker")))
+         getFull      = disambig
+                      $ do t <- enumAll
+                           x <- replaceSpots board accessible t canReplace
+                           let ChEdgeFull e s _ _ = x
+                           pure ((e,s), (t,(x,"Replace a worker")))
          changePref   = do let otherT = otherType workerT
                            guard (getAvailable otherT playerState > 0)
                            let help = "Change preference to " <>
