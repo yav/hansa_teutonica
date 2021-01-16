@@ -34,7 +34,7 @@ import qualified Data.Map.Strict as Map
 import qualified Data.List as List
 import GHC.Generics
 
-import qualified Data.Aeson as JS
+import Data.Aeson(ToJSON)
 
 import Common.Utils
 
@@ -158,5 +158,5 @@ getVP = points
 
 --------------------------------------------------------------------------------
 
-instance JS.ToJSON Player
+instance ToJSON Player
 

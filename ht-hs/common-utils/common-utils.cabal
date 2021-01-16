@@ -18,7 +18,8 @@ library
   ghc-options:         -Wall
   default-language:    Haskell2010
   default-extensions:
-    BlockArguments, OverloadedStrings, FlexibleContexts, MonoLocalBinds
+    BlockArguments, OverloadedStrings, DeriveGeneric,
+    FlexibleContexts, MonoLocalBinds
 
 
 
