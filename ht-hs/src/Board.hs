@@ -134,6 +134,14 @@ replaceSpots board provinceOk workerT workerOk =
   , accepts spotReq workerT && workerOk worker
   ]
 
+moveOpponentSpots :: Board -> PlayerId -> [Choice]
+moveOpponentSpots board playerId =
+  [ ChEdgeFull edgeId spot Nothing worker
+  | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
+  , (spot,_,worker) <- edgeWorkers edgeState
+  , workerOwner worker /= playerId
+  ]
+
 replaceTargets ::
   Board ->
   (Maybe ProvinceId -> Bool) ->
