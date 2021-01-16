@@ -216,6 +216,9 @@ function uiQuestions(ws,qs) {
       case 'bonus':
         gui.playerUI().askBonus(q)
         break;
+      case 'upgrade':
+        gui.playerUI().askUpgrade(q)
+        break;
 
       case 'edge-empty':
         gui.board.askEmptyEdgeSpot(q)

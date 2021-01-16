@@ -1,12 +1,13 @@
 module Actions.Common where
 
 import Data.Text(Text)
-import Control.Monad(guard)
+import Control.Monad(guard,when)
 
 import Common.Interact
 import Common.Field
 
 import Basics
+import Stats
 import Player
 import Question
 import Game
@@ -31,5 +32,16 @@ doAction act =
      update (Log EndAction)
 
 
-
-
+doUpgrade :: PlayerId -> Player -> Stat -> Interact ()
+doUpgrade playerId player stat =
+  do update (Upgrade playerId stat)
+     let worker = Worker { workerOwner = playerId
+                         , workerType = statWorker stat }
+     update (ChangeAvailble worker 1)
+     update (Log (Upgraded playerId stat))
+     when (stat == Actions)
+       do let lvl = getLevel Actions player
+              diff = actionLimit (lvl+1) - actionLimit lvl
+          when (diff > 0) $
+             update (ChangeActionLimit diff)
+ 

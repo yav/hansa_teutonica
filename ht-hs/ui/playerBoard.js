@@ -95,6 +95,11 @@ function drawPlayer(pid,opts) {
       delete doms[info.val]
       info.val = info.val + 1
     }
+
+    ui.askUpgrade = function(q) {
+      const info = statInfo[q.choice.stat]
+      gui.questionAnnot(info.doms[info.val],q)
+    }
   }
 
   { // spent bonus

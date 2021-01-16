@@ -2,16 +2,19 @@ module Actions.Bonus where
 
 import Control.Monad(guard)
 
+import Common.Utils
 import Common.Basics
 import Common.Field
 import Common.Interact
 
+import Basics
 import Question
 import Bonus
 import Player
 import Game
 import Event
 import Board
+import Stats
 
 import Actions.Common
 
@@ -30,7 +33,15 @@ bonusAction b state =
      case b of
        BonusAct3 -> [ opt (update (ChangeActionLimit 3)) ]
        BonusAct4 -> [ opt (update (ChangeActionLimit 4)) ]
-       BonusUpgrade -> []
+       BonusUpgrade ->
+         do let stats = [ s | s <- enumAll, getLevel s player < maxStat s ]
+            guard (not (null stats))
+            pure $ opt $ askInputs [ ( playerId :-> ChUpgrade stat
+                                     , "Upgrade " <> jsKey stat
+                                     , doUpgrade playerId player stat
+                                     ) | stat <- stats
+              ]
+
        BonusSwap ->
          [ ( playerId :-> q
            , "Move back using bonus token"

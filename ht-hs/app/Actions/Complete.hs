@@ -170,17 +170,7 @@ tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
           [ ( playerId :-> ChNodeUpgrade nodeId stat
             , "Upgrade " <> jsKey stat
             , edgeId
-            , completeAction edgeId playerId
-              do update (Upgrade playerId stat)
-                 let worker = Worker { workerOwner = playerId
-                                     , workerType = statWorker stat }
-                 update (ChangeAvailble worker 1)
-                 update (Log (Upgraded playerId stat))
-                 when (stat == Actions)
-                   do let lvl = getLevel Actions player
-                          diff = actionLimit (lvl+1) - actionLimit lvl
-                      when (diff > 0) $
-                         update (ChangeActionLimit diff)
+            , completeAction edgeId playerId (doUpgrade playerId player stat)
             )
           ]
         | otherwise -> []

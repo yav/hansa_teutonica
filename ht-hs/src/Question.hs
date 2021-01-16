@@ -17,7 +17,9 @@ data Choice =
     ChSetPreference WorkerType
   | ChActiveWorker WorkerType
   | ChPassiveWorker WorkerType
+  | ChUpgrade Stat
   | ChBonusToken BonusToken
+
   | ChEdgeEmpty EdgeId Int WorkerType
   | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
   | ChEdge      EdgeId
@@ -61,6 +63,7 @@ instance JS.FromJSON Choice where
          "active"  -> ChActiveWorker  <$> (o .: "worker")
          "passive" -> ChPassiveWorker <$> (o .: "worker")
          "bonus"   -> ChBonusToken    <$> (o .: "bonus")
+         "upgrade" -> ChUpgrade       <$> (o .: "stat")
          _ -> fail "Unknown choice"
 
 instance JS.ToJSON Choice where
@@ -70,6 +73,7 @@ instance JS.ToJSON Choice where
       ChActiveWorker wt   -> jsTagged "active"  [ "worker" .= wt ]
       ChPassiveWorker wt  -> jsTagged "passive" [ "worker" .= wt ]
       ChBonusToken bt     -> jsTagged "bonus"   [ "bonus"  .= bt ]
+      ChUpgrade s         -> jsTagged "upgrade" [ "stat"   .= s  ]
 
       ChEdge eid          -> jsTagged "edge" [ "edge" .= eid ]
       ChEdgeEmpty eid spot sh -> jsTagged "edge-empty"
