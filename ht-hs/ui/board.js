@@ -84,40 +84,6 @@ function drawBoard(opts) {
     return dom
   } ()
 
-
-
-  const question = function() {
-    const questionsEmpty = []
-    const questionsFull  = []
-
-    const removeQuestions = function() {
-      for (let i = 0; i < questionsEmpty.length; ++i) questionsEmpty[i].remove()
-      for (let i = 0; i < questionsFull.length; ++i) {
-        const info = questionsFull[i]
-        const dom = info.dom
-        dom.classList.remove('question')
-        dom.removeEventListener('click',info.fun)
-      }
-    }
-
-    const q = {}
-    q.addFull = function(el,f) {
-      questionsFull[questionsFull.length] = { dom: el
-                                            , fun: makeQuestion(el,"add full",f)
-                                            }
-    }
-
-    q.addEmpty = function(el,f) {
-      makeQuestion(el,"add empty",f)
-      el.classList.add('new')
-      questionsEmpty[questionsEmpty.length] = el
-      dom.append(el)
-    }
-
-    return q
-  }()
-
-
   { // Full marker
     const el = document.createElement('div')
     el.classList.add('fullMarker')
@@ -142,11 +108,10 @@ function drawBoard(opts) {
     const nextAnnexLoc = function(node,shape) {
       let loc = lastAnnex[node]
       if (loc === undefined) {
-        loc   = board.nodeSpot(node,0)
-        loc.x = loc.x - 0.5 * board.workerSize
+        const tmp = board.nodeSpot(node,0)
+        loc = { x: tmp.x - 0.5 * board.workerSize, y: tmp.y }
       }
-      loc.x = loc.x - 1.5 * workerSize(board.workerSize,shape)
-      return loc
+      return { x: loc.x - 1.5 * workerSize(board.workerSize,shape), y: loc.y }
     }
 
     const addAnnex = function(node,worker) {
@@ -156,12 +121,15 @@ function drawBoard(opts) {
       dom.appendChild(el)
     }
 
-    const askAnnex = function(node,worker) {
-      const loc = nextAnnexLoc(node,worker.shape)
+    const askAnnex = function(q) {
+      console.log('before',lastAnnex[q.choice.node])
+      const loc = nextAnnexLoc(q.choice.node,q.choice.shape)
+      console.log('after',lastAnnex[q.choice.node])
+      const worker = { owner: playerId, shape: q.choice.shape }
       const el  = drawWorkerAt(loc,board.workerSize,worker)
-      question.addEmpty(el,function() {
-        console.log('add annex on ' + node)
-      })
+      el.classList.add('empty')
+      dom.appendChild(el)
+      gui.questionNew(el,q)
     }
 
     const placedOffices = {} // info about offices in a node

@@ -11,6 +11,7 @@ import Common.Field
 
 import Basics
 import Stats
+import Bonus
 import Player
 import Board
 import Geometry
@@ -33,7 +34,8 @@ tryCompleteEdge state =
      (edgeId,edgeInfo) <- fullEdgesFor playerId board
      tryJustComplete edgeId playerId ++
        do (nodeId,nodeInfo) <- getEdgeNodes edgeId state
-          concat [ tryAnnex nodeInfo playerState
+          concat [ tryAnnex edgeId edgeInfo nodeId nodeInfo
+                                                          playerId playerState
                  , tryOffice nodeId nodeInfo playerId playerState
                                                               edgeId edgeInfo
                  , tryAction state nodeId nodeInfo edgeId edgeInfo
@@ -150,8 +152,29 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
 
 
 -- | Complete an edge and build an annex using a bonus token
-tryAnnex :: Node -> Player -> [ChoiceWithEdge]
-tryAnnex _ _      = [] -- XXX
+tryAnnex ::
+  EdgeId -> Edge ->
+  NodeId -> Node ->
+  PlayerId -> Player ->
+  [ChoiceWithEdge]
+tryAnnex edgeId edgeInfo nodeId nodeInfo playerId player =
+  do guard (nodeAcceptsAnnex nodeInfo && BonusExtra `elem` getBonuses player)
+     -- build annex with a cube, unless all workers are discs
+     let ws = edgeWorkers edgeInfo
+         isCube (_,_,w)  = workerType w == Cube
+         (spot,_,worker) = case filter isCube ws of
+                             t : _ -> t
+                             []    -> head ws
+
+     pure ( playerId :-> ChNodeAnnex nodeId (workerType worker)
+          , "Use bonus to build annex"
+          , edgeId
+          , completeAction edgeId playerId
+            do update (UseBonusToken playerId BonusExtra)
+               update (RemoveWorkerFromEdge edgeId spot)
+               update (PlaceWorkerInAnnex nodeId worker)
+               update (Log (BuildAnnnex nodeId worker BonusExtra))
+          )
 
 -- | Complete an edge and use a special action
 tryAction ::

@@ -184,6 +184,16 @@ function drawLog() {
         break
       }
 
+      case 'build-annex': {
+        lab('Used ')
+        sayBonus(msg.bonus)
+        lab(' to build ')
+        sayWorker(msg.worker)
+        lab(' annex in ')
+        sayNode(msg.node)
+        break
+      }
+
 
 
         default:

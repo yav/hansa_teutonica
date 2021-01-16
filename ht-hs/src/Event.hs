@@ -24,6 +24,7 @@ data Event =
   | GainVP PlayerId Int
   | CompleteRoute EdgeId
   | BuildOffice NodeId Worker
+  | BuildAnnnex NodeId Worker BonusToken
   | Upgraded PlayerId Stat
   | Invested NodeId Int Worker
   | PlacedBonus EdgeId BonusToken
@@ -67,6 +68,8 @@ instance ToJSON Event where
       GainVP p n -> jsTagged "vp" [ "player" .= p, "vp" .= n ]
       CompleteRoute e -> jsTagged "complete-route" [ "edge" .= e ]
       BuildOffice n w -> jsTagged "build-office" [ "node" .= n, "worker" .= w ]
+      BuildAnnnex n w b -> jsTagged "build-annex" [ "node" .= n, "worker" .= w
+                                                  , "bonus" .= b ]
 
       PlacedBonus e b -> jsTagged "place-bonus" [ "edge" .= e, "bonus" .= b ]
       UsedBonus b -> jsTagged "used-bonus" [ "bonus" .= b ]

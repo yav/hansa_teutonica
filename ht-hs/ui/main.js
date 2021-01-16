@@ -234,6 +234,10 @@ function uiQuestions(ws,qs) {
         gui.board.askEmptyOffice(q)
         break
 
+      case 'node-annex':
+        gui.board.askAnnex(q)
+        break
+
       case 'node-full':
         gui.board.askFullOffice(q)
         break

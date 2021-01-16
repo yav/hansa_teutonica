@@ -23,10 +23,13 @@ data Choice =
   | ChEdgeEmpty EdgeId Int WorkerType
   | ChEdgeFull  EdgeId Int (Maybe WorkerType) Worker
   | ChEdge      EdgeId
+
   | ChNodeEmpty NodeId WorkerType
+  | ChNodeAnnex NodeId WorkerType
   | ChNodeFull  NodeId Int
   | ChNodeUpgrade NodeId Stat
   | ChEndVPSpot Level
+
   | ChDone Text
     deriving (Eq,Ord,Show,Read)
 
@@ -53,6 +56,7 @@ instance JS.FromJSON Choice where
          "edge" -> ChEdge <$> (o .: "edge")
 
          "node-empty"   -> ChNodeEmpty <$> (o .: "node") <*> (o .: "shape")
+         "node-annex"   -> ChNodeAnnex <$> (o .: "node") <*> (o .: "shape")
          "node-full"    -> ChNodeFull  <$> (o .: "node") <*> (o .: "spot")
          "node-upgrade" -> ChNodeUpgrade <$> (o .: "node") <*> (o .: "action")
 
@@ -90,6 +94,9 @@ instance JS.ToJSON Choice where
 
       ChNodeEmpty nid sh ->
         jsTagged "node-empty" [ "node" .= nid, "shape" .= sh ]
+
+      ChNodeAnnex nid sh ->
+        jsTagged "node-annex" [ "node" .= nid, "shape" .= sh ]
 
       ChNodeFull nid spot ->
         jsTagged "node-full" [ "node" .= nid, "spot" .= spot ]
