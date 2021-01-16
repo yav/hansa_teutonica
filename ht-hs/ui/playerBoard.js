@@ -69,10 +69,8 @@ function drawPlayer(pid,opts) {
     const statInfo = {}
 
     const stats = opts.stats
-    for (let statIx = 0; statIx < stats.length; ++statIx) {
-      const current = stats[statIx]
-      const stat    = current[0]
-      const val     = current[1]
+    for (const stat in opts.stats) {
+      const val = stats[stat]
 
       const  info = layout[stat]
       const  n    = info.x.length
