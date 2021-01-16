@@ -10,7 +10,7 @@ function drawWorker(size,worker) {
 }
 
 function workerSize(size,shape) {
-  return (shape == 'disc') ? size * 1.5 : size
+  return (shape == 'Disc') ? size * 1.5 : size
 }
 
 function drawWorkerAt(loc,size,worker) {

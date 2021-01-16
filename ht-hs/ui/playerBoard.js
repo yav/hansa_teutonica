@@ -74,7 +74,7 @@ function drawPlayer(pid,opts) {
       const  val  = opts[stat]
       const  doms = {}
       for (let i = val; i < n; ++i) {
-        const worker = { shape: info.shape == 'disc' ? 'disc' : 'cube'
+        const worker = { shape: info.shape == 'disc' ? 'Disc' : 'Cube'
                        , owner: pid
                        }
         const loc = { x: info.x[i]*height, y: y }
@@ -169,12 +169,12 @@ function drawPlayer(pid,opts) {
 
   function drawSupply(which,name) {
     const b = pBox()
-    drawSupplyIn(b,which,'cube',name)
+    drawSupplyIn(b,which,'Cube',name)
     const sep = document.createElement('div')
     sep.classList.add('player-sep')
     sep.style.width = wsize / 2
     b.appendChild(sep)
-    drawSupplyIn(b,which,'disc',name)
+    drawSupplyIn(b,which,'Disc',name)
     return b
   }
   const available = drawSupply('available','Available')

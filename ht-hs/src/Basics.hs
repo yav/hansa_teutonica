@@ -4,7 +4,6 @@ module Basics
   ) where
 
 import GHC.Generics
-import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
 import Common.Utils
 
@@ -54,26 +53,16 @@ data Worker = Worker
 instance JSKey WorkerType where
   jsKey wt =
     case wt of
-      Disc -> "disc"
-      Cube -> "cube"
+      Disc -> "Disc"
+      Cube -> "Cube"
 
-instance JS.ToJSON WorkerType where
-  toJSON = jsEnum
+instance JS.ToJSONKey WorkerType
+instance JS.ToJSON    WorkerType
+instance JS.FromJSON  WorkerType
 
-instance JS.ToJSON Worker where
-  toJSON worker =
-    JS.object [ "owner" .= owner worker
-              , "shape" .= shape worker
-              ]
-
-instance JS.FromJSON Worker where
-  parseJSON = JS.withObject "worker" \o ->
-    do owner <- o .: "owner"
-       shape <- o .: "shape"
-       pure Worker { .. }
+instance JS.ToJSON    Worker
+instance JS.FromJSON  Worker
 
 
-instance JS.FromJSON WorkerType where
-  parseJSON = jsParseEnum "worker type"
 
 

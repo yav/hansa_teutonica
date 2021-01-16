@@ -319,7 +319,7 @@ function drawBoard(opts) {
 
     const askWorker = function(q) {
       const loc = board.ptsSpot(q.choice.level)
-      const worker = { shape: 'disc', owner: playerId }
+      const worker = { shape: 'Disc', owner: playerId }
       const el = drawWorkerAt(loc, board.workerSize, worker)
       el.classList.add('empty')
       dom.append(el)
