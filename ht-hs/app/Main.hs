@@ -18,6 +18,7 @@ import Board.Index
 
 import Game
 import Event(Event)
+import Question(Choice)
 import Common.Interact
 
 main :: IO ()
@@ -30,7 +31,7 @@ main =
              do rng <- newTFGen
                 let mkP = PlayerId . Text.pack
                     players = Set.fromList (map mkP ps)
-                    str = $(jsHandlers [''Event])
+                    str = $(jsHandlers [''Choice, ''Event])
                 putStrLn str
                 newServer (BS8.pack str) GameInfo
                   { gPlayers = players

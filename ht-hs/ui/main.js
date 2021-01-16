@@ -199,58 +199,42 @@ function uiRedraw(ws,state) {
 function uiQuestions(ws,qs) {
   for (let i = 0; i < qs.length; ++i) {
     const q = qs[i]
-    switch(q.choice.tag) {
-      case 'prefer':
-        gui.playerUI().askPreference(q)
-        break
-      case 'active':
-        gui.playerUI().askWorker('available',q)
-        break
-      case 'passive':
-        gui.playerUI().askWorker('unavailable',q)
-        break
-      case 'bonus':
-        gui.playerUI().askBonus(q)
-        break;
-      case 'upgrade':
-        gui.playerUI().askUpgrade(q)
-        break;
+    const ui = {}
 
-      case 'edge-empty':
-        gui.board.askEmptyEdgeSpot(q)
-        break
-      case 'edge-full':
-        gui.board.askFullEdgeSpot(q)
-        break
-      case 'edge':
-        gui.board.askEdge(q)
-        break
-
-      case 'node-empty':
-        gui.board.askEmptyOffice(q)
-        break
-
-      case 'node-annex':
-        gui.board.askAnnex(q)
-        break
-
-      case 'node-full':
-        gui.board.askFullOffice(q)
-        break
-
-      case 'node-upgrade':
-        gui.board.askUpgrade(q)
-        break
-
-      case 'end-vp':
-        gui.board.askWorkerOnVP(q)
-        break
-
-      case 'done':
-        gui.turn.askDone(q)
-        break
-
+    // Player
+    ui.ChSetPreference = function(shape) { gui.playerUI().askPreference(q) }
+    ui.ChActiveWorker = function(shape) {
+      gui.playerUI().askWorker('available',shape,q)
     }
+    ui.ChPassiveWorker = function(shape) {
+      gui.playerUI().askWorker('unavailable',shape,q)
+    }
+    ui.ChBonusToken = function(bonus) { gui.playerUI().askBonus(bonus,q) }
+    ui.ChUpgrade = function(stat) { gui.playerUI().askUpgrade(stat,q) }
+
+    // Edges
+    ui.ChEdgeEmpty = function(edge,spot,shape) {
+      gui.board.askEmptyEdgeSpot(edge,spot,shape,q)
+    }
+    ui.ChEdgeFull = function(edge,spot,mbShape,worker) {
+      gui.board.askFullEdgeSpot(edge,spot,mbShape,worker,q)
+    }
+    ui.ChEdge = function(edge) { gui.board.askEdge(edge,q) }
+
+    // Nodes
+    ui.ChNodeEmpty = function(node,shape) {
+      gui.board.askEmptyOffice(node,shape,q)
+    }
+    ui.ChNodeAnnex = function(node,shape) { gui.board.askAnnex(node,shape,q) }
+
+    ui.ChNodeFull = function(node,spot) { gui.board.askFullOffice(node,spot,q) }
+    ui.ChNodeUpgrade = function(node,stat) { gui.board.askUpgrade(node,stat,q) }
+    ui.ChEndVPSpot = function(level) { gui.board.askWorkerOnVP(level,q) }
+
+    // Button
+    ui.ChDone = function(text) { gui.turn.askDone(text,q) }
+
+    hsChoice(ui)(q.choice)
   }
 }
 

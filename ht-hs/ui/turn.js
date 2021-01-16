@@ -83,11 +83,11 @@ function drawTurn(turn) {
       }
 
   , askDone:
-      function(json) {
+      function(text,json) {
         const btn = document.createElement('span')
         btn.classList.add('turn-player')
         btn.classList.add(gui.colors[turn.player])
-        btn.textContent = json.choice.message
+        btn.textContent = text
         gui.questionNew(group([btn]), json)
       }
 

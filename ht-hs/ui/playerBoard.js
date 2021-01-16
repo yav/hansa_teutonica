@@ -101,8 +101,8 @@ function drawPlayer(pid,opts) {
       info.val = info.val + 1
     }
 
-    ui.askUpgrade = function(q) {
-      const info = statInfo[q.choice.stat]
+    ui.askUpgrade = function(stat,q) {
+      const info = statInfo[stat]
       gui.questionAnnot(info.doms[info.val],q)
     }
   }
@@ -217,9 +217,9 @@ function drawPlayer(pid,opts) {
   ui.setPreference = setPref
 
 
-  ui.askWorker = function(which,json) {
+  ui.askWorker = function(which,shape,json) {
     const shapes = workerInfo[which]
-    const info = shapes[json.choice.worker]
+    const info = shapes[shape]
     gui.questionAnnot(info.dom,json)
   }
 
@@ -283,8 +283,8 @@ function drawPlayer(pid,opts) {
       }
     }
 
-    ui.askBonus = function(q) {
-      const info = bonusInfo[q.choice.bonus]
+    ui.askBonus = function(bonus,q) {
+      const info = bonusInfo[bonus]
       gui.questionAnnot(info.dom,q)
     }
   }

@@ -121,11 +121,11 @@ function drawBoard(opts) {
       dom.appendChild(el)
     }
 
-    const askAnnex = function(q) {
-      console.log('before',lastAnnex[q.choice.node])
-      const loc = nextAnnexLoc(q.choice.node,q.choice.shape)
-      console.log('after',lastAnnex[q.choice.node])
-      const worker = { owner: playerId, shape: q.choice.shape }
+    const askAnnex = function(node,shape,q) {
+      console.log('before',lastAnnex[node])
+      const loc = nextAnnexLoc(node,shape)
+      console.log('after',lastAnnex[node])
+      const worker = { owner: playerId, shape: shape }
       const el  = drawWorkerAt(loc,board.workerSize,worker)
       el.classList.add('empty')
       dom.appendChild(el)
@@ -150,14 +150,14 @@ function drawBoard(opts) {
     }
 
 
-    const askFullOffice = function(q) {
-      const info = placedOffices[q.choice.node][q.choice.spot]
+    const askFullOffice = function(node,spot,q) {
+      const info = placedOffices[node][spot]
       gui.questionAnnot(info.dom,q)
     }
 
-    const askEmptyOffice = function(q) {
-      const loc = nextOfficeLoc(q.choice.node)
-      const worker = { owner: playerId, shape: q.choice.shape }
+    const askEmptyOffice = function(node,shape,q) {
+      const loc = nextOfficeLoc(node)
+      const worker = { owner: playerId, shape: shape }
       const el = drawWorkerAt(loc,board.workerSize,worker)
       el.classList.add('empty')
       dom.appendChild(el)
@@ -227,15 +227,15 @@ function drawBoard(opts) {
       placed[spot] = el
     }
 
-    const askEmptyWorker = function(json) {
-      const w = { owner: playerId, shape: json.choice.shape }
-      const b = makeWorker(json.choice.edge,json.choice.spot,w)
+    const askEmptyWorker = function(edge,spot,shape,json) {
+      const w = { owner: playerId, shape: shape }
+      const b = makeWorker(edge,spot,w)
       b.classList.add('empty')
       gui.questionNew(b, json)
     }
 
-    const askFullWorker = function(json) {
-      const w = placedWorkers[json.choice.edge][json.choice.spot]
+    const askFullWorker = function(edge,spot,mbShape,worker,json) {
+      const w = placedWorkers[edge][spot]
       gui.questionAnnot(w,json)
     }
 
@@ -257,8 +257,7 @@ function drawBoard(opts) {
       placedBonuses[edge] = el
     }
 
-    const askEdge = function(q) {
-      const edge = q.choice.edge
+    const askEdge = function(edge,q) {
       const n    = board.edgeLen(edge) - 1
       for (let i = 0; i < n; ++i) {
         const from = board.edgeSpot(edge,i)
@@ -317,8 +316,8 @@ function drawBoard(opts) {
       dom.appendChild(el)
     }
 
-    const askWorker = function(q) {
-      const loc = board.ptsSpot(q.choice.level)
+    const askWorker = function(level,q) {
+      const loc = board.ptsSpot(level)
       const worker = { shape: 'Disc', owner: playerId }
       const el = drawWorkerAt(loc, board.workerSize, worker)
       el.classList.add('empty')
@@ -333,9 +332,8 @@ function drawBoard(opts) {
   }
 
   { // upgrade actions
-    const askUpgrade = function (q) {
-      console.log(q)
-      const loc = board.upgradeSpot(q.choice.action)
+    const askUpgrade = function (node,stat,q) {
+      const loc = board.upgradeSpot(stat)
       const el = document.createElement('div')
       el.classList.add('upgrade-action')
       const style = el.style

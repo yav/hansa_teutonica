@@ -193,8 +193,6 @@ function drawLog() {
 
       box = document.createElement('div')
       box.classList.add('log-item')
-
-      console.log(msg)
       if (handler(msg)) {
         const el = actionBox ? actionBox
                  : (turnBox   ? turnBox : dom)
