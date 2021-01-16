@@ -191,12 +191,8 @@ function uiRedraw(ws,state) {
     }
   }
 
-
-
   // questions
   uiQuestions(ws, state.questions)
-  if (state.questions.length > 0)
-    gui.alert('You have pending actions')
 }
 
 
