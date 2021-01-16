@@ -112,15 +112,15 @@ doUpdate upd =
 
     SetWorkerPreference Worker {..} ->
       Right .
-        (gamePlayer workerOwner `updField` setWorkerPreference workerType)
+        (gamePlayer owner `updField` setWorkerPreference shape)
 
     ChangeAvailble Worker{..} n ->
       Right .
-        (gamePlayer workerOwner `updField` changeAvailable workerType n)
+        (gamePlayer owner `updField` changeAvailable shape n)
 
     ChangeUnavailable Worker{..} n ->
       Right .
-        (gamePlayer workerOwner `updField` changeUnavailable workerType n)
+        (gamePlayer owner `updField` changeUnavailable shape n)
 
     ChangeVP playerId n ->
       Right . (gamePlayer playerId `updField` addVP n)

@@ -99,7 +99,7 @@ edgeWorkers e =
 edgeReadyFor :: PlayerId -> Edge -> Bool
 edgeReadyFor playerId = all ok . edgeSpots
   where ok spot = case edgeSpotWorker spot of
-                    Just worker -> workerOwner worker == playerId
+                    Just worker -> owner worker == playerId
                     Nothing     -> False
 
 -- | Remove all workers from an edge.

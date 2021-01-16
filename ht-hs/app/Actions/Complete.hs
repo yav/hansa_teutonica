@@ -133,7 +133,7 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
      guard (spotPrivilege spot <= getLevel Privilege playerState)
      (edgeSpotId,worker) <- maybeToList
               $ msum $ map (suitableWorkerFor spot) $ edgeWorkers edgeInfo
-     pure ( workerOwner worker :-> ChNodeEmpty nodeId (workerType worker)
+     pure ( owner worker :-> ChNodeEmpty nodeId (shape worker)
           , "Build office"
           , edgeId
           , completeAction edgeId playerId
@@ -147,7 +147,7 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
           )
   where
   suitableWorkerFor spot (i,_,w)
-    | accepts (spotRequires spot) (workerType w) = Just (i,w)
+    | accepts (spotRequires spot) (shape w) = Just (i,w)
     | otherwise = Nothing
 
 
@@ -161,12 +161,12 @@ tryAnnex edgeId edgeInfo nodeId nodeInfo playerId player =
   do guard (nodeAcceptsAnnex nodeInfo && BonusExtra `elem` getBonuses player)
      -- build annex with a cube, unless all workers are discs
      let ws = edgeWorkers edgeInfo
-         isCube (_,_,w)  = workerType w == Cube
+         isCube (_,_,w)  = shape w == Cube
          (spot,_,worker) = case filter isCube ws of
                              t : _ -> t
                              []    -> head ws
 
-     pure ( playerId :-> ChNodeAnnex nodeId (workerType worker)
+     pure ( playerId :-> ChNodeAnnex nodeId (shape worker)
           , "Use bonus to build annex"
           , edgeId
           , completeAction edgeId playerId
@@ -203,7 +203,7 @@ tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
            guard (isNothing (gameEndVPSpot lvl state))
 
            let ws = edgeWorkers edgeInfo
-               isDisc (_,_,w) = workerType w == Disc
+               isDisc (_,_,w) = shape w == Disc
            case break isDisc ws of
              (_,[]) -> []
              (_,(spot,_,worker) : _) ->

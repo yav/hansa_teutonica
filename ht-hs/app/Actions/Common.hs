@@ -35,8 +35,7 @@ doAction act =
 doUpgrade :: PlayerId -> Player -> Stat -> Interact ()
 doUpgrade playerId player stat =
   do update (Upgrade playerId stat)
-     let worker = Worker { workerOwner = playerId
-                         , workerType = statWorker stat }
+     let worker = Worker { owner = playerId, shape = statWorker stat }
      update (ChangeAvailble worker 1)
      update (Log (Upgraded playerId stat))
      when (stat == Actions)

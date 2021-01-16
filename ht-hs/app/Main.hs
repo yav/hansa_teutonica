@@ -30,10 +30,10 @@ main =
                 newServer GameInfo
                   { gPlayers = players
                   , gState = initialGame rng board players
-                  , gInit = do let w1 = Worker { workerOwner = mkP (ps !! 0)
-                                               , workerType = Cube }
-                               let w2 = Worker { workerOwner = mkP (ps !! 1)
-                                               , workerType = Cube }
+                  , gInit = do let w1 = Worker { owner = mkP (ps !! 0)
+                                               , shape = Cube }
+                               let w2 = Worker { owner = mkP (ps !! 1)
+                                               , shape = Cube }
                                update (PlaceWorkerInOffice 0 w1)
                                update (PlaceWorkerInOffice 0 w2)
                                nextAction

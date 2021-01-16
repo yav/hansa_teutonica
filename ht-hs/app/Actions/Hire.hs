@@ -42,7 +42,7 @@ tryHire state0 =
 
   hire n t =
     do playerId <- view (currentPlayer . getField gameTurn)
-       let w = Worker { workerOwner = playerId, workerType = t }
+       let w = Worker { owner = playerId, shape = t }
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
        update (Log (EvHire w n))

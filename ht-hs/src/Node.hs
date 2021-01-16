@@ -115,7 +115,7 @@ nodeWorkers = fullSpots
 
 -- | Get the player who has the right-most worker in a node, if any.
 nodeRightMost :: Node -> Maybe PlayerId
-nodeRightMost = fmap workerOwner . listToMaybe . fullSpots
+nodeRightMost = fmap owner . listToMaybe . fullSpots
 
 -- | Compute who is currently in control if the node, if any.
 nodeControlledBy :: Node -> Maybe PlayerId
@@ -124,7 +124,7 @@ nodeControlledBy n =
     [] -> Nothing
     _  -> Just $ fst $ maximumBy (compare `on` snd) vals
   where
-  addVal (w,we) = Map.insertWith (+) (workerOwner w) (1+we :: Double)
+  addVal (w,we) = Map.insertWith (+) (owner w) (1+we :: Double)
   vals  = Map.toList
         $ foldr addVal Map.empty
         $ zip (fullSpots n ++ reverse (nodeExtra n))

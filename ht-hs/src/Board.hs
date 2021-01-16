@@ -140,7 +140,7 @@ moveOpponentSpots board playerId =
   [ ChEdgeFull edgeId spot Nothing worker
   | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
   , (spot,_,worker) <- edgeWorkers edgeState
-  , workerOwner worker /= playerId
+  , owner worker /= playerId
   ]
 
 replaceTargets ::
@@ -207,7 +207,7 @@ swappableOffices playerId board =
   | (nodeId,nodeInfo) <- Map.toList (getField boardNodes board)
   , let ws = zip [ 0 .. ] (reverse (nodeWorkers nodeInfo))
   , ((_,prevW),(spot,curW)) <- zip ws (drop 1 ws)
-  , workerOwner curW /= playerId && workerOwner curW /= workerOwner prevW
+  , owner curW /= playerId && owner curW /= owner prevW
   ]
 
 

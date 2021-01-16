@@ -78,7 +78,7 @@ bonusAction b state =
               let prov = edgeProvince edgeId board
               update (AddWorkerToHand prov worker)
               update (Log (PickUp worker edgeId spot))
-              let spots = freeSpots board (== prov) (workerType worker)
+              let spots = freeSpots board (== prov) (shape worker)
               askInputs [ ( playerId :-> q
                           , "Put down " <> showText n <> "/" <> showText l
                           , doPutDown n l worker q

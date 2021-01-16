@@ -31,8 +31,8 @@ tryPlace state =
                         (`Map.lookup` gateways) =<< edgeProvince edgeId board
 
          totWorkers   = sum (map (`getAvailable` playerState) enumAll)
-         canReplace w = workerOwner w /= player &&
-                        totWorkers > replacementCost (workerType w)
+         canReplace w = owner w /= player &&
+                        totWorkers > replacementCost (shape w)
 
          disambig     = map snd . Map.elems . Map.fromListWith pickPref
            where pickPref a@(t1,_) b = if t1 == workerT then a else b
@@ -62,12 +62,12 @@ tryPlace state =
   handleChoice gatewayFor (pid :-> ch) =
     case ch of
       ChSetPreference t ->
-        do let w = Worker { workerOwner = pid, workerType = t }
+        do let w = Worker { owner = pid, shape = t }
            update (SetWorkerPreference w)
 
       ChEdgeEmpty edgeId spot workerT ->
         doAction
-        do let w = Worker { workerOwner = pid, workerType = workerT }
+        do let w = Worker { owner = pid, shape = workerT }
            update (ChangeAvailble w (-1))
            case gatewayFor edgeId of
              Just g -> update (UseGateway g)
@@ -80,10 +80,10 @@ tryPlace state =
         do board <- view (getField gameBoard)
            update (RemoveWorkerFromEdge edgeId spot)
            update (AddWorkerToHand (edgeProvince edgeId board) worker)
-           let ourWorker = Worker { workerOwner = pid, workerType = workerT }
+           let ourWorker = Worker { owner = pid, shape = workerT }
            update (ChangeAvailble ourWorker (-1))
            update (PlaceWorkerOnEdge edgeId spot ourWorker)
-           replaceFee pid 1 (replacementCost (workerType worker))
+           replaceFee pid 1 (replacementCost (shape worker))
            update (Log (ReplaceWorker worker ourWorker edgeId spot))
            otherPlayerMoveAndPlace edgeId worker
            update (Prepare pid "Continue turn")
@@ -98,7 +98,7 @@ tryPlace state =
              discs = getAvailable Disc playerState
              todo  = 1 + total - doing
              disable n t =
-               do let w = Worker { workerOwner = playerId, workerType = t }
+               do let w = Worker { owner = playerId, shape = t }
                   update (ChangeAvailble w (-n))
                   update (ChangeUnavailable w n)
                   update (Log (Retire w n))
@@ -129,16 +129,16 @@ tryPlace state =
 
 
   otherPlayerMoveAndPlace edgeId worker =
-    do tgts <- placeOpts edgeId (workerType worker)
-       update (Prepare (workerOwner worker) "Your worker was replaced")
+    do tgts <- placeOpts edgeId (shape worker)
+       update (Prepare (owner worker) "Your worker was replaced")
        ~(ChEdgeEmpty tgtEdgeId spot _) <-
-            choose (workerOwner worker)
+            choose (owner worker)
               [ (ch, "Location for replaced worker") | ch <- tgts ]
        update RemoveWokerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
        update (Log (MoveWorkerTo tgtEdgeId spot worker))
-       placeExtra (workerOwner worker) edgeId
-                                  1 (replacementCost (workerType worker))
+       placeExtra (owner worker) edgeId
+                                  1 (replacementCost (shape worker))
 
   placeExtra playerId edgeId placing total
     | placing > total = pure ()
@@ -150,8 +150,8 @@ tryPlace state =
                           pure [ (playerId :-> o,
                                  "Place bonus worker " <> showText placing
                                               <> "/" <> showText total
-                               , do let w = Worker { workerOwner = playerId
-                                                   , workerType = t
+                               , do let w = Worker { owner = playerId
+                                                   , shape = t
                                                    }
                                     update (ChangeUnavailable w (-1))
                                     update (PlaceWorkerOnEdge eId spot w)
@@ -172,8 +172,8 @@ tryPlace state =
               where changePref = ( playerId :-> ChSetPreference otherT
                                  , "Change preference to " <> jsKey otherT
                                  , do update (SetWorkerPreference
-                                                Worker { workerOwner = playerId
-                                                       , workerType = otherT
+                                                Worker { owner = playerId
+                                                       , shape = otherT
                                                        })
                                       placeExtra playerId edgeId placing total
                                  )

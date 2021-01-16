@@ -33,7 +33,7 @@ tryMove state0 =
      let board      = getField gameBoard state
          turn       = getField gameTurn state
          player     = currentPlayer turn
-         canMove w  = workerOwner w == player
+         canMove w  = owner w == player
      in pickupSpots board (const True) canMove
 
   pickupQuestion num player limit opts =
@@ -49,10 +49,10 @@ tryMove state0 =
        update (Log (PickUp w edgeId spot))
        opts <- view movablePieces
        if num < limit
-         then askInputs $ ( workerOwner w :-> ChDone "Done"
+         then askInputs $ ( owner w :-> ChDone "Done"
                           , "No more moves"
                           , putDown)
-                        : pickupQuestion (num+1) (workerOwner w) limit opts
+                        : pickupQuestion (num+1) (owner w) limit opts
          else putDown
 
   putDown =
@@ -63,8 +63,8 @@ tryMove state0 =
          Just (thisProv,w) ->
            do let accessible prov = prov == Nothing || prov == thisProv
               ~(ChEdgeEmpty tgtEdge tgtSpot _) <-
-                     choose (workerOwner w)
-                         do x <- freeSpots board accessible (workerType w)
+                     choose (owner w)
+                         do x <- freeSpots board accessible (shape w)
                             pure (x, "New worker location")
 
               update RemoveWokerFromHand

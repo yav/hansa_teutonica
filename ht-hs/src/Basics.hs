@@ -42,8 +42,8 @@ accepts requirement workerType =
 
 
 data Worker = Worker
-  { workerOwner :: PlayerId
-  , workerType  :: WorkerType
+  { owner :: PlayerId
+  , shape :: WorkerType
   } deriving (Eq,Ord,Show,Generic)
 
 
@@ -62,15 +62,15 @@ instance JS.ToJSON WorkerType where
 
 instance JS.ToJSON Worker where
   toJSON worker =
-    JS.object [ "owner" .= workerOwner worker
-              , "shape" .= workerType worker
+    JS.object [ "owner" .= owner worker
+              , "shape" .= shape worker
               ]
 
 instance JS.FromJSON Worker where
   parseJSON = JS.withObject "worker" \o ->
     do owner <- o .: "owner"
        shape <- o .: "shape"
-       pure Worker { workerOwner = owner, workerType = shape }
+       pure Worker { .. }
 
 
 instance JS.FromJSON WorkerType where
