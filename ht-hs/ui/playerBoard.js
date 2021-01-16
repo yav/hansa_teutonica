@@ -44,23 +44,23 @@ function drawPlayer(pid,opts) {
 
   { // Stats
     const layout =
-          { movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
+          { Movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
                        , y: 0.427
                        , shape: 'disc'
                        }
-          , privilege: { x: [ 0.273, 0.440, 0.608, 0.775 ]
+          , Privilege: { x: [ 0.273, 0.440, 0.608, 0.775 ]
                        , y: 0.533
                        , shape: 'cube'
                        }
-          , keys:      { x: [ 0.255, 0.440, 0.613, 0.805, 1.002 ]
+          , Keys:      { x: [ 0.255, 0.440, 0.613, 0.805, 1.002 ]
                        , y: 0.10
                        , shape: 'rombus'
                        }
-          , actions:   { x: [ 1.555, 1.760, 1.963, 2.18, 2.38, 2.6 ]
+          , Actions:   { x: [ 1.555, 1.760, 1.963, 2.18, 2.38, 2.6 ]
                        , y: 0.15
                        , shape: 'rombus'
                        }
-          , hire:      { x: [ 2.05, 2.26, 2.50, 2.7 ]
+          , Hiring:    { x: [ 2.05, 2.26, 2.50, 2.7 ]
                        , y: 0.38
                        , shape: 'rombus'
                        }

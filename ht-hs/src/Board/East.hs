@@ -318,7 +318,7 @@ board = buildBoard
             { nodeInit =
                 InitNode
                   { initNodeName = "Waren"
-                  , initNodeActions = [ UpdgradeStat Hire , UpdgradeStat Actions ]
+                  , initNodeActions = [ UpdgradeStat Hiring , UpdgradeStat Actions ]
                   , initNodeSpots = []
                   }
             , provinces = []

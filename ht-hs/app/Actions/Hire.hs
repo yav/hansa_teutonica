@@ -21,7 +21,7 @@ tryHire :: PlayerOptions
 tryHire state0 =
   do (turn,playerState) <- startAction state0
      let player     = currentPlayer turn
-         limit      = hireLimit (getLevel Hire playerState)
+         limit      = hireLimit (getLevel Hiring playerState)
          limTxt     = case limit of
                         Nothing -> "Hire all"
                         Just l  -> "Hire 1/" <> Text.pack (show l)

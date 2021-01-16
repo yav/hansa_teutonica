@@ -44,7 +44,7 @@ board = buildBoard
             { nodeInit =
                 InitNode
                   { initNodeName = "Newcastle"
-                  , initNodeActions = [ UpdgradeStat Hire ]
+                  , initNodeActions = [ UpdgradeStat Hiring ]
                   , initNodeSpots =
                       [ NodeSpot
                           { spotVP = 0 , spotRequires = Require Cube , spotPrivilege = 1 }

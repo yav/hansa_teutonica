@@ -1,17 +1,17 @@
 module Stats where
 
-import Data.Aeson(FromJSON,ToJSON)
+import GHC.Generics
 import qualified Data.Aeson as JS
 
 import Common.Utils
 import Basics
 
-data Stat = Keys | Actions | Privilege | Movement | Hire
-  deriving (Eq,Ord,Show,Read,Bounded,Enum)
+data Stat = Keys | Actions | Privilege | Movement | Hiring
+  deriving (Eq,Ord,Show,Generic,Bounded,Enum)
 
 -- | Special actions associated with a node
 data NodeAction = UpdgradeStat Stat | GainEndGamePoints
-  deriving (Eq,Ord,Show,Read)
+  deriving (Eq,Ord,Show)
 
 
 type Level = Int
@@ -87,15 +87,13 @@ endVPTrack priv =
 instance JSKey Stat where
   jsKey stat =
     case stat of
-      Keys      -> "keys"
-      Actions   -> "actions"
-      Privilege -> "privilege"
-      Movement  -> "movement"
-      Hire      -> "hire"
+      Keys      -> "Keys"
+      Actions   -> "Actions"
+      Privilege -> "Privilege"
+      Movement  -> "Movement"
+      Hiring    -> "Hiring"
 
-instance FromJSON Stat where
-  parseJSON = jsParseEnum "stat"
-
-instance ToJSON Stat where
-  toJSON = JS.toJSON . jsKey
+instance JS.ToJSONKey Stat
+instance JS.ToJSON    Stat
+instance JS.FromJSON  Stat
 

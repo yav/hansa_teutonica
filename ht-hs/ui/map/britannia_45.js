@@ -1149,23 +1149,23 @@ var britannia_45 = {
     "x": 573,
     "y": 67
   },
-  "actions": {
+  "Actions": {
     "x": 165,
     "y": 437
   },
-  "movement": {
+  "Movement": {
     "x": 605,
     "y": 469
   },
-  "hire": {
+  "Hiring": {
     "x": 457,
     "y": 179
   },
-  "privilege": {
+  "Privilege": {
     "x": 550,
     "y": 785
   },
-  "keys": {
+  "Keys": {
     "x": 569,
     "y": 390
   }
