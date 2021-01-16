@@ -1,18 +1,12 @@
 module Question where
 
 import Data.Text(Text)
-import Data.Aeson((.:))
-import qualified Data.Aeson as JS
-import Data.Aeson((.=))
+import Data.Aeson(ToJSON,FromJSON)
 import GHC.Generics
-
-import Common.Utils
 
 import Basics
 import Bonus
 import Stats
-
-
 
 data Choice =
     ChSetPreference WorkerType
@@ -34,6 +28,6 @@ data Choice =
   | ChDone Text
     deriving (Eq,Ord,Show,Generic)
 
-instance JS.FromJSON Choice
-instance JS.ToJSON Choice
+instance FromJSON Choice
+instance ToJSON Choice
 
