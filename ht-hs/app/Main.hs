@@ -1,5 +1,6 @@
 module Main(main) where
 
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Text as Text
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -7,6 +8,7 @@ import qualified Data.Set as Set
 import System.Environment(getArgs)
 import System.Random.TF(newTFGen)
 
+import Common.CallJS
 import Common.Server
 
 import Game(initialGame)
@@ -15,6 +17,7 @@ import Basics
 import Board.Index
 
 import Game
+import Event(Event)
 import Common.Interact
 
 main :: IO ()
@@ -27,7 +30,9 @@ main =
              do rng <- newTFGen
                 let mkP = PlayerId . Text.pack
                     players = Set.fromList (map mkP ps)
-                newServer GameInfo
+                    str = $(jsHandlers [''Event])
+                putStrLn str
+                newServer (BS8.pack str) GameInfo
                   { gPlayers = players
                   , gState = initialGame rng board players
                   , gInit = do let w1 = Worker { owner = mkP (ps !! 0)

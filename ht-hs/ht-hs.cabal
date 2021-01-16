@@ -51,13 +51,14 @@ executable ht-hs
     common-utils,
     common-interact,
     containers,
+    bytestring,
     text,
     tf-random,
     ht-hs
 
   default-language:    Haskell2010
   default-extensions:
-    BlockArguments, OverloadedStrings, MultiWayIf
+    BlockArguments, OverloadedStrings, MultiWayIf, TemplateHaskell
 
   ghc-options:         -Wall
 

@@ -3,6 +3,7 @@ module Common.Server
   , GameInfo(..)
   ) where
 
+import Data.ByteString(ByteString)
 import qualified Data.ByteString.Char8 as BS8
 import Data.Text(Text)
 import Data.Map(Map)
@@ -36,8 +37,8 @@ data ServerState = ServerState
   , gameState :: InteractState
   }
 
-newServer :: GameInfo -> IO ()
-newServer ginfo =
+newServer :: ByteString -> GameInfo -> IO ()
+newServer dyn ginfo =
   do ref <- newIORef ServerState { connected = Map.empty
                                  , gameState = startGame ginfo []
                                  }
@@ -49,6 +50,7 @@ newServer ginfo =
                    do conn <- WS.acceptRequest pending
                       WS.withPingThread conn 30 (pure ()) (newClient srv conn)
            )
+         , ("/dynamic.js", Snap.writeBS dyn)
          , ("/", Snap.serveDirectory "ui")
          ]
 

@@ -11,8 +11,9 @@ library
   hs-source-dirs: src
   exposed-modules:
     Common.Basics,
-    Common.Utils
-    Common.Field
+    Common.Utils,
+    Common.Field,
+    Common.CallJS
   build-depends:
     base >=4.13, containers, text, tf-random, aeson, vector, template-haskell
   ghc-options:         -Wall
