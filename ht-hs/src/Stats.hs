@@ -93,7 +93,7 @@ instance JSKey Stat where
       Movement  -> "Movement"
       Hiring    -> "Hiring"
 
-instance JS.ToJSONKey Stat
+instance JS.ToJSONKey Stat where toJSONKey = jsDeriveKey
 instance JS.ToJSON    Stat
 instance JS.FromJSON  Stat
 

@@ -56,7 +56,7 @@ instance JSKey WorkerType where
       Disc -> "Disc"
       Cube -> "Cube"
 
-instance JS.ToJSONKey WorkerType
+instance JS.ToJSONKey WorkerType where toJSONKey = jsDeriveKey
 instance JS.ToJSON    WorkerType
 instance JS.FromJSON  WorkerType
 

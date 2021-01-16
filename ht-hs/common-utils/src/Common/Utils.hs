@@ -12,6 +12,7 @@ import qualified Data.Vector.Mutable as MVector
 import Data.Aeson (ToJSON(toJSON),(.=))
 import qualified Data.Aeson as JS
 import qualified Data.Aeson.Types as JS
+import GHC.Generics
 
 showText :: Show a => a -> Text
 showText = Text.pack . show
@@ -77,4 +78,10 @@ instance JSKey Text where
 
 instance JSKey Int where
   jsKey = showText
+
+
+jsDeriveKey :: (Generic a, JS.GToJSONKey (Rep a)) => JS.ToJSONKeyFunction a
+-- jsDeriveKey :: (Generic a, JS.GetConName (Rep a)) => JS.ToJSONKeyFunction a
+jsDeriveKey = JS.genericToJSONKey JS.defaultJSONKeyOptions
+
 

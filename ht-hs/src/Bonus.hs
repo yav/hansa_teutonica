@@ -4,7 +4,7 @@ import Data.Text(Text)
 import qualified Data.Aeson as JS
 import GHC.Generics
 
-import Common.Utils(enumAll)
+import Common.Utils(enumAll,jsDeriveKey)
 
 data BonusToken =
     BonusUpgrade
@@ -55,7 +55,7 @@ bonusAsKey token =
     BonusAct4    -> "BonusAct4"
 
 instance JS.ToJSON    BonusToken
-instance JS.ToJSONKey BonusToken
+instance JS.ToJSONKey BonusToken where toJSONKey = jsDeriveKey
 instance JS.FromJSON  BonusToken
 
 

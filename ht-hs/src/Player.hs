@@ -35,7 +35,6 @@ import qualified Data.List as List
 import GHC.Generics
 
 import qualified Data.Aeson as JS
-import Data.Aeson ((.=))
 
 import Common.Utils
 
@@ -45,27 +44,31 @@ import Bonus
 
 
 data Player = Player
-  { playerStats         :: Map Stat Level
-  , availableWorkers    :: Map WorkerType Int
-  , unavailableWorkers  :: Map WorkerType Int
-  , availableBonuses    :: [BonusToken]
-  , usedBonuses         :: [BonusToken]
-  , points              :: Int
-  , preference          :: WorkerType
+  { stats         :: Map Stat Level
+  , available     :: Map WorkerType Int
+  , unavailable   :: Map WorkerType Int
+  , bonuses       :: [BonusToken]
+  , spentBonuses  :: [BonusToken]
+  , points        :: Int
+  , preference    :: WorkerType
   } deriving (Show,Generic)
 
 zeroState :: Player
 zeroState = Player
-  { playerStats         = Map.fromList [ (stat,1) | stat <- enumAll ] -- XXX
-  , availableWorkers    = Map.fromList [ (w,0)    | w    <- enumAll ]
-  , unavailableWorkers  = Map.fromList [ (w,0)    | w    <- enumAll ]
+  { stats         = Map.fromList [ (stat,1) | stat <- enumAll ] -- XXX
+  , available     = Map.fromList [ (w,0)    | w    <- enumAll ]
+  , unavailable   = Map.fromList [ (w,0)    | w    <- enumAll ]
+  , preference    = Cube
 
-  , availableBonuses    = [BonusAct3,BonusAct3,BonusAct4,BonusSwap,BonusSwap
-                          , BonusUpgrade, BonusUpgrade, BonusMove, BonusMove
-                          , BonusExtra, BonusExtra ]
-  , usedBonuses         = []
-  , points              = 0
-  , preference          = Cube
+    -- XXX
+  , bonuses       = [ BonusAct3,BonusAct3,BonusAct4
+                    , BonusSwap,BonusSwap
+                    , BonusUpgrade, BonusUpgrade, BonusMove, BonusMove
+                    , BonusExtra, BonusExtra
+                    ]
+
+  , spentBonuses  = []
+  , points        = 0
   }
 
 
@@ -84,22 +87,21 @@ initialPlayer turnOrder =
 -- | Add this many workers to the pool of available worker.
 -- Use negative number to decrease the number of workers.
 changeAvailable :: WorkerType -> Int -> Player -> Player
-changeAvailable w n =
-  \s -> s { availableWorkers = Map.adjust (+n) w (availableWorkers s) }
+changeAvailable w n = \s -> s { available = Map.adjust (+n) w (available s) }
 
 -- | How many workers of the given type we have.
 getAvailable :: WorkerType -> Player -> Int
-getAvailable w s = availableWorkers s Map.! w
+getAvailable w s = available s Map.! w
 
 -- | Add this many workers to the pool of unavailable worker.
 -- Use negative number to decrease the number of workers.
 changeUnavailable :: WorkerType -> Int -> Player -> Player
 changeUnavailable w n =
-  \s -> s { unavailableWorkers = Map.adjust (+n) w (unavailableWorkers s) }
+  \s -> s { unavailable = Map.adjust (+n) w (unavailable s) }
 
 -- | How many workers of the given type we have.
 getUnavailable :: WorkerType -> Player -> Int
-getUnavailable w s = unavailableWorkers s Map.! w
+getUnavailable w s = unavailable s Map.! w
 
 -- | Move the given number of workers from unavailable to available.
 hireWorker :: WorkerType -> Int -> Player -> Player
@@ -117,32 +119,32 @@ setWorkerPreference wt = \s -> s { preference = wt }
 
 -- | Add a bonus token to the player.
 gainBonus :: BonusToken -> Player -> Player
-gainBonus b = \s -> s { availableBonuses = b : availableBonuses s }
+gainBonus b = \s -> s { bonuses = b : bonuses s }
 
 -- | Mark a bonus token as spent.
 useBonus :: BonusToken -> Player -> Player
 useBonus b = \s ->
-  s { availableBonuses = List.delete b (availableBonuses s)
-    , usedBonuses      = b : usedBonuses s
+  s { bonuses      = List.delete b (bonuses s)
+    , spentBonuses = b : spentBonuses s
     }
 
 -- | Get available bonus tokens.
 getBonuses :: Player -> [BonusToken]
-getBonuses = availableBonuses
+getBonuses = bonuses
 
 -- | Get spent bonus tokens.
 getUsedBonuses :: Player -> [BonusToken]
-getUsedBonuses = usedBonuses
+getUsedBonuses = spentBonuses
 
 --------------------------------------------------------------------------------
 
 -- | Increase a player's state.  Note that this does not give the extra worker.
 levelUp :: Stat -> Player -> Player
-levelUp stat s = s { playerStats = Map.adjust (+1) stat (playerStats s) }
+levelUp stat s = s { stats = Map.adjust (+1) stat (stats s) }
 
 -- | Get the level of the specified stat
 getLevel :: Stat -> Player -> Level
-getLevel stat s = playerStats s Map.! stat
+getLevel stat s = stats s Map.! stat
 
 --------------------------------------------------------------------------------
 
@@ -156,19 +158,5 @@ getVP = points
 
 --------------------------------------------------------------------------------
 
-instance JS.ToJSON Player where
-  toJSON p = JS.object $
-    [ jsKey s .= v | (s,v) <- Map.toList (playerStats p) ] ++
-    [ "available"     .= jsMap (availableWorkers p)
-    , "unavailable"   .= jsMap (unavailableWorkers p)
-    , "vp"            .= points p
-    , "bonuses"       .= bonusObj
-    , "spentBonuses"  .= length (usedBonuses p)
-    , "preference"    .= preference p
-    ]
-
-
-    where
-    usedBonusMap = Map.fromListWith (+) [ (b,1::Int) | b <- availableBonuses p ]
-    bonusObj = JS.object [bonusAsKey b .= v | (b,v) <- Map.toList usedBonusMap]
+instance JS.ToJSON Player
 

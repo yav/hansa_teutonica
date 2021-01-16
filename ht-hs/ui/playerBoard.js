@@ -67,17 +67,22 @@ function drawPlayer(pid,opts) {
           }
 
     const statInfo = {}
-    for (const stat in layout) {
+
+    const stats = opts.stats
+    for (let statIx = 0; statIx < stats.length; ++statIx) {
+      const current = stats[statIx]
+      const stat    = current[0]
+      const val     = current[1]
+
       const  info = layout[stat]
       const  n    = info.x.length
       const  y    = height * info.y
-      const  val  = opts[stat]
       const  doms = {}
       for (let i = val; i < n; ++i) {
         const worker = { shape: info.shape == 'disc' ? 'Disc' : 'Cube'
                        , owner: pid
                        }
-        const loc = { x: info.x[i]*height, y: y }
+        const loc = { x: info.x[i] * height, y: y }
         const b = drawWorkerAt(loc,wsize,worker)
         setHelp(b, stat.charAt(0).toUpperCase() + stat.slice(1) +
                                                   ' upgrade ' + worker.shape)
@@ -104,7 +109,7 @@ function drawPlayer(pid,opts) {
 
   { // spent bonus
 
-    let spent = opts.spentBonuses
+    let spent = opts.spentBonuses.length
     let lab = null
 
     const makeSpent = function() {
@@ -245,9 +250,14 @@ function drawPlayer(pid,opts) {
       bar.appendChild(b)
     }
 
-    for (bonus in opts.bonuses) {
-      newBonus(bonus,opts.bonuses[bonus])
+    const count = {}
+    for (let i = 0; i < opts.bonuses.length; ++i) {
+      const bonus = opts.bonuses[i]
+      let cur = count[bonus]
+      if (cur === undefined) cur = 0
+      count[bonus] = cur + 1
     }
+    for (bonus in count) newBonus(bonus,count[bonus])
 
     ui.addBonus = function(bonus) {
       const info = bonusInfo[bonus]
@@ -282,7 +292,7 @@ function drawPlayer(pid,opts) {
   { // VP
     const it = pBox()
     setHelp(it,'Victory points')
-    let vp = opts.vp
+    let vp = opts.points
     it.textContent  = vp + ' VP'
     it.style.fontSize = 0.4 * barHeight
     bar.appendChild(it)
