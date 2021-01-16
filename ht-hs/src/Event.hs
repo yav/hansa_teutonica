@@ -2,6 +2,7 @@ module Event where
 
 import Data.Aeson(ToJSON,(.=))
 import qualified Data.Aeson as JS
+import GHC.Generics
 
 import Common.Utils
 
@@ -30,7 +31,7 @@ data Event =
   | PlacedBonus EdgeId BonusToken
   | UsedBonus BonusToken
   | SwappedWorkers NodeId Int BonusToken
-    deriving (Read,Show)
+    deriving (Show,Generic)
 
 instance ToJSON Event where
   toJSON ev =

@@ -27,6 +27,7 @@ import Data.Maybe(listToMaybe)
 import Data.List(maximumBy)
 import Data.Function(on)
 import qualified Data.Map as Map
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -42,14 +43,14 @@ data Node = Node
   , nodeExtra     :: [Worker]
   , nodeActions'  :: [NodeAction]
   , nodeIsGreen   :: Bool
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 -- | A spot in a node
 data NodeSpot = NodeSpot
   { spotRequires  :: RequireWorker
   , spotPrivilege :: Int
   , spotVP        :: Int
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 -- | Description of an empty node
 data InitNode = InitNode

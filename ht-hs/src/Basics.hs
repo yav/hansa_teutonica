@@ -3,6 +3,7 @@ module Basics
   , module Common.Basics
   ) where
 
+import GHC.Generics
 import Data.Aeson ((.=),(.:))
 import qualified Data.Aeson as JS
 import Common.Utils
@@ -14,7 +15,7 @@ type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 
 data WorkerType   = Cube | Disc
-  deriving (Eq,Ord,Show,Read,Bounded,Enum)
+  deriving (Eq,Ord,Show,Generic,Bounded,Enum)
 
 replacementCost :: WorkerType -> Int
 replacementCost wt =
@@ -31,7 +32,7 @@ otherType ty =
 
 
 data RequireWorker = AnyWorker | Require WorkerType
-  deriving (Eq,Ord,Read,Show)
+  deriving (Eq,Ord,Show,Generic)
 
 accepts :: RequireWorker -> WorkerType -> Bool
 accepts requirement workerType =
@@ -43,7 +44,7 @@ accepts requirement workerType =
 data Worker = Worker
   { workerOwner :: PlayerId
   , workerType  :: WorkerType
-  } deriving (Read,Show,Eq,Ord)
+  } deriving (Eq,Ord,Show,Generic)
 
 
 

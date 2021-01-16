@@ -21,6 +21,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Maybe(isJust)
 import Data.Text(Text)
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=),ToJSON(..))
@@ -81,7 +82,7 @@ data GameStatus s = Game
   , _gameLog      :: [Event]
   , _gameStatus   :: s
   , _gameEndVPSpots :: Map Level Worker
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 
 declareFields ''GameStatus

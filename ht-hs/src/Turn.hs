@@ -23,6 +23,7 @@ module Turn
 import Data.Maybe(listToMaybe)
 import Data.Set(Set)
 import qualified Data.Set as Set
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=),ToJSON(..))
@@ -41,7 +42,7 @@ data Turn = Turn
   , turnUsedGateways    :: Set ProvinceId
   , _turnPlacing        :: Maybe BonusToken
   , turnPickedUp        :: [(Maybe ProvinceId,Worker)]
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 declareFields ''Turn
 

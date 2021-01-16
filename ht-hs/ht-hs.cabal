@@ -25,7 +25,7 @@ library
     AppTypes
   default-extensions:
     BlockArguments, OverloadedStrings, NamedFieldPuns, RecordWildCards,
-    ParallelListComp
+    ParallelListComp, DeriveGeneric
 
   build-depends:
     common-utils,

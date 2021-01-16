@@ -9,6 +9,7 @@ import qualified Data.Set as Set
 import Data.String(fromString)
 import Control.Applicative((<|>))
 import Control.Monad(guard)
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -49,7 +50,7 @@ data Board = Board
   , boardInitialTokens     :: Set EdgeId
     -- ^ Where to place initial tokens
 
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 
 data Province = Province

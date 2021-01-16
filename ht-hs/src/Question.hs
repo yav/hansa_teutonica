@@ -4,6 +4,7 @@ import Data.Text(Text)
 import Data.Aeson((.:))
 import qualified Data.Aeson as JS
 import Data.Aeson((.=))
+import GHC.Generics
 
 import Common.Utils
 
@@ -31,7 +32,7 @@ data Choice =
   | ChEndVPSpot Level
 
   | ChDone Text
-    deriving (Eq,Ord,Show,Read)
+    deriving (Eq,Ord,Show,Generic)
 
 instance JS.FromJSON Choice where
   parseJSON = JS.withObject "choice" \o ->

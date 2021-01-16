@@ -32,6 +32,7 @@ module Player
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -51,7 +52,7 @@ data Player = Player
   , usedBonuses         :: [BonusToken]
   , points              :: Int
   , preference          :: WorkerType
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 zeroState :: Player
 zeroState = Player

@@ -21,6 +21,7 @@ module Edge
 
 import qualified Data.Map as Map
 import Data.String(fromString)
+import GHC.Generics
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -31,7 +32,7 @@ import Bonus
 data EdgeSpot = EdgeSpot
   { edgeSpotType    :: RequireWorker
   , edgeSpotWorker  :: Maybe Worker
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 setSpotWorker :: Maybe Worker -> EdgeSpot -> EdgeSpot
 setSpotWorker mb = \e -> e { edgeSpotWorker = mb }
@@ -44,13 +45,13 @@ data BonusSpot =
     FixedBonus FixedBonus
   | Bonus BonusToken
   | NoBonus
-    deriving (Read,Show,Eq)
+    deriving (Eq,Show,Generic)
 
 -- | Information associated with an edge on the map.
 data Edge = Edge
   { edgeSpots :: [EdgeSpot]
   , edgeBonus :: BonusSpot
-  } deriving (Read,Show)
+  } deriving (Show,Generic)
 
 -- | Information about the bonus spot on the edge.
 edgeBonusSpot :: Edge -> BonusSpot
