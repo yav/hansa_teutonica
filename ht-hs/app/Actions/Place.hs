@@ -159,7 +159,6 @@ tryPlace state =
                                                    }
                                     update (ChangeUnavailable w (-1))
                                     update (PlaceWorkerOnEdge eId spot w)
-                                    -- update (Log (PlaceWorker w eId spot))
                                     evLog [ "Placed ", EvWorker w,
                                             " on ", EvEdge eId (Just spot) ]
                                     placeExtra playerId edgeId (placing+1) total

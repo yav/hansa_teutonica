@@ -20,7 +20,6 @@ module Edge
   ) where
 
 import qualified Data.Map as Map
-import Data.String(fromString)
 import GHC.Generics
 
 import qualified Data.Aeson as JS

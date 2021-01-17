@@ -25,6 +25,9 @@ import Event
 import Actions.Common
 
 
+-- XXX: check  red route!
+
+
 tryCompleteEdge :: PlayerOptions
 tryCompleteEdge state =
   resolveAmbig

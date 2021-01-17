@@ -23,6 +23,7 @@ module Player
     -- * Stats
   , levelUp
   , getLevel
+  , scoreFromPlayerBoard
 
     -- * Points
   , addVP
@@ -32,6 +33,7 @@ module Player
 import           Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import qualified Data.List as List
+import Data.Text(Text)
 import GHC.Generics
 
 import Data.Aeson(ToJSON)
@@ -157,6 +159,21 @@ getVP :: Player -> Int
 getVP = points
 
 --------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+scoreFromPlayerBoard :: Player -> Map Text Int
+scoreFromPlayerBoard player =
+  Map.fromList
+    [ ("VP",       points player)
+    , ("Upgrades", sum [ maxStatePoints stat
+                       | (stat,value) <- Map.toList (stats player)
+                       , value == maxStat stat
+                       ])
+    , ("Bonuses", bonusPoints (length (getBonuses player ++
+                                            getUsedBonuses player)))
+    ]
+
+
 
 instance ToJSON Player
 

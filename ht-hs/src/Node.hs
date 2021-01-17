@@ -20,6 +20,8 @@ module Node
   , nodeControlledBy
   , nodeIsFull
   , nodeAcceptsAnnex
+  , nodeHasPresence
+  , nodeAllWorkers
   ) where
 
 import Data.Text(Text)
@@ -139,6 +141,13 @@ nodeIsFull n
 -- | Can we build an annex here
 nodeAcceptsAnnex :: Node -> Bool
 nodeAcceptsAnnex n = nodeIsGreen n || not (null (fullSpots n))
+
+-- | Does this player have presence in the node?
+nodeHasPresence :: PlayerId -> Node -> Bool
+nodeHasPresence p = any ((p ==) . owner) . nodeAllWorkers
+
+nodeAllWorkers :: Node -> [Worker]
+nodeAllWorkers n = nodeExtra n ++ fullSpots n
 
 --------------------------------------------------------------------------------
 

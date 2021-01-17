@@ -42,6 +42,15 @@ data FixedBonus =
   deriving (Eq,Ord,Show)
 
 
+bonusPoints :: Int -> Int
+bonusPoints n
+  | n < 1     = 0
+  | n == 1    = 1
+  | n <= 3    = 3
+  | n <= 5    = 6
+  | n <= 7    = 10
+  | n <= 9    = 15
+  | otherwise = 21
 
 --------------------------------------------------------------------------------
 bonusAsKey :: BonusToken -> Text

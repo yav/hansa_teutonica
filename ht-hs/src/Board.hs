@@ -9,7 +9,7 @@ import qualified Data.Set as Set
 import Data.String(fromString)
 import Control.Applicative((<|>))
 import Control.Monad(guard)
-import GHC.Generics
+import GHC.Generics hiding (from,to)
 
 import qualified Data.Aeson as JS
 import Data.Aeson ((.=))
@@ -17,7 +17,7 @@ import Data.Aeson ((.=))
 import Common.Field
 
 import Basics
-import Node
+import Node hiding (node)
 import Edge
 import Geometry
 import Question
@@ -210,6 +210,58 @@ swappableOffices playerId board =
   , owner curW /= playerId && owner curW /= owner prevW
   ]
 
+
+
+networkSize :: PlayerId -> Board -> Int
+networkSize playerId board = geoLargestComponent (boardGeometry board) presentIn
+  where
+  presentIn n = nodeHasPresence playerId (getField (boardNode n) board)
+
+
+scoreCities :: Board -> Score -> Score
+scoreCities board =
+  Map.insert "Cities"
+  $ foldr add Map.empty
+  $ Map.elems
+  $ getField boardNodes board
+  where
+  add n = case nodeControlledBy n of
+            Nothing -> id
+            Just p  -> Map.insertWith (+) p 2
+
+scoreProvince :: ProvinceId -> Board -> Score -> Score
+scoreProvince provinceId board =
+  Map.insert (provinceName province)
+  $ Map.fromList
+  $ assignPts (7 : 4 : 2 : repeat 0)
+  $ reverse (Map.elems order)
+  where
+  province = boardProvinces board Map.! provinceId
+  nodes    = provinceNodes province
+  info     = foldr addInfo Map.empty nodes
+  order    = Map.fromListWith (++) [ (i,[p]) | (p,i) <- Map.toList info ]
+
+  assignPts pts grps =
+    case grps of
+      [] -> []
+      grp : more -> zip grp (repeat score) ++ assignPts rest more
+        where
+        n           = length grp
+        (this,rest) = splitAt n pts
+        score       = sum this `div` n
+
+
+  addControl mb = case mb of
+                    Nothing -> id
+                    Just p  -> Map.insertWith jn p (1,0)
+  addWorker w    = Map.insertWith jn (owner w) (0,1)
+  jn (a,x) (b,y) = (a+b :: Int,x+y :: Int)
+
+  addInfo n mp =
+    let node = getField (boardNode n) board
+        ws   = nodeAllWorkers node
+        c    = nodeControlledBy node
+    in foldr addWorker (addControl c mp) ws
 
 --------------------------------------------------------------------------------
 instance JS.ToJSON Board where

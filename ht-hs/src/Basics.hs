@@ -6,12 +6,16 @@ module Basics
 import GHC.Generics
 import qualified Data.Aeson as JS
 import Common.Utils
+import Data.Map(Map)
+import Data.Text(Text)
 
 import Common.Basics
 
 type NodeId       = Int      -- ^ Identifies a city
 type EdgeId       = Int      -- ^ Identifies a route
 type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
+
+type Score        = Map Text (Map PlayerId Int)
 
 data WorkerType   = Cube | Disc
   deriving (Eq,Ord,Show,Generic,Bounded,Enum)

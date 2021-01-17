@@ -6,6 +6,7 @@ module Game
   , gameTurnOrder
   , gameCurrentPlayer
   , gamePlayer
+  , gamePlayers
   , gameBoard
   , gameTokens
   , gameTurn
@@ -13,6 +14,7 @@ module Game
   , gameTokenRemaining
   , GameUpdate(..)
   , doUpdate
+  , computeScore
   ) where
 
 import Data.Map(Map)
@@ -240,6 +242,39 @@ initialGame rng0 board playerIds =
     Map.fromList [ (p, initialPlayer i) | p <- playerOrder | i <- [ 0 .. ] ]
 
 
+-- Score breakdown
+
+computeScore :: GameStatus s -> Score
+computeScore game =
+  endVPscore
+  $ scoreCities board
+  $ foldr (\p -> scoreProvince p board) fromPBoard
+  $ Map.keys (boardProvinces board)
+  where
+  palyers = Map.toList (getField gamePlayers game)
+  board   = getField gameBoard game
+
+  fromPBoard = Map.unionsWith Map.union
+             $ [ Map.insert "Network"
+                   ( Map.singleton pid
+                   $ networkSize pid board * keyPoints (getLevel Keys s)
+                   )
+                   (Map.singleton pid <$> scoreFromPlayerBoard s)
+               | (pid,s) <- palyers
+               ]
+
+  endVPNodeName = nodeName
+                $ head
+                $ filter isEndVP
+                $ Map.elems
+                $ getField boardNodes board
+  isEndVP n = GainEndGamePoints `elem` nodeActions n
+  endVPscore =
+    Map.insert endVPNodeName
+    $ Map.fromListWith (+)
+        [ (owner w, endVPTrack s)
+        | (s,w) <- Map.toList (getField gameEndVPSpots game)
+        ]
 
 --------------------------------------------------------------------------------
 
@@ -255,6 +290,7 @@ instance ToJSON status => ToJSON (GameStatus status) where
     , "log"       .= getField gameLog g
     , "tokens"    .= getField gameTokenRemaining g
     , "status"    .= getField gameStatus g
+    , "score"     .= computeScore g
     ]
 
 
