@@ -1,75 +1,50 @@
-const handlers =
-  { redraw: uiRedraw
-  , ask: uiQuestions
+const handlers = {
+    // Edges
+    PlaceWorkerOnEdge:    function(...as) { gui.board.placeWorkerOnEdge(...as) }
+  , RemoveWorkerFromEdge: function(...as) { gui.board.removeWorkerFromEdge(...as)
+    }
+  , EdgeRemoveBonus:      function(...as) { gui.board.removeBonus(...as) }
+  , EdgeSetBonus:         function(...as) { gui.board.placeBonus(...as) }
 
-    // board
-  , setWorkerOnEdge: function(ws,edge,spot,worker) {
-      gui.board.placeWorkerOnEdge(edge,spot,worker)
-    }
-  , removeWorkerFromEdge: function(ws,edge,spot) {
-      gui.board.removeWorkerFromEdge(edge,spot)
-    }
-  , edgeRemoveBonus: function(ws, edge) {
-      gui.board.removeBonus(edge)
-    }
-  , edgeSetBonus: function(ws, edge, bonus) {
-      gui.board.placeBonus(edge,bonus)
-    }
-  , placeWorkerInOffice: function(ws,node,worker) {
-      gui.board.placeWorkerInOffice(node,worker)
-    }
-  , placeWorkerInAnnex: function(ws,node,worker) {
-      gui.board.placeWorkerInAnnex(node,worker)
-    }
-  , swapWorkers: function(ws,node,spot) {
-      gui.board.swapWorkers(node,spot)
-    }
-  , setEndVP: function(ws,lvl,worker) {
-      gui.board.placeWorkerOnVP(lvl,worker)
-    }
+    // Nodes
+  , PlaceWorkerInOffice:  function(...as) { gui.board.placeWorkerInOffice(...as) }
+  , PlaceWorkerInAnnex:   function(...as) { gui.board.placeWorkerInAnnex(...as) }
+  , SwapWorkers:          function(...as) { gui.board.swapWorkers(...as) }
+  , SetEndVPAt:           function(...as) { gui.board.placeWorkerOnVP(...as) }
 
     // player
-  , setWorkerPreference: function (ws,w) {
+  , SetWorkerPreference: function (w) {
       gui.playerUI(w.owner).setPreference(w.shape)
     }
-  , changeAvailable: function(ws,w,n) {
+  , ChangeAvailble: function(w,n) {
       gui.playerUI(w.owner).changeWorkers('available',w.shape,n)
     }
-  , changeUnavailable: function(ws,w,n) {
+  , ChangeUnavailable: function(w,n) {
       gui.playerUI(w.owner).changeWorkers('unavailable',w.shape,n)
     }
-  , useGateway: function(ws,g) {}
-  , changeVP: function(ws,player,n) {
-      gui.playerUI(player).changeVP(n)
-    }
-  , upgrade: function(ws,player,stat) { gui.playerUI(player).upgrade(stat) }
-  , gainBonusToken: function(ws,player,token) {
-      gui.playerUI(player).addBonus(token)
-    }
-  , useBonusToken: function(ws,player,bonus) {
+  , UseGateway: function(g) {}
+  , ChangeVP: function(player,n) { gui.playerUI(player).changeVP(n) }
+  , Upgrade: function(player,stat) { gui.playerUI(player).upgrade(stat) }
+  , GainBonusToken: function(player,token) { gui.playerUI(player).addBonus(token) }
+  , UseBonusToken: function(player,bonus) {
       const ui = gui.playerUI(player)
       ui.removeBonus(bonus)
       ui.addSpentBonus()
     }
-  , prepare: function(ws,player,msg) {
-      if (player == playerId) gui.alert(msg)
-    }
+  , Prepare: function(player,msg) { if (player == playerId) gui.alert(msg) }
 
 
     // turn
-  , newTurn: function(ws,t) { gui.turn.remove(); gui.turn = drawTurn(t) }
-  , changeDoneActions: function(ws,n) { gui.turn.changeDone(n) }
-  , changeActionLimit: function(ws,n) { gui.turn.changeLimit(n) }
-  , addWorkerToHand: function(ws,w) { gui.turn.addWorkerToHand(w) }
-  , removeWokerFromHand: function(ws) { gui.turn.removeWorkerFromHand() }
-  , drawBonusToken: function(ws) {
-      gui.turn
-      gui.changeTokenCount(-1)
-    }
-  , placingBonus: function(ws,b) { gui.setPlacing(b) }
+  , NewTurn: function(t) { gui.turn.remove(); gui.turn = drawTurn(t) }
+  , ChangeDoneActions: function(...as) { gui.turn.changeDone(...as) }
+  , ChangeActionLimit: function(...as) { gui.turn.changeLimit(...as) }
+  , AddWorkerToHand:   function(...as) { gui.turn.addWorkerToHand(...as) }
+  , RemoveWokerFromHand: function(...as) { gui.turn.removeWorkerFromHand(...as) }
+  , DrawBonusToken: function() { gui.changeTokenCount(-1) }
+  , PlacingBonus: function(...as) { gui.setPlacing(...as) }
 
   // log
-  , log: function(ws,m) { gui.log.addLog(m) }
+  , Log: function(...as) { gui.log.addLog(...as) }
   }
 
 function sendJSON(ws,obj) {
@@ -83,6 +58,12 @@ function srvConnect() {
   console.log("Connecting to: " + url)
   const ws = new WebSocket(url)
 
+  const handler = hsOutMsg(
+    { CurGameState: function(state) { uiRedraw(ws,state) }
+    , AskQuestions: uiQuestions
+    , GameUpdate: hsGameUpdate(handlers)
+    })
+
   ws.onopen = function(e) {
     console.log('Connected.')
     playerId = info.get('player') // stored in global
@@ -95,7 +76,7 @@ function srvConnect() {
     const msg = JSON.parse(e.data)
     console.log('Received:')
     console.log(msg)
-    handlers[msg.tag](ws,...msg.args)
+    handler(msg)
   }
 
   ws.onclose = function(e) {

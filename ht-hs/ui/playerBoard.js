@@ -126,7 +126,7 @@ function drawPlayer(pid,opts) {
       dom.appendChild(it)
     }
 
-    if (opts.spentBonuses > 0) makeSpent()
+    if (spent > 0) makeSpent()
 
     ui.addSpentBonus = function () {
       if (spent == 0) makeSpent()

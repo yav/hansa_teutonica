@@ -31,7 +31,7 @@ main =
              do rng <- newTFGen
                 let mkP = PlayerId . Text.pack
                     players = Set.fromList (map mkP ps)
-                    str = $(jsHandlers [''Choice, ''Event])
+                    str = $(jsHandlers [''OutMsg, ''GameUpdate, ''Choice, ''Event])
                 putStrLn str
                 newServer (BS8.pack str) GameInfo
                   { gPlayers = players

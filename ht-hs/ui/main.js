@@ -37,7 +37,7 @@ function newGUI(ws,container) {
   }
 
   const makeQuestion = function(el,val) {
-    const tip = tooltip(el,val.help)
+    const tip = tooltip(el,val.chHelp)
     newQuestionExtra(tip.dom)
 
     // place them in the same parent so that z-indexes work correctly
@@ -192,11 +192,11 @@ function uiRedraw(ws,state) {
   }
 
   // questions
-  uiQuestions(ws, state.questions)
+  uiQuestions(state.questions)
 }
 
 
-function uiQuestions(ws,qs) {
+function uiQuestions(qs) {
   for (let i = 0; i < qs.length; ++i) {
     const q = qs[i]
     const ui = {}
@@ -234,7 +234,7 @@ function uiQuestions(ws,qs) {
     // Button
     ui.ChDone = function(text) { gui.turn.askDone(text,q) }
 
-    hsChoice(ui)(q.choice)
+    hsChoice(ui)(q.chChoice)
   }
 }
 

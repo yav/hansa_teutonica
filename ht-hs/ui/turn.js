@@ -100,7 +100,7 @@ function drawTurn(turn) {
         pickedGroup.removeChild(ch)
       }
   , addWorkerToHand:
-      function(w) { pickedGroup.appendChild(drawPicked(w)) }
+      function(mbProv,w) { pickedGroup.appendChild(drawPicked(w)) }
 
   }
 

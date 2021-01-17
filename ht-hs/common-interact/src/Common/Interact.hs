@@ -23,6 +23,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.List(foldl')
 import Control.Monad(liftM,ap)
+import GHC.Generics(Generic)
 
 import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:), (.:?))
 import qualified Data.Aeson as JS
@@ -57,12 +58,13 @@ data OutMsg =
     CurGameState InteractState
   | AskQuestions [ChoiceHelp]
   | GameUpdate Update
+    deriving Generic
 
 data ChoiceHelp = ChoiceHelp
   { chChoice    :: Input
   , chHelp      :: Text
   , chStateName :: Int    -- ties question to state
-  }
+  } deriving Generic
 
 data PlayerRequest =
     Reload
@@ -223,12 +225,7 @@ update o = Interact $
 
 
 
-instance ToJSON OutMsg where
-  toJSON msg =
-    case msg of
-      GameUpdate upd  -> toJSON upd
-      AskQuestions qs -> jsCall "ask" [qs]
-      CurGameState s  -> jsCall "redraw" [s]
+instance ToJSON OutMsg
 
 instance ToJSON InteractState where
   toJSON g =
@@ -254,16 +251,6 @@ instance FromJSON PlayerRequest where
          _ -> PlayerResponse <$> parseJSON (JS.Object o)
 
 
-instance ToJSON ChoiceHelp where
-  toJSON ch = JS.object [ "help" .= chHelp ch
-                        , "choice" .= chChoice ch
-                        , "state" .= chStateName ch
-                        ]
-
-instance FromJSON ChoiceHelp where
-  parseJSON = JS.withObject "choice help" \o ->
-    do help <- o .: "help"
-       ch   <- o .: "choice"
-       nm   <- o .: "state"
-       pure ChoiceHelp { chHelp = help, chChoice = ch, chStateName = nm }
+instance ToJSON ChoiceHelp
+instance FromJSON ChoiceHelp
 

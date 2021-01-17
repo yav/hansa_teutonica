@@ -71,7 +71,7 @@ data GameUpdate =
 
   | Log Event
   | Prepare PlayerId Text
-  deriving Show
+  deriving (Show,Generic)
 
 data GameStatus s = Game
   { _gamePlayers  :: Map PlayerId Player
@@ -264,35 +264,7 @@ instance ToJSON FinalScore where
     , "score" .= JS.Null -- XXX
     ]
 
-instance ToJSON GameUpdate where
-  toJSON upd =
-    case upd of
-      SetWorkerPreference w    -> jsCall "setWorkerPreference" [w]
-      ChangeAvailble a b       -> jsCall "changeAvailable" [js a, js b]
-      ChangeUnavailable a b    -> jsCall "changeUnavailable" [js a, js b]
-      ChangeVP a b             -> jsCall "changeVP" [js a, js b ]
-      Upgrade a b              -> jsCall "upgrade" [js a, js b]
-      GainBonusToken a b       -> jsCall "gainBonusToken" [ js a, js b ]
-      UseBonusToken a b        -> jsCall "useBonusToken" [ js a, js b ]
-      Prepare a b              -> jsCall "prepare" [ js a, js b ]
+instance ToJSON GameUpdate
 
-      PlaceWorkerInOffice a b  -> jsCall "placeWorkerInOffice" [ js a, js b ]
-      PlaceWorkerInAnnex a b   -> jsCall "placeWorkerInAnnex" [ js a, js b ]
-      SwapWorkers a b          -> jsCall "swapWorkers" [ js a, js b ]
-      SetEndVPAt a b           -> jsCall "setEndVP" [ js a, js b ]
 
-      PlaceWorkerOnEdge a b c  -> jsCall "setWorkerOnEdge" [js a, js b, js c]
-      RemoveWorkerFromEdge a b -> jsCall "removeWorkerFromEdge" [ js a, js b]
-      EdgeRemoveBonus a        -> jsCall "edgeRemoveBonus" [a]
-      EdgeSetBonus a b         -> jsCall "edgeSetBonus" [js a, js b]
-
-      NewTurn t                -> jsCall "newTurn" [t]
-      UseGateway g             -> jsCall "useGateway" [g]
-      ChangeDoneActions n      -> jsCall "changeDoneActions" [n]
-      ChangeActionLimit n      -> jsCall "changeActionLimit" [n]
-      AddWorkerToHand _ w      -> jsCall "addWorkerToHand" [w]
-      RemoveWokerFromHand      -> jsCall' "removeWokerFromHand"
-      DrawBonusToken           -> jsCall' "drawBonusToken"
-      PlacingBonus b           -> jsCall  "placingBonus" [b]
-      Log e                    -> jsCall "log" [e]
 
