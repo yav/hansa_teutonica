@@ -140,6 +140,8 @@ tryPlace state =
        placeExtra (owner worker) edgeId
                                   1 (replacementCost (shape worker))
 
+
+
   placeExtra playerId edgeId placing total
     | placing > total = pure ()
     | otherwise =
@@ -162,13 +164,19 @@ tryPlace state =
 
          let workerT = getWorkerPreference playerState
              otherT  = otherType workerT
+
+             giveUp = ( playerId :-> ChDone "Done"
+                      , "Don't place additional workers"
+                      , pure ()
+                      )
+
          prefTgts  <- optsFor workerT
          otherTgts <- optsFor otherT
          case (prefTgts,otherTgts) of
            ([],[]) -> placeExtraActive playerId edgeId placing total
-           (xs,[]) -> askInputs xs
-           ([],ys) -> askInputs ys
-           (xs,_)  -> askInputs (changePref : xs)
+           (xs,[]) -> askInputs (giveUp : xs)
+           ([],ys) -> askInputs (giveUp : ys)
+           (xs,_)  -> askInputs (giveUp : changePref : xs)
               where changePref = ( playerId :-> ChSetPreference otherT
                                  , "Change preference to " <> jsKey otherT
                                  , do update (SetWorkerPreference
