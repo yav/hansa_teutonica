@@ -1,11 +1,28 @@
 module Event where
 
+import Data.Text(Text)
+import qualified Data.Text as Text
 import Data.Aeson(ToJSON)
-import GHC.Generics
+import GHC.Generics(Generic)
+import Data.String(IsString(..))
 
 import Basics
 import Stats
 import Bonus
+
+data EventElement =
+    EvText Text
+  | EvInt Int
+  | EvPlayer PlayerId
+  | EvWorker Worker
+  | EvEdge EdgeId (Maybe Int)   -- spot on edge
+  | EvNode NodeId (Maybe Int)
+  | EvBonus BonusToken
+  | EvStat Stat
+    deriving (Show,Generic)
+
+instance IsString EventElement where
+  fromString = EvText . Text.pack
 
 -- User readable events describing the game flow
 data Event =
@@ -13,22 +30,9 @@ data Event =
   | EndTurn PlayerId
   | StartAction
   | EndAction
-  | PlaceWorker Worker EdgeId Int
-  | MoveWorkerTo EdgeId Int Worker
-  | ReplaceWorker Worker Worker EdgeId Int
-  | PickUp Worker EdgeId Int
-  | EvHire Worker Int
-  | Retire Worker Int
-  | GainVP PlayerId Int
-  | CompleteRoute EdgeId
-  | BuildOffice NodeId Worker
-  | BuildAnnnex NodeId Worker BonusToken
-  | Upgraded PlayerId Stat
-  | Invested NodeId Int Worker
-  | PlacedBonus EdgeId BonusToken
-  | UsedBonus BonusToken
-  | SwappedWorkers NodeId Int BonusToken
+  | EvSay [EventElement]
     deriving (Show,Generic)
 
+instance ToJSON EventElement
 instance ToJSON Event
 

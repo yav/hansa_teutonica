@@ -25,10 +25,9 @@ import Data.List(foldl')
 import Control.Monad(liftM,ap)
 import GHC.Generics(Generic)
 
-import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:), (.:?))
+import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:?))
 import qualified Data.Aeson as JS
 
-import Common.Utils
 import Common.Basics
 import AppTypes(State,Finished,Input,Update,doUpdate)
 

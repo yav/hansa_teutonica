@@ -78,7 +78,7 @@ giveVPs edgeId =
        case nodeControlledBy nodeInfo of
          Just playerId ->
            do update (ChangeVP playerId 1)
-              update (Log (GainVP playerId 1))
+              evLog [EvPlayer playerId, " gained ", EvInt 1, " VP"]
          Nothing -> pure ()
 
 activateBonus :: EdgeId -> PlayerId -> Interact ()
@@ -104,7 +104,7 @@ returnWorkers edgeId =
 completeAction :: EdgeId -> PlayerId -> Interact () -> Interact ()
 completeAction edgeId playerId act =
   doAction
-  do update (Log (CompleteRoute edgeId))
+  do evLog [ "Completed ", EvEdge edgeId Nothing ]
      giveVPs edgeId
      act
      activateBonus edgeId playerId
@@ -139,10 +139,12 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
           , completeAction edgeId playerId
             do update (RemoveWorkerFromEdge edgeId edgeSpotId)
                update (PlaceWorkerInOffice nodeId worker)
-               update (Log (BuildOffice nodeId worker))
-               when (spotVP spot > 0)
-                  do update (ChangeVP playerId (spotVP spot))
-                     update (Log (GainVP playerId (spotVP spot)))
+               evLog [ EvWorker worker, " established office in ",
+                                                    EvNode nodeId Nothing ]
+               let vp = spotVP spot
+               when (vp > 0)
+                  do update (ChangeVP playerId vp)
+                     evLog [ EvPlayer playerId, " gained ", EvInt vp, " VP" ]
                -- XXX: full update?
           )
   where
@@ -173,7 +175,8 @@ tryAnnex edgeId edgeInfo nodeId nodeInfo playerId player =
             do update (UseBonusToken playerId BonusExtra)
                update (RemoveWorkerFromEdge edgeId spot)
                update (PlaceWorkerInAnnex nodeId worker)
-               update (Log (BuildAnnnex nodeId worker BonusExtra))
+               evLog [ "Used ", EvBonus BonusExtra, " to build ",
+                       EvWorker worker, " annex in ", EvNode nodeId Nothing ]
           )
 
 -- | Complete an edge and use a special action
@@ -213,7 +216,10 @@ tryAction state nodeId nodeInfo edgeId edgeInfo playerId player =
                      , completeAction edgeId playerId
                        do update (RemoveWorkerFromEdge edgeId spot)
                           update (SetEndVPAt lvl worker)
-                          update (Log (Invested nodeId (endVPTrack lvl) worker))
+                          evLog [ "Placed ", EvWorker worker, " on "
+                                , EvNode nodeId Nothing
+                                , " ", EvInt (endVPTrack lvl), " VP"
+                                ]
                      )
 
 

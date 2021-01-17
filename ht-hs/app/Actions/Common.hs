@@ -31,16 +31,19 @@ doAction act =
      update (ChangeDoneActions 1)
      update (Log EndAction)
 
+evLog :: [EventElement] -> Interact ()
+evLog = update . Log . EvSay
+
 
 doUpgrade :: PlayerId -> Player -> Stat -> Interact ()
 doUpgrade playerId player stat =
   do update (Upgrade playerId stat)
      let worker = Worker { owner = playerId, shape = statWorker stat }
      update (ChangeAvailble worker 1)
-     update (Log (Upgraded playerId stat))
+     evLog [ "Upgraded ", EvStat stat ]
      when (stat == Actions)
        do let lvl = getLevel Actions player
               diff = actionLimit (lvl+1) - actionLimit lvl
           when (diff > 0) $
              update (ChangeActionLimit diff)
- 
+

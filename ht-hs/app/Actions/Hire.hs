@@ -45,7 +45,7 @@ tryHire state0 =
        let w = Worker { owner = playerId, shape = t }
        update (ChangeUnavailable w (-n))
        update (ChangeAvailble    w n)
-       update (Log (EvHire w n))
+       evLog [ "Hired ", EvInt n, " ", EvWorker w ]
 
   doHire hiring limit
     | hiring > limit = pure ()

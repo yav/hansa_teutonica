@@ -26,7 +26,7 @@ bonusAction b state =
          board    = getField gameBoard state
          opt act  = ( playerId :-> ChBonusToken b, "Use Bonus Token"
                     , do update (Log StartAction)
-                         update (Log (UsedBonus b))
+                         evLog ["Used ", EvBonus b]
                          act :: Interact ()
                          update (UseBonusToken playerId b)
                          update (Log EndAction)
@@ -49,8 +49,7 @@ bonusAction b state =
            , "Move back using bonus token"
            , do update (Log StartAction)
                 update (UseBonusToken playerId b)
-                update (SwapWorkers nodeId spot)
-                update (Log (SwappedWorkers nodeId spot b))
+                evLog ["Used ", EvBonus b, " on ", EvNode nodeId (Just spot)]
                 update (Log EndAction)
            )
          | q@(ChNodeFull nodeId spot) <- swappableOffices playerId board
@@ -77,7 +76,8 @@ bonusAction b state =
               board <- view (getField gameBoard)
               let prov = edgeProvince edgeId board
               update (AddWorkerToHand prov worker)
-              update (Log (PickUp worker edgeId spot))
+              evLog [ "Picked-up ", EvWorker worker, " from "
+                    , EvEdge edgeId (Just spot) ]
               let spots = freeSpots board (== prov) (shape worker)
               askInputs [ ( playerId :-> q
                           , "Put down " <> showText n <> "/" <> showText l
@@ -87,7 +87,8 @@ bonusAction b state =
          doPutDown n l worker ~(ChEdgeEmpty edgeId spot _) =
            do update RemoveWokerFromHand
               update (PlaceWorkerOnEdge edgeId spot worker)
-              update (Log (MoveWorkerTo edgeId spot worker))
+              evLog ["Moved ", EvWorker worker, " to ",
+                                              EvEdge edgeId (Just spot)]
               doMove (n+1 :: Int) l
 
 

@@ -73,7 +73,8 @@ tryPlace state =
              Just g -> update (UseGateway g)
              _      -> pure ()
            update (PlaceWorkerOnEdge edgeId spot w)
-           update (Log (PlaceWorker w edgeId spot))
+           update (Log (EvSay ["Placed ", EvWorker w, " on "
+                                       , EvEdge edgeId (Just spot)]))
 
       ChEdgeFull edgeId spot ~(Just workerT) worker ->
         doAction
@@ -84,7 +85,8 @@ tryPlace state =
            update (ChangeAvailble ourWorker (-1))
            update (PlaceWorkerOnEdge edgeId spot ourWorker)
            replaceFee pid 1 (replacementCost (shape worker))
-           update (Log (ReplaceWorker worker ourWorker edgeId spot))
+           evLog [ "Replaced ", EvWorker worker, " with ",
+                   EvWorker ourWorker, " on ", EvEdge edgeId (Just spot) ]
            otherPlayerMoveAndPlace edgeId worker
            update (Prepare pid "Continue turn")
 
@@ -101,7 +103,7 @@ tryPlace state =
                do let w = Worker { owner = playerId, shape = t }
                   update (ChangeAvailble w (-n))
                   update (ChangeUnavailable w n)
-                  update (Log (Retire w n))
+                  evLog [ "Retired ", EvInt n, " ", EvWorker w ]
 
          if | cubes == 0 -> disable todo Disc
             | discs == 0 -> disable todo Cube
@@ -136,7 +138,7 @@ tryPlace state =
               [ (ch, "Location for replaced worker") | ch <- tgts ]
        update RemoveWokerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
-       update (Log (MoveWorkerTo tgtEdgeId spot worker))
+       evLog [ "Moved ", EvWorker worker, " to ", EvEdge tgtEdgeId (Just spot) ]
        placeExtra (owner worker) edgeId
                                   1 (replacementCost (shape worker))
 
@@ -157,7 +159,9 @@ tryPlace state =
                                                    }
                                     update (ChangeUnavailable w (-1))
                                     update (PlaceWorkerOnEdge eId spot w)
-                                    update (Log (PlaceWorker w eId spot))
+                                    -- update (Log (PlaceWorker w eId spot))
+                                    evLog [ "Placed ", EvWorker w,
+                                            " on ", EvEdge eId (Just spot) ]
                                     placeExtra playerId edgeId (placing+1) total
                                 ) | o@(ChEdgeEmpty eId spot _) <- os ]
                   else pure []

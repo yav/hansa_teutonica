@@ -46,7 +46,7 @@ tryMove state0 =
     do update (RemoveWorkerFromEdge edgeId spot)
        prov <- view \g -> edgeProvince edgeId (getField gameBoard g)
        update (AddWorkerToHand prov w)
-       update (Log (PickUp w edgeId spot))
+       evLog [ "Picked up ", EvWorker w, " from ", EvEdge edgeId (Just spot) ]
        opts <- view movablePieces
        if num < limit
          then askInputs $ ( owner w :-> ChDone "Done"
@@ -69,7 +69,8 @@ tryMove state0 =
 
               update RemoveWokerFromHand
               update (PlaceWorkerOnEdge tgtEdge tgtSpot w)
-              update (Log (MoveWorkerTo tgtEdge tgtSpot w))
+              evLog [ "Moved ", EvWorker w, " to ",
+                                              EvEdge tgtEdge (Just tgtSpot) ]
               putDown
 
 

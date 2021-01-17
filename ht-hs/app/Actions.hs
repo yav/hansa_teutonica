@@ -69,7 +69,7 @@ replaceTokens =
                                                               | spot <- spots ]
           update (PlacingBonus Nothing)
           update (EdgeSetBonus edgeId t)
-          update (Log (PlacedBonus edgeId t))
+          evLog [ "Placed ", EvBonus t, " on ", EvEdge edgeId Nothing ]
           replaceTokens
 
 

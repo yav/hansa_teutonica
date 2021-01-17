@@ -22,14 +22,18 @@ function drawLog() {
     const from  = gui.board.nodeNames[nodes[0]]
     const to    = gui.board.nodeNames[nodes[1]]
     let msg = from + '-' + to
-    if (spot !== undefined) {
+    if (spot !== undefined && spot !== null) {
       msg = msg + ', spot ' + spot
     }
     lab(msg,['log-unit'])
   }
 
-  const sayNode = function(nodeId) {
-    lab(gui.board.nodeNames[nodeId],['log-unit'])
+  const sayNode = function(nodeId,spot) {
+    let msg = gui.board.nodeNames[nodeId]
+    if (spot !== undefined && spot !== null) {
+      msg = msg + ', office ' + (spot+1)
+    }
+    lab(msg,['log-unit'])
   }
 
   const sayWorker = function(worker) {
@@ -44,7 +48,26 @@ function drawLog() {
     box.appendChild(drawBonusToken(gui.board.bonusSize,bonus))
   }
 
+  const sayEl = hsEventElement({
+     EvText: lab,
+     EvInt: lab,
+     EvPlayer: sayPlayer,
+     EvWorker: sayWorker,
+     EvEdge: sayEdge,
+     EvNode: sayNode,
+     EvBonus: sayBonus,
+     EvStat: lab
+   })
+
+
+
   const ui = {}
+  ui.EvSay = function(xs) {
+    for (let i = 0; i < xs.length; ++i) {
+      sayEl(xs[i])
+    }
+    return true
+  }
 
   ui.StartTurn = function(player) {
     turnBox = document.createElement('div')
@@ -72,119 +95,6 @@ function drawLog() {
     actionBox = null
     return false
   }
-
-  ui.PickUp = function(worker,edge,spot) {
-    lab('Picked-up ')
-    sayWorker(worker)
-    lab(' from ')
-    sayEdge(edge,spot)
-    return true
-  }
-
-  ui.PlaceWorker = function(worker,edge,spot) {
-    lab('Placed ')
-    sayWorker(worker)
-    lab(' on ')
-    sayEdge(edge,spot)
-    return true
-  }
-
-  ui.MoveWorkerTo = function(edge,spot,worker) {
-    lab('Moved ')
-    sayWorker(worker)
-    lab(' to ')
-    sayEdge(edge,spot)
-    return true
-  }
-
-  ui.ReplaceWorker = function(workerOld,workerNew,edge,spot) {
-    lab('Replaced ')
-    sayWorker(workerOld)
-    lab(' with ')
-    sayWorker(workerNew)
-    lab(' on ')
-    sayEdge(edge,spot)
-    return true
-  }
-
-  ui.CompleteRoute = function(edge) {
-    lab('Completed ')
-    sayEdge(edge)
-    return true
-  }
-
-  ui.BuildOffice = function(node,worker) {
-    sayWorker(worker)
-    lab (' established office in ')
-    sayNode(node)
-    return true
-  }
-
-  ui.EvHire = function(worker,number) {
-    if (number == 0) return
-    lab('Hired ' + number + ' ')
-    sayWorker(worker)
-  }
-
-  ui.Retire = function(worker,number) {
-    lab('Retired ' + number + ' ')
-    sayWorker(worker)
-    return true
-  }
-
-  ui.GainVP = function(player,vp) {
-    sayPlayer(player)
-    lab(' gained ' + vp + ' VP')
-    return true
-  }
-
-  ui.Upgraded = function(player,stat) {
-    lab('Upgraded ' + stat)
-    return true
-  }
-
-  ui.Invested = function(nodeId,points,worker) {
-    lab('Placed ')
-    sayWorker(worker)
-    lab(' on ')
-    sayNode(node)
-    lab(' ' + points + ' VP')
-    return true
-  }
-
-  ui.PlacedBonus = function(edge,bonus) {
-    lab('Placed ')
-    sayBonus(bonus)
-    lab(' on ')
-    sayEdge(edge)
-    return true
-  }
-
-  ui.UsedBonus = function(bonus) {
-    lab('Used ')
-    sayBonus(bonus)
-    return true
-  }
-
-  ui.SwappedWorkers = function(node,spot,bonus) {
-    lab('Used ')
-    sayBonus(bonus)
-    lab(' on ')
-    sayNode(node)
-    lab(', spot ' + spot)
-    return true
-  }
-
-  ui.BuildAnnnex = function(node,worker,bonus) {
-    lab('Used ')
-    sayBonus(bonus)
-    lab(' to build ')
-    sayWorker(worker)
-    lab(' annex in ')
-    sayNode(node)
-    return true
-  }
-
 
   const handler = hsEvent(ui)
 
