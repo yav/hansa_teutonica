@@ -28,7 +28,11 @@ nextAction =
   do state <- getState
      end   <- checkEndGame
      if end
-        then pure () -- XXX EndGame
+        then do update (Log EndTurn)
+                update (Log StartTurn)
+                evLog [ "Game Over" ]
+                update EndGame
+
         else do let normalOpts = tryPlace state ++ tryMove state ++
                                  tryHire state ++ tryCompleteEdge state ++
                                   [ a | b <- enumAll, a <- bonusAction b state ]
@@ -42,9 +46,10 @@ nextTurn =
          curP = currentPlayer turn
          nextPlayerId = playerAfter curP state
          actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
-     update (Log (EndTurn curP))
+     update (Log EndTurn)
      update (Prepare nextPlayerId "Your turn")
-     update (Log (StartTurn nextPlayerId))
+     update (Log StartTurn)
+     evLog [ EvPlayer nextPlayerId, "'s turn" ]
      update (NewTurn (newTurn nextPlayerId actLvl))
 
 tryEndTurn :: Bool -> PlayerOptions

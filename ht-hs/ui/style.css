@@ -99,6 +99,29 @@ body {
   cursor: pointer;
 }
 
+.score {
+  background-color: white;
+  position: absolute;
+  padding: 0.5em;
+  border: 0.2em solid black;
+  border-radius: 0.5em;
+}
+
+.score table {
+  border-collapse: collapse;
+}
+
+.score td {
+  padding-right: 1em;
+}
+
+.score .heading td {
+  border-bottom: 1px solid black;
+}
+
+.score .total td {
+  border-top: 1px solid black;
+}
 
 /* -------------------------------------------------------------------------- */
 

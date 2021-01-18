@@ -86,6 +86,8 @@ function newGUI(ws,container) {
     container.appendChild(it)
   }
 
+  ui.reload = function () { sendJSON(ws,{ tag: 'reload' }) }
+
   return ui
 }
 
@@ -179,8 +181,11 @@ function uiRedraw(ws,state) {
   gui.container.appendChild(gui.panel)
 
   { // Current turn
-    // XXX: check for finished
-    gui.turn = drawTurn(game.status)
+    const stat = game.status
+    if (stat.tag === 'finished') {
+      drawScore(game.turnOrder, game.score)
+    } else
+      gui.turn = drawTurn(game.status)
   }
 
   { // Log

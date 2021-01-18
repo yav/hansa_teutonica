@@ -45,6 +45,8 @@ const handlers = {
 
   // log
   , Log: function(...as) { gui.log.addLog(...as) }
+
+  , EndGame: function() { gui.reload() }
   }
 
 function sendJSON(ws,obj) {

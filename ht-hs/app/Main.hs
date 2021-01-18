@@ -44,6 +44,7 @@ main =
                                                , shape = Cube }
                                update (PlaceWorkerInOffice 0 w1)
                                update (PlaceWorkerInOffice 0 w2)
+                               update (ChangeVP (owner w1) 19)
                                nextAction
                   }
            Nothing -> fail "unknown board"

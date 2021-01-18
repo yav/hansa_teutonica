@@ -73,6 +73,8 @@ data GameUpdate =
 
   | Log Event
   | Prepare PlayerId Text
+  | EndGame
+
   deriving (Show,Generic)
 
 data GameStatus s = Game
@@ -92,7 +94,7 @@ declareFields ''GameStatus
 type Game = GameStatus Turn
 type GameFinished = GameStatus FinalScore
 
-data FinalScore = FinalScore -- XXX
+newtype FinalScore = FinalScore Score
 
 gamePlayer :: PlayerId -> Field Game Player
 gamePlayer playerId = gamePlayers .> mapAt playerId
@@ -203,6 +205,9 @@ doUpdate upd =
     Log e ->
       Right . (gameLog `updField` (e:))
 
+    EndGame ->
+      Left . \g -> g { _gameStatus = FinalScore (computeScore g) }
+
 playerAfter :: PlayerId -> Game -> PlayerId
 playerAfter playerId state =
   case break (== playerId) (gameTurnOrder state) of
@@ -221,7 +226,9 @@ initialGame rng0 board playerIds =
     , _gameTokenRemaining = length otherTokens
     , _gameBoard     = foldr addToken board startToks
     , _gameStatus    = newTurn firstPlayer (getLevel Actions firstPlayerState)
-    , _gameLog       = [StartTurn firstPlayer]
+    , _gameLog       = [ EvSay [ EvPlayer firstPlayer, "' turn" ]
+                       , StartTurn
+                       ]
     , _gameEndVPSpots= Map.empty
     }
 
@@ -246,7 +253,8 @@ initialGame rng0 board playerIds =
 
 computeScore :: GameStatus s -> Score
 computeScore game =
-  endVPscore
+  fmap complete
+  $ endVPscore
   $ scoreCities board
   $ foldr (\p -> scoreProvince p board) fromPBoard
   $ Map.keys (boardProvinces board)
@@ -276,6 +284,9 @@ computeScore game =
         | (s,w) <- Map.toList (getField gameEndVPSpots game)
         ]
 
+  zeros = Map.fromList [ (p,0) | p <- gameTurnOrder game ]
+  complete mp = Map.union mp zeros
+
 --------------------------------------------------------------------------------
 
 instance ToJSON status => ToJSON (GameStatus status) where
@@ -295,9 +306,9 @@ instance ToJSON status => ToJSON (GameStatus status) where
 
 
 instance ToJSON FinalScore where
-  toJSON FinalScore = JS.object
+  toJSON (FinalScore score) = JS.object
     [ jsTag "finished"
-    , "score" .= JS.Null -- XXX
+    , "score" .= score
     ]
 
 instance ToJSON GameUpdate

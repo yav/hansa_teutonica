@@ -69,13 +69,11 @@ function drawLog() {
     return true
   }
 
-  ui.StartTurn = function(player) {
+  ui.StartTurn = function() {
     turnBox = document.createElement('div')
     turnBox.classList.add('log-turn')
     dom.prepend(turnBox)
-    sayPlayer(player)
-    lab('\'s turn')
-    return true
+    return false
   }
 
   ui.EndTurn = function() {

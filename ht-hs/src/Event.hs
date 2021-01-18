@@ -26,8 +26,8 @@ instance IsString EventElement where
 
 -- User readable events describing the game flow
 data Event =
-    StartTurn PlayerId
-  | EndTurn PlayerId
+    StartTurn
+  | EndTurn
   | StartAction
   | EndAction
   | EvSay [EventElement]
