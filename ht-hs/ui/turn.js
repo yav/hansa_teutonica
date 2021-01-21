@@ -25,7 +25,7 @@ function drawTurn(turn) {
 
   const dom = document.createElement('div')
   dom.classList.add('turn')
-  dom.style.fontSize = 1.5 * gui.board.fontSize
+  dom.style.fontSize = gui.board.fontSize
 
   { // undo btn
     const btn = document.createElement('span')

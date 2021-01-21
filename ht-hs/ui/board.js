@@ -15,7 +15,7 @@ function boardCoord(name,size) {
          , bonusSize:  3 * sz
          , houseSize:  1.5 * sz
          , upgradeSize: 4.5 * sz
-         , fontSize: sz
+         , fontSize: 2 * sz
 
          , tokenCountSpot: { x: cosc * map.bonus.x, y: cosc * map.bonus.y }
 
@@ -251,8 +251,6 @@ function drawBoard(opts) {
     const placeBonus = function(edge,bonus) {
       const loc = board.bonusSpot(edge)
       const el  = drawBonusTokenAt(loc, board.bonusSize, bonus)
-      el.style.transform = 'rotate(' + loc.rotate + 'deg)'
-                                              // assume no other trnasforms
       dom.appendChild(el)
       placedBonuses[edge] = el
     }

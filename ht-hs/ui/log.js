@@ -1,7 +1,7 @@
 function drawLog() {
   const dom = document.createElement('div')
   dom.classList.add('log')
-  dom.style.fontSize = 1.5 * gui.board.fontSize
+  dom.style.fontSize = gui.board.fontSize
   gui.panel.appendChild(dom)
 
   let turnBox = null

@@ -141,7 +141,6 @@ body {
   color: black;
   background-color: white;
   border: 2px solid #09f;
-  /*box-shadow: 0.1em 0.1em 0.1em 0.1em #666;*/
   border-radius: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -170,7 +169,7 @@ body {
 }
 
 .bonus:hover {
-  transform: scale(2);
+  transform: scale(3) !important;
   z-index: 7;
 }
 /* -------------------------------------------------------------------------- */
@@ -332,8 +331,6 @@ body {
 
 .tooltip {
   position: absolute;
-  /* right: -20;
-  top: 20; */
   display: none;
   border: 1px solid black;
   background-color: white;
@@ -344,7 +341,6 @@ body {
   padding-left: 0.2em;
   z-index: 15;
   height: 2ex;
-  font-size: smaller;
 }
 
 /* -------- Turn */

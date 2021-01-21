@@ -10,7 +10,7 @@ function drawPlayer(pid,opts) {
   dom.classList.add('player')
   dom.style.height = height + 'px'
   dom.style.width  = opts.width + 'px'
-  dom.style.fontSize = 0.08 * height
+  dom.style.fontSize = 0.8 * gui.board.fontSize
 
   const img = document.createElement('img')
   img.setAttribute('src', 'img/player/' + color + '.png')
@@ -292,7 +292,6 @@ function drawPlayer(pid,opts) {
     setHelp(it,'Victory points')
     let vp = opts.points
     it.textContent  = vp + ' VP'
-    it.style.fontSize = 0.4 * barHeight
     bar.appendChild(it)
     ui.changeVP = function(delta) {
       vp = vp + delta

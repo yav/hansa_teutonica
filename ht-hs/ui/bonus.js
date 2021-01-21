@@ -14,6 +14,8 @@ function drawBonusTokenAt(loc,h,b) {
   style.position = 'absolute'
   style.left = loc.x + 'px'
   style.top  = loc.y + 'px'
+  style.transform = 'rotate(' + loc.rotate + 'deg)'
+  dom.classList.add('bonus')
   return dom
 }
 
