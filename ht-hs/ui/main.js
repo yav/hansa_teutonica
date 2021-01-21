@@ -161,8 +161,13 @@ function uiRedraw(ws,state) {
     //cont.style.width = width
     gui.container.appendChild(cont)
 
+    let start = 0
     for (let i = 0; i < game.turnOrder.length; ++i) {
-      const pid = game.turnOrder[i]
+      if (game.turnOrder[i] === playerId) { start = i; break }
+    }
+
+    for (let i = 0; i < game.turnOrder.length; ++i) {
+      const pid = game.turnOrder[(start + i) % game.turnOrder.length]
       const s   = game.players[pid]
       s.height  = height
       s.width   = width
