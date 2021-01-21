@@ -13,7 +13,7 @@ data BonusToken =
   | BonusExtra
   | BonusAct3
   | BonusAct4
-  deriving (Eq,Ord,Show,Generic,Enum,Bounded)
+  deriving (Eq,Ord,Show,Read,Generic,Enum,Bounded)
 
 -- | Not counting the starting ones
 tokenNumber :: BonusToken -> Int
@@ -39,7 +39,7 @@ data FixedBonus =
   | BonusGainPrivilege
   | BonusBuildInGreen
   | BonusReuse2
-  deriving (Eq,Ord,Show)
+  deriving (Eq,Ord,Show,Read)
 
 
 bonusPoints :: Int -> Int

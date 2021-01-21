@@ -18,7 +18,7 @@ type ProvinceId   = Int      -- ^ Identifies a route (Brittania expansion)
 type Score        = Map Text (Map PlayerId Int)
 
 data WorkerType   = Cube | Disc
-  deriving (Eq,Ord,Show,Generic,Bounded,Enum)
+  deriving (Eq,Ord,Show,Read,Generic,Bounded,Enum)
 
 replacementCost :: WorkerType -> Int
 replacementCost wt =
@@ -35,7 +35,7 @@ otherType ty =
 
 
 data RequireWorker = AnyWorker | Require WorkerType
-  deriving (Eq,Ord,Show,Generic)
+  deriving (Eq,Ord,Show,Read,Generic)
 
 accepts :: RequireWorker -> WorkerType -> Bool
 accepts requirement workerType =
@@ -47,7 +47,7 @@ accepts requirement workerType =
 data Worker = Worker
   { owner :: PlayerId
   , shape :: WorkerType
-  } deriving (Eq,Ord,Show,Generic)
+  } deriving (Eq,Ord,Show,Read,Generic)
 
 
 

@@ -26,7 +26,7 @@ data Choice =
   | ChEndVPSpot Level
 
   | ChDone Text
-    deriving (Eq,Ord,Show,Generic)
+    deriving (Eq,Ord,Show,Read,Generic)
 
 instance FromJSON Choice
 instance ToJSON Choice

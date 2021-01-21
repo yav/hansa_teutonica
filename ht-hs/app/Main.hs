@@ -35,11 +35,12 @@ main =
                                          ''OutMsg,
                                          ''GameUpdate, ''Choice, ''Event])
                 putStrLn str
-                newServer (BS8.pack str) GameInfo
-                  { gPlayers = players
-                  , gState = initialGame rng board players
-                  , gInit = nextAction
-                  }
+                newServer (BS8.pack str)
+                  $ startGame GameInfo
+                                { gPlayers = players
+                                , gState = initialGame rng board players
+                                , gInit = nextAction
+                                } []
            Nothing -> fail "unknown board"
        _ -> fail "Usage: board_name player1 player2 ..."
 

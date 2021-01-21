@@ -29,6 +29,8 @@ import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:?))
 import qualified Data.Aeson as JS
 
 import Common.Basics
+import Common.SaveLoad(save)
+import Debug.Trace
 import AppTypes(State,Finished,Input,Update,doUpdate)
 
 
@@ -87,7 +89,8 @@ handleMessage (p :-> req) =
 
     PlayerResponse ch ->
       \s -> if chStateName ch == iName s
-              then askQuestions (interaction (Right (p :-> chChoice ch)) s)
+              then let r = askQuestions (interaction (Right (p :-> chChoice ch)) s)
+                   in trace (show (length (save (iLog (fst r))))) r
               else (s,[])
 
 
@@ -252,4 +255,6 @@ instance FromJSON PlayerRequest where
 
 instance ToJSON ChoiceHelp
 instance FromJSON ChoiceHelp
+
+--------------------------------------------------------------------------------
 

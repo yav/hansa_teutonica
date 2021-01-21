@@ -19,7 +19,7 @@ data EventElement =
   | EvNode NodeId (Maybe Int)
   | EvBonus BonusToken
   | EvStat Stat
-    deriving (Show,Generic)
+    deriving (Show,Read,Generic)
 
 instance IsString EventElement where
   fromString = EvText . Text.pack
@@ -31,7 +31,7 @@ data Event =
   | StartAction
   | EndAction
   | EvSay [EventElement]
-    deriving (Show,Generic)
+    deriving (Show,Read,Generic)
 
 instance ToJSON EventElement
 instance ToJSON Event

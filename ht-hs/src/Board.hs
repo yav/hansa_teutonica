@@ -53,7 +53,7 @@ data Board = Board
   , boardBonusRoute        :: (NodeId, NodeId)
     -- ^ Bonus points for connecting these cities
 
-  } deriving (Show,Generic)
+  } deriving (Show,Read,Generic)
 
 
 data Province = Province

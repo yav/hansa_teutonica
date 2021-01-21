@@ -53,7 +53,7 @@ data Player = Player
   , spentBonuses  :: [BonusToken]
   , points        :: Int
   , preference    :: WorkerType
-  } deriving (Show,Generic)
+  } deriving (Show,Read,Generic)
 
 zeroState :: Player
 zeroState = Player

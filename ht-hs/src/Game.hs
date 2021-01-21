@@ -89,7 +89,7 @@ data GameStatus s = Game
   , _gameStatus   :: s
   , _gameEndVPSpots :: Map Level Worker
   , _gameCompletedBonusRoute :: Set PlayerId
-  } deriving (Show,Generic)
+  } deriving (Show,Read,Generic)
 
 
 declareFields ''GameStatus
@@ -98,6 +98,7 @@ type Game = GameStatus Turn
 type GameFinished = GameStatus FinalScore
 
 newtype FinalScore = FinalScore Score
+  deriving (Show,Read)
 
 gamePlayer :: PlayerId -> Field Game Player
 gamePlayer playerId = gamePlayers .> mapAt playerId

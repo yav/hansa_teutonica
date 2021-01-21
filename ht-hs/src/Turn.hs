@@ -42,7 +42,7 @@ data Turn = Turn
   , turnUsedGateways    :: Set ProvinceId
   , _turnPlacing        :: Maybe BonusToken
   , turnPickedUp        :: [(Maybe ProvinceId,Worker)]
-  } deriving (Show,Generic)
+  } deriving (Show,Read,Generic)
 
 declareFields ''Turn
 

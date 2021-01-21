@@ -37,10 +37,10 @@ data ServerState = ServerState
   , gameState :: InteractState
   }
 
-newServer :: ByteString -> GameInfo -> IO ()
-newServer dyn ginfo =
+newServer :: ByteString -> InteractState -> IO ()
+newServer dyn s =
   do ref <- newIORef ServerState { connected = Map.empty
-                                 , gameState = startGame ginfo []
+                                 , gameState = s
                                  }
      logger <- newLogger "-"
      let srv = Server { serverRef = ref, serverLogger = logger }

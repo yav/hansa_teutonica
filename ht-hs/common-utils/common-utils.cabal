@@ -13,9 +13,11 @@ library
     Common.Basics,
     Common.Utils,
     Common.Field,
-    Common.CallJS
+    Common.CallJS,
+    Common.SaveLoad
   build-depends:
-    base >=4.13, containers, text, tf-random, aeson, vector, template-haskell
+    base >=4.13, containers, text, tf-random, aeson, vector, template-haskell,
+    bytestring, zlib, base64-bytestring
   ghc-options:         -Wall
   default-language:    Haskell2010
   default-extensions:
