@@ -1,7 +1,8 @@
 module Actions.Complete (tryCompleteEdge) where
 
 import qualified Data.Map as Map
-import Control.Monad(guard,msum,forM_,when)
+import qualified Data.Set as Set
+import Control.Monad(guard,msum,forM_,when,unless)
 import Data.Text(Text)
 import Data.Maybe(maybeToList,isNothing)
 
@@ -148,6 +149,7 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
                when (vp > 0)
                   do update (ChangeVP playerId vp)
                      evLog [ EvPlayer playerId, " gained ", EvInt vp, " VP" ]
+               checkCompleteBonusRoute playerId
                -- XXX: full update?
           )
   where
@@ -180,7 +182,26 @@ tryAnnex edgeId edgeInfo nodeId nodeInfo playerId player =
                update (PlaceWorkerInAnnex nodeId worker)
                evLog [ "Used ", EvBonus BonusExtra, " to build ",
                        EvWorker worker, " annex in ", EvNode nodeId Nothing ]
+               checkCompleteBonusRoute playerId
           )
+
+checkCompleteBonusRoute :: PlayerId -> Interact ()
+checkCompleteBonusRoute playerId =
+  do achieved <- view (getField gameCompletedBonusRoute)
+     unless (playerId `Set.member` achieved)
+       do done <- view (hasRouteBonus playerId . getField gameBoard)
+          let pos = Set.size achieved
+          when (done && pos < 3)
+            do update (AchieveBonusRoute playerId)
+               let pts = case pos of
+                           0 -> 7
+                           1 -> 4
+                           2 -> 2
+                           _ -> 0
+               update (ChangeVP playerId pts)
+               (a,b) <- view (boardBonusRoute . getField gameBoard)
+               evLog [ "Gained ", EvInt pts, " VP for connecting ",
+                       EvNode a Nothing, " with ", EvNode b Nothing ]
 
 -- | Complete an edge and use a special action
 tryAction ::

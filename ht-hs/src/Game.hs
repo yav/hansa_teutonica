@@ -12,6 +12,7 @@ module Game
   , gameTurn
   , gameEndVPSpot
   , gameTokenRemaining
+  , gameCompletedBonusRoute
   , GameUpdate(..)
   , doUpdate
   , computeScore
@@ -70,6 +71,7 @@ data GameUpdate =
   | UseGateway ProvinceId
   | DrawBonusToken
   | PlacingBonus (Maybe BonusToken)
+  | AchieveBonusRoute PlayerId
 
   | Log Event
   | Prepare PlayerId Text
@@ -86,6 +88,7 @@ data GameStatus s = Game
   , _gameLog      :: [Event]
   , _gameStatus   :: s
   , _gameEndVPSpots :: Map Level Worker
+  , _gameCompletedBonusRoute :: Set PlayerId
   } deriving (Show,Generic)
 
 
@@ -139,6 +142,7 @@ doUpdate upd =
       Right . (gamePlayer playerId `updField` useBonus bonus)
 
     Prepare _ _ -> Right . id
+
 
     -- nodes
     PlaceWorkerInOffice nodeId worker ->
@@ -201,6 +205,9 @@ doUpdate upd =
       Right . (if isJust b then (gameTokens `updField` drop 1) else id)
             . (gameTurn .> turnPlacing   `setField` b)
 
+    AchieveBonusRoute playerId ->
+      Right . (gameCompletedBonusRoute `updField` Set.insert playerId)
+
     -- events
     Log e ->
       Right . (gameLog `updField` (e:))
@@ -230,6 +237,7 @@ initialGame rng0 board playerIds =
                        , StartTurn
                        ]
     , _gameEndVPSpots= Map.empty
+    , _gameCompletedBonusRoute = Set.empty
     }
 
   where

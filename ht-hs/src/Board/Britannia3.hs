@@ -7,6 +7,7 @@ board = buildBoard
   BoardBuilder
     { name = "britannia_23"
     , maxFull = 8
+    , bonusRoute = ("Oxford","York")
     , nodes =
         [ NodeBuilder
             { nodeInit =

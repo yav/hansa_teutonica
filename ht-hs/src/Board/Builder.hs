@@ -38,10 +38,11 @@ data EdgeBuilder = EdgeBuilder
   }
 
 data BoardBuilder = BoardBuilder
-  { nodes   :: [NodeBuilder]
-  , edges   :: [EdgeBuilder]
-  , maxFull :: Int
-  , name    :: Text
+  { nodes       :: [NodeBuilder]
+  , edges       :: [EdgeBuilder]
+  , maxFull     :: Int
+  , name        :: Text
+  , bonusRoute  :: (Text,Text)
   }
 
 buildBoard :: BoardBuilder -> Board
@@ -60,6 +61,9 @@ buildBoard builder =
     , boardProvinces = foldr addProvs capitals (nodes builder)
     , boardInitialTokens =
       Set.fromList [ i | (i,e) <- [ 0 .. ] `zip` edges builder, startBonus e ]
+    , boardBonusRoute =
+        case bonusRoute builder of
+          (a,b) -> (getNodeId a, getNodeId b)
     }
   where
   nodeInits = map nodeInit (nodes builder)

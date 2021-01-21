@@ -42,6 +42,7 @@ const handlers = {
   , RemoveWokerFromHand: function(...as) { gui.turn.removeWorkerFromHand(...as) }
   , DrawBonusToken: function() { gui.changeTokenCount(-1) }
   , PlacingBonus: function(...as) { gui.setPlacing(...as) }
+  , AchieveBonusRoute: function() {}
 
   // log
   , Log: function(...as) { gui.log.addLog(...as) }

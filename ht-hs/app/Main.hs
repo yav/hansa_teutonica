@@ -38,14 +38,7 @@ main =
                 newServer (BS8.pack str) GameInfo
                   { gPlayers = players
                   , gState = initialGame rng board players
-                  , gInit = do let w1 = Worker { owner = mkP (ps !! 0)
-                                               , shape = Cube }
-                               let w2 = Worker { owner = mkP (ps !! 1)
-                                               , shape = Cube }
-                               update (PlaceWorkerInOffice 0 w1)
-                               update (PlaceWorkerInOffice 0 w2)
-                               update (ChangeVP (owner w1) 19)
-                               nextAction
+                  , gInit = nextAction
                   }
            Nothing -> fail "unknown board"
        _ -> fail "Usage: board_name player1 player2 ..."

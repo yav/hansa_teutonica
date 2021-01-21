@@ -63,8 +63,8 @@ zeroState = Player
   , preference    = Cube
 
     -- XXX
-  , bonuses       = [ BonusAct3,BonusAct3,BonusAct4
-                    , BonusSwap,BonusSwap
+  , bonuses       = replicate 10 BonusAct4 ++
+                    [ BonusSwap,BonusSwap
                     , BonusUpgrade, BonusUpgrade, BonusMove, BonusMove
                     , BonusExtra, BonusExtra
                     ]

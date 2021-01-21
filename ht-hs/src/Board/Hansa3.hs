@@ -6,6 +6,7 @@ board = buildBoard
   BoardBuilder
     { name = "ht_23"
     , maxFull = 10
+    , bonusRoute = ("Arnheim","Stendal")
     , nodes =
         [ NodeBuilder
             { nodeInit =

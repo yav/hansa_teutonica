@@ -50,6 +50,9 @@ data Board = Board
   , boardInitialTokens     :: Set EdgeId
     -- ^ Where to place initial tokens
 
+  , boardBonusRoute        :: (NodeId, NodeId)
+    -- ^ Bonus points for connecting these cities
+
   } deriving (Show,Generic)
 
 
@@ -262,6 +265,13 @@ scoreProvince provinceId board =
         ws   = nodeAllWorkers node
         c    = nodeControlledBy node
     in foldr addWorker (addControl c mp) ws
+
+
+hasRouteBonus :: PlayerId -> Board -> Bool
+hasRouteBonus playerId board = geoHasPath (boardGeometry board) consider a b
+  where
+  consider n = nodeHasPresence playerId (getField (boardNode n) board)
+  (a,b)      = boardBonusRoute board
 
 --------------------------------------------------------------------------------
 instance JS.ToJSON Board where

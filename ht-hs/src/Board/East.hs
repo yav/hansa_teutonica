@@ -6,6 +6,7 @@ board = buildBoard
   BoardBuilder
     { name = "east"
     , maxFull = 10
+    , bonusRoute = ("Lübeck","Danzig")
     , nodes =
         [ NodeBuilder
             { nodeInit =
