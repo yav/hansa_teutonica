@@ -64,7 +64,9 @@ function drawTurn(turn) {
   }
   const pickedGroup = group(picked)
 
-  gui.panel.prepend(dom)
+  // gui.panel.prepend(dom)
+  // gui.container.appendChild(dom)
+  gui.board.appendChild(dom)
 
 
   // exported

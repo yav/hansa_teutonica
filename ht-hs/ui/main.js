@@ -109,7 +109,7 @@ function uiRedraw(ws,state) {
 
   { // Board
     const board = game.board
-    board.size = 700
+    board.size = 800
     gui.board = drawBoard(board)
   }
 
@@ -150,6 +150,8 @@ function uiRedraw(ws,state) {
     }
   }
 
+
+
   { // Players
     const height = 120
     const width  = 3 * height
@@ -158,7 +160,6 @@ function uiRedraw(ws,state) {
     const cont = document.createElement('div')
     gui.playerContainer = cont
     cont.classList.add('player-container')
-    //cont.style.width = width
     gui.container.appendChild(cont)
 
     let start = 0
@@ -185,6 +186,7 @@ function uiRedraw(ws,state) {
   gui.panel.classList.add('panel')
   gui.container.appendChild(gui.panel)
 
+
   { // Current turn
     const stat = game.status
     if (stat.tag === 'finished') {
@@ -200,6 +202,8 @@ function uiRedraw(ws,state) {
       gui.log.addLog(game.log[i])
     }
   }
+
+
 
   // questions
   uiQuestions(state.questions)

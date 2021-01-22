@@ -347,6 +347,7 @@ function drawBoard(opts) {
 
   }
 
+  ui.appendChild = function(x) { dom.appendChild(x) }
 
   gui.container.appendChild(dom)
   return ui
