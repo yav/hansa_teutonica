@@ -57,7 +57,7 @@ begin Save { .. } =
                              { gPlayers = players
                              , gState = initialGame rng board players
                              , gInit = nextAction
-                             , gSave = \moves -> show Save { .. }
+                             , gSave = \m -> show Save { moves = m, .. }
                              } moves
         Nothing -> fail $ unlines $ "unknown board"
                                   : map Text.unpack (Map.keys boards)
