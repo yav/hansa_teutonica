@@ -141,7 +141,8 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
           , "Build office"
           , edgeId
           , completeAction edgeId playerId
-            do update (RemoveWorkerFromEdge edgeId edgeSpotId)
+            do fullBefore <- view (countFull . getField gameBoard)
+               update (RemoveWorkerFromEdge edgeId edgeSpotId)
                update (PlaceWorkerInOffice nodeId worker)
                evLog [ EvWorker worker, " established office in ",
                                                     EvNode nodeId Nothing ]
@@ -150,7 +151,8 @@ tryOffice nodeId nodeInfo playerId playerState edgeId edgeInfo =
                   do update (ChangeVP playerId vp)
                      evLog [ EvPlayer playerId, " gained ", EvInt vp, " VP" ]
                checkCompleteBonusRoute playerId
-               -- XXX: full update?
+               fullAfter <- view (countFull . getField gameBoard)
+               when (fullAfter > fullBefore) (update (SetFull fullAfter))
           )
   where
   suitableWorkerFor spot (i,_,w)

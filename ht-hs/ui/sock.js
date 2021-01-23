@@ -12,6 +12,9 @@ const handlers = {
   , SwapWorkers:          function(...as) { gui.board.swapWorkers(...as) }
   , SetEndVPAt:           function(...as) { gui.board.placeWorkerOnVP(...as) }
 
+    // misc
+  , SetFull: function(...as) { gui.board.setFull(...as) }
+
     // player
   , SetWorkerPreference: function (w) {
       gui.playerUI(w.owner).setPreference(w.shape)

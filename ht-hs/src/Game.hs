@@ -75,6 +75,7 @@ data GameUpdate =
 
   | Log Event
   | Prepare PlayerId Text
+  | SetFull Int
   | EndGame
 
   deriving (Show,Generic)
@@ -179,6 +180,7 @@ doUpdate upd =
       Right .
         (gameBoard .> boardEdge edgeId `updField` edgeSetBonus bonus)
 
+    SetFull _ -> Right . id
 
     -- turn
 
