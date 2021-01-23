@@ -61,8 +61,7 @@ tryPlace state =
              Just g -> update (UseGateway g)
              _      -> pure ()
            update (PlaceWorkerOnEdge edgeId spot w)
-           update (Log (EvSay ["Placed ", EvWorker w, " on "
-                                       , EvEdge edgeId (Just spot)]))
+           evLog ["Placed ", EvWorker w, " on " , EvEdge edgeId (Just spot)]
 
       ChEdgeFull edgeId spot ~(Just workerT) worker ->
         doAction
