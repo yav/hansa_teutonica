@@ -1,8 +1,10 @@
 module Actions.Common where
 
 import Data.Text(Text)
+import qualified Data.Map as Map
 import Control.Monad(guard,when)
 
+import Common.Utils
 import Common.Interact
 import Common.Field
 
@@ -46,4 +48,51 @@ doUpgrade playerId player stat =
               diff = actionLimit (lvl+1) - actionLimit lvl
           when (diff > 0) $
              update (ChangeActionLimit diff)
+
+
+placeSpots ::
+  WorkerHome ->
+  Player ->
+  Text ->
+  (WorkerType -> [Choice]) ->
+  ( [(Choice,Text)], Bool )
+placeSpots home playerState help getSpots =
+  ( map disambig spots
+  , any isAmbig  spots
+  )
+  where
+  workerPref = getWorkerPreference playerState
+
+  disambig xs =
+    case xs of
+      [a] -> snd a
+      _   -> head [ b | (t,b) <- xs, t == workerPref ]
+
+  isAmbig xs =
+    case xs of
+      _ : _ : _ -> True
+      _         -> False
+
+  spots =
+    Map.elems $
+    Map.fromListWith (++)
+    do t <- enumAll
+       guard (getWorker home t playerState > 0)
+       x <- getSpots t
+       key <- case x of
+                ChEdgeEmpty e s _  -> [(e,s)]
+                ChEdgeFull e s _ _ -> [(e,s)]
+                _ -> []
+       pure (key, [(t,(x,help))])
+
+
+
+changePref :: Player -> Bool -> [(Choice,Text)]
+changePref playerState yes =
+  do guard yes
+     let otherT = otherType (getWorkerPreference playerState)
+         help   = "Change preference to " <> jsKey otherT
+     pure (ChSetPreference otherT, help)
+
+
 

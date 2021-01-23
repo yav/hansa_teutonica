@@ -1,7 +1,6 @@
 module Actions.Place where
 
 import qualified Data.Map as Map
-import Control.Monad(guard)
 
 import Common.Utils
 import Common.Interact
@@ -20,9 +19,7 @@ import Actions.Common
 tryPlace :: PlayerOptions
 tryPlace state =
   do (turn,playerState) <- startAction state
-     let workerT      = getWorkerPreference playerState
-
-         board        = getField gameBoard state
+     let board        = getField gameBoard state
          player       = currentPlayer turn
 
          gateways     = accessibleProvinces player (usedGateways turn) board
@@ -34,28 +31,19 @@ tryPlace state =
          canReplace w = owner w /= player &&
                         totWorkers > replacementCost (shape w)
 
-         disambig     = map snd . Map.elems . Map.fromListWith pickPref
-           where pickPref a@(t1,_) b = if t1 == workerT then a else b
 
-         getFree      = disambig
-                      $ do t <- enumAll
-                           guard (getWorker Active t playerState > 0)
-                           x <- freeSpots board accessible t
-                           let ChEdgeEmpty e s _ = x
-                           pure ((e,s), (t,(x,"Place a worker")))
-         getFull      = disambig
-                      $ do t <- enumAll
-                           x <- replaceSpots board accessible t canReplace
-                           let ChEdgeFull e s _ _ = x
-                           pure ((e,s), (t,(x,"Replace a worker")))
-         changePref   = do let otherT = otherType workerT
-                           guard (getWorker Active otherT playerState > 0)
-                           let help = "Change preference to " <>
-                                      jsKey otherT
-                           pure (ChSetPreference otherT, help)
+         (getFree,ambig1) =
+            placeSpots Active playerState "Place worker"
+                       (\t -> freeSpots board accessible t)
 
-     (ch,help) <- [ (player :-> c,help) |
-                     (c,help) <- changePref ++ getFree ++ getFull ]
+         (getFull,ambig2) =
+           placeSpots Active playerState "Replace worker"
+                      (\t -> replaceSpots board accessible t canReplace)
+
+     (ch,help) <- [ (player :-> c,help)
+                  | (c,help) <- changePref playerState (ambig1 || ambig2)
+                             ++ getFree ++ getFull
+                  ]
      pure (ch, help, handleChoice gatewayFor ch)
 
   where
@@ -135,90 +123,60 @@ tryPlace state =
        update (Prepare (owner worker) "Your worker was replaced")
        ~(ChEdgeEmpty tgtEdgeId spot _) <-
             choose (owner worker)
-              [ (ch, "Location for replaced worker") | ch <- tgts ]
+              [ (ch, "Move replaced worker") | ch <- tgts ]
        update RemoveWokerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
        evLog [ "Moved ", EvWorker worker, " to ", EvEdge tgtEdgeId (Just spot) ]
-       placeExtra (owner worker) edgeId
+       placeExtra Passive (owner worker) edgeId
                                   1 (replacementCost (shape worker))
 
 
-  placeExtra playerId edgeId placing total
+  placeExtra home playerId edgeId placing total
     | placing > total = pure ()
     | otherwise =
       do playerState <- view (getField (gamePlayer playerId))
+         board       <- view (getField gameBoard)
+         let accessible newEdgeProv =
+               case newEdgeProv of
+                  Nothing -> True
+                  Just p  -> edgeProvince edgeId board == Just p
 
-         let passiveOptsFor t
-               | getWorker Passive t playerState > 0 =
-                  do os <- placeOpts edgeId t
-                     pure [ (playerId :-> o,
-                            "Place bonus worker " <> showText placing
-                                         <> "/" <> showText total
-                          , do let w = Worker { owner = playerId
-                                              , shape = t
-                                              }
-                               update (ChangeUnavailable w (-1))
-                               update (PlaceWorkerOnEdge eId spot w)
-                               evLog [ "Placed ", EvWorker w,
-                                       " on ", EvEdge eId (Just spot) ]
-                               placeExtra playerId edgeId (placing+1) total
-                           ) | o@(ChEdgeEmpty eId spot _) <- os ]
-               | otherwise = pure []
+             (opts,ambig) = placeSpots home playerState placeHelp
+                                (replaceTargets board accessible edgeId)
+             allOpts = (ChDone "Done", "Don't place additional workers")
+                     : changePref playerState ambig
+                    ++ opts
 
-         let activeOptsFor t
-               | getWorker Active t playerState > 0 =
-                  do os <- placeOpts edgeId t
-                     pure [ (playerId :-> o,
-                            "Place (active) bonus worker " <> showText placing
-                                         <> "/" <> showText total
-                          , do let w = Worker { owner = playerId
-                                              , shape = t
-                                              }
-                               update (ChangeAvailble w (-1))
-                               update (PlaceWorkerOnEdge eId spot w)
-                               evLog [ "Placed ", EvWorker w,
-                                       " on ", EvEdge eId (Just spot) ]
-                               placeExtra playerId edgeId (placing+1) total
-                           ) | o@(ChEdgeEmpty eId spot _) <- os ]
-               | otherwise = pure []
+         case (opts,home) of
+           ([],Passive) -> placeExtra Active playerId edgeId placing total
+           ([],Active)  -> pure () -- XXX: allow to move
+           _ -> do ch <- choose playerId allOpts
+                   case ch of
+                     ChDone _ -> pure ()
 
+                     ChSetPreference t ->
+                       do let w = Worker { owner = playerId, shape = t }
+                          update (SetWorkerPreference w)
+                          placeExtra home playerId edgeId placing total
+
+                     ~(ChEdgeEmpty eId spot t) ->
+                       do let w = Worker { owner = playerId, shape = t }
+                          update case home of
+                                   Active  -> ChangeAvailble w (-1)
+                                   Passive -> ChangeUnavailable w (-1)
+                          update (PlaceWorkerOnEdge eId spot w)
+                          evLog [ "Placed ", EvWorker w,
+                                  " on ", EvEdge eId (Just spot) ]
+                          placeExtra home playerId edgeId (placing+1) total
 
 
-         let doPlaceExtra optsFor ifNoOpts =
-               do let workerT = getWorkerPreference playerState
-                      otherT  = otherType workerT
-                      giveUp  = ( playerId :-> ChDone "Done"
-                                , "Don't place additional workers"
-                                , pure ()
-                                )
-
-                  prefTgts  <- optsFor workerT
-                  otherTgts <- optsFor otherT
-                  case (prefTgts,otherTgts) of
-                    ([],[]) -> ifNoOpts
-                    (xs,[]) -> askInputs (giveUp : xs)
-                    ([],ys) -> askInputs (giveUp : ys)
-                    (xs,_)  -> askInputs (giveUp : changePref : xs)
-                       where
-                       changePref =
-                         ( playerId :-> ChSetPreference otherT
-                         , "Change preference to " <> jsKey otherT
-                         , do update (SetWorkerPreference
-                                         Worker { owner = playerId
-                                                , shape = otherT
-                                                })
-                              placeExtra playerId edgeId placing total
-                         )
-
-
-         doPlaceExtra passiveOptsFor $
-            doPlaceExtra activeOptsFor $
-              pure () -- XXX: according to the rules if you have *no*
-                      -- workers you should be allowed to move a worker
-                      -- on the board (presumably in the same proving,
-                      -- or into the capital?)
-
-
+    where
+    placeHelp =
+      let which = case home of
+                    Active  -> "available"
+                    Passive -> "unavailable"
+      in "Place " <> which <> " bonus worker " <>
+                         showText placing <> "/" <> showText total
 
 
 
