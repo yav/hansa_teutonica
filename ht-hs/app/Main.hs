@@ -41,9 +41,7 @@ data Save = Save
   } deriving (Read,Show)
 
 begin :: Save -> IO ()
-begin Save { .. } = do
-  putStrLn "MOVES:"
-  mapM_ print moves
+begin Save { .. } =
   case args of
     b : ps ->
       case Map.lookup (Text.pack b) boards of
@@ -61,5 +59,7 @@ begin Save { .. } = do
                              , gInit = nextAction
                              , gSave = \moves -> show Save { .. }
                              } moves
-        Nothing -> fail "unknown board"
+        Nothing -> fail $ unlines $ "unknown board"
+                                  : map Text.unpack (Map.keys boards)
+  
     _ -> fail "usage: board_name player1_name player2_name ..."
