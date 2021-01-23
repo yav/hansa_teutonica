@@ -33,6 +33,8 @@ otherType ty =
     Disc -> Cube
 
 
+data WorkerHome = Active | Passive
+  deriving (Eq,Ord)
 
 data RequireWorker = AnyWorker | Require WorkerType
   deriving (Eq,Ord,Show,Read,Generic)

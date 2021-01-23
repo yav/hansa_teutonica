@@ -125,11 +125,11 @@ doUpdate upd =
 
     ChangeAvailble Worker{..} n ->
       Right .
-        (gamePlayer owner `updField` changeAvailable shape n)
+        (gamePlayer owner `updField` changeWorker Active shape n)
 
     ChangeUnavailable Worker{..} n ->
       Right .
-        (gamePlayer owner `updField` changeUnavailable shape n)
+        (gamePlayer owner `updField` changeWorker Passive shape n)
 
     ChangeVP playerId n ->
       Right . (gamePlayer playerId `updField` addVP n)

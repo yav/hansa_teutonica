@@ -6,10 +6,8 @@ module Player
 
 
     -- * Workers
-  , changeAvailable
-  , getAvailable
-  , changeUnavailable
-  , getUnavailable
+  , getWorker
+  , changeWorker
   , hireWorker
   , setWorkerPreference
   , getWorkerPreference
@@ -71,36 +69,33 @@ zeroState = Player
 initialPlayer :: Int -> Player
 initialPlayer turnOrder =
      hireWorker Cube (turnOrder + 1)
-  $  changeUnavailable Cube 7
+  $  changeWorker Passive Cube 7
   $ foldr levelUp' zeroState enumAll
   where
-  levelUp' stat = changeAvailable (statWorker stat) 1 . levelUp stat
+  levelUp' stat = changeWorker Active (statWorker stat) 1 . levelUp stat
 
 
 --------------------------------------------------------------------------------
 
--- | Add this many workers to the pool of available worker.
--- Use negative number to decrease the number of workers.
-changeAvailable :: WorkerType -> Int -> Player -> Player
-changeAvailable w n = \s -> s { available = Map.adjust (+n) w (available s) }
+-- | How many workers do we have of the requested type
+getWorker :: WorkerHome -> WorkerType -> Player -> Int
+getWorker home w =
+  (Map.! w) .
+  case home of
+    Active  -> available
+    Passive -> unavailable
 
--- | How many workers of the given type we have.
-getAvailable :: WorkerType -> Player -> Int
-getAvailable w s = available s Map.! w
+-- | Change the number of workers of the given type
+changeWorker :: WorkerHome -> WorkerType -> Int -> Player -> Player
+changeWorker home w n =
+  case home of
+    Active  -> \s -> s { available   = Map.adjust (+n) w (available s) }
+    Passive -> \s -> s { unavailable = Map.adjust (+n) w (unavailable s) }
 
--- | Add this many workers to the pool of unavailable worker.
--- Use negative number to decrease the number of workers.
-changeUnavailable :: WorkerType -> Int -> Player -> Player
-changeUnavailable w n =
-  \s -> s { unavailable = Map.adjust (+n) w (unavailable s) }
-
--- | How many workers of the given type we have.
-getUnavailable :: WorkerType -> Player -> Int
-getUnavailable w s = unavailable s Map.! w
 
 -- | Move the given number of workers from unavailable to available.
 hireWorker :: WorkerType -> Int -> Player -> Player
-hireWorker w n = changeAvailable w n . changeUnavailable w (-n)
+hireWorker w n = changeWorker Active w n . changeWorker Passive w (-n)
 
 -- | Prefer placing this worker
 getWorkerPreference :: Player -> WorkerType

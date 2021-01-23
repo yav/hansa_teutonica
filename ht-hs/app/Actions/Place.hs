@@ -30,7 +30,7 @@ tryPlace state =
          gatewayFor edgeId =
                         (`Map.lookup` gateways) =<< edgeProvince edgeId board
 
-         totWorkers   = sum (map (`getAvailable` playerState) enumAll)
+         totWorkers   = sum (map (\t -> getWorker Active t playerState) enumAll)
          canReplace w = owner w /= player &&
                         totWorkers > replacementCost (shape w)
 
@@ -39,7 +39,7 @@ tryPlace state =
 
          getFree      = disambig
                       $ do t <- enumAll
-                           guard (getAvailable t playerState > 0)
+                           guard (getWorker Active t playerState > 0)
                            x <- freeSpots board accessible t
                            let ChEdgeEmpty e s _ = x
                            pure ((e,s), (t,(x,"Place a worker")))
@@ -49,7 +49,7 @@ tryPlace state =
                            let ChEdgeFull e s _ _ = x
                            pure ((e,s), (t,(x,"Replace a worker")))
          changePref   = do let otherT = otherType workerT
-                           guard (getAvailable otherT playerState > 0)
+                           guard (getWorker Active otherT playerState > 0)
                            let help = "Change preference to " <>
                                       jsKey otherT
                            pure (ChSetPreference otherT, help)
@@ -96,8 +96,8 @@ tryPlace state =
     | doing > total = pure ()
     | otherwise =
       do playerState <- view (getField (gamePlayer playerId))
-         let cubes = getAvailable Cube playerState
-             discs = getAvailable Disc playerState
+         let cubes = getWorker Active Cube playerState
+             discs = getWorker Active Disc playerState
              todo  = 1 + total - doing
              disable n t =
                do let w = Worker { owner = playerId, shape = t }
@@ -149,7 +149,7 @@ tryPlace state =
       do playerState <- view (getField (gamePlayer playerId))
 
          let passiveOptsFor t
-               | getUnavailable t playerState > 0 =
+               | getWorker Passive t playerState > 0 =
                   do os <- placeOpts edgeId t
                      pure [ (playerId :-> o,
                             "Place bonus worker " <> showText placing
@@ -166,7 +166,7 @@ tryPlace state =
                | otherwise = pure []
 
          let activeOptsFor t
-               | getAvailable t playerState > 0 =
+               | getWorker Active t playerState > 0 =
                   do os <- placeOpts edgeId t
                      pure [ (playerId :-> o,
                             "Place (active) bonus worker " <> showText placing

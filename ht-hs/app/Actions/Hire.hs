@@ -27,7 +27,7 @@ tryHire state0 =
                         Just l  -> "Hire 1/" <> Text.pack (show l)
          question t = (player :-> ChPassiveWorker t,
                                   limTxt, hireFirst limit t)
-     [ question t | t <- enumAll, getUnavailable t playerState > 0 ]
+     [ question t | t <- enumAll, getWorker Passive t playerState > 0 ]
   where
   hireFirst mbLimit ch =
     doAction
@@ -67,8 +67,8 @@ tryHire state0 =
     do game <- getState
        let playerId = gameCurrentPlayer game
            player   = getField (gamePlayer playerId) game
-           cubes    = getUnavailable Cube player
-           discs    = getUnavailable Disc player
+           cubes    = getWorker Passive Cube player
+           discs    = getWorker Passive Disc player
        pure (playerId,cubes,discs)
 
 
