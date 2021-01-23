@@ -24,9 +24,7 @@ import Turn
 import Event
 
 import Actions.Common
-
-
--- XXX: check  red route!
+import Actions.FixedBonus
 
 
 tryCompleteEdge :: PlayerOptions
@@ -94,9 +92,7 @@ activateBonus edgeId playerId =
           do update (EdgeRemoveBonus edgeId)
              update (GainBonusToken playerId token)
              update DrawBonusToken
-       FixedBonus bf ->
-         -- XXX: do bonuses
-         pure ()
+       FixedBonus bf -> doFixedBonus playerId edgeId bf
 
 returnWorkers :: EdgeId -> Interact ()
 returnWorkers edgeId =
