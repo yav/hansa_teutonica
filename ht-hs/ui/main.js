@@ -17,8 +17,25 @@ function newGUI(ws,container) {
 
   const removeQuestions = function() {
     for (let i = 0; i < questionsExtra.length; ++i) questionsExtra[i].remove()
-    for (let i = 0; i < questionsElems.length; ++i) questionsElems[i]()
+    for (let i = 0; i < questionsElems.length; ++i) questionsElems[i].rm()
+    gui.playerUI().hideActionIndicator()
   }
+
+  ui.highlightQuestions = function() {
+    for (let i = 0; i < questionsExtra.length; ++i)
+      questionsExtra[i].classList.add('large')
+    for (let i = 0; i < questionsElems.length; ++i)
+      questionsElems[i].dom.classList.add('large')
+  }
+
+  ui.unhighlightQuestions = function() {
+    for (let i = 0; i < questionsExtra.length; ++i)
+      questionsExtra[i].classList.remove('large')
+    for (let i = 0; i < questionsElems.length; ++i)
+      questionsElems[i].dom.classList.remove('large')
+  }
+
+
 
   const tooltip = function(el,lab) {
     const tip = document.createElement('div')
@@ -50,23 +67,25 @@ function newGUI(ws,container) {
       ws.send(JSON.stringify(val))
     }
     el.addEventListener('click',funClick)
-    return function() {
+    return { dom: el, rm: function() {
       el.classList.remove('question')
       el.removeEventListener('click',funClick)
       el.removeEventListener('mouseenter',tip.enter)
       el.removeEventListener('mouseleave',tip.leave)
-    }
+    }}
   }
 
   ui.tooltip = tooltip
 
   ui.questionAnnot = function(el,val) {
     questionsElems[questionsElems.length] = makeQuestion(el,val)
+    gui.playerUI().showActionIndicator()
   }
 
   ui.questionNew = function(el,val) {
     newQuestionExtra(el)
     makeQuestion(el,val)
+    gui.playerUI().showActionIndicator()
   }
 
   ui.container = container

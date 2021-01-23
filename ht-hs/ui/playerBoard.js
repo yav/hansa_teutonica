@@ -42,6 +42,33 @@ function drawPlayer(pid,opts) {
     }
   } ()
 
+  { // action indicator
+    const it = document.createElement('div')
+    it.classList.add('action-indicator')
+    it.classList.add(color)
+    const style = it.style
+    style.height = opts.height / 4
+    style.width  = opts.height / 4
+    style.display = 'none'
+    setHelp(it,"There are pending actions")
+    it.addEventListener('mouseenter',function() {
+      gui.highlightQuestions()
+    })
+    it.addEventListener('mouseleave',function() {
+      gui.unhighlightQuestions()
+    })
+
+    dom.appendChild(it)
+    ui.showActionIndicator = function() {
+      style.display = 'inline-block'
+    }
+    ui.hideActionIndicator = function() {
+      style.display = 'none'
+    }
+  }
+
+
+
   { // Stats
     const layout =
           { Movement:  { x: [ 1.109, 1.309, 1.554, 1.747 ]
