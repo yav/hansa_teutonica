@@ -147,7 +147,7 @@ function uiRedraw(ws,state) {
     lab.textContent = amt
     el.appendChild(lab)
     gui.tooltip(lab,'Remaining bonus tokens')
-    gui.container.appendChild(el)
+    gui.board.appendChild(el)
 
     let placing = null
 
