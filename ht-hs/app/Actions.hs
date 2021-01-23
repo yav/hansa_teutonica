@@ -47,7 +47,6 @@ nextTurn =
          nextPlayerId = playerAfter curP state
          actLvl = getLevel Actions (getField (gamePlayer nextPlayerId) state)
      update (Log EndTurn)
-     update (Prepare nextPlayerId "Your turn")
      update (Log StartTurn)
      evLog [ EvPlayer nextPlayerId, "'s turn" ]
      save

@@ -1,5 +1,6 @@
 module Actions.FixedBonus where
 
+import Control.Monad(when)
 import Data.Maybe(isJust)
 
 import Common.Basics
@@ -14,11 +15,11 @@ import Board
 import Event
 import Bonus
 
-doFixedBonus :: PlayerId -> EdgeId -> FixedBonus -> Interact ()
-doFixedBonus playerId edgeId bonus =
+doFixedBonus :: Bool -> PlayerId -> EdgeId -> FixedBonus -> Interact ()
+doFixedBonus early playerId edgeId bonus =
   case bonus of
-    BonusPlace2         -> doPlaceInProvince playerId 1 2
-    BonusMove2          -> pure ()
+    BonusPlace2         -> when early $ doPlaceInProvince playerId 1 2
+    BonusMove2          -> when (not early) $ bonusMove2 playerId
     BonusGainPrivilege  -> pure ()
     BonusBuildInGreen   -> pure ()
     BonusReuse2         -> pure ()
@@ -51,4 +52,7 @@ doPlaceInProvince playerId placing limit
                                               , EvEdge edgeId (Just spot)]
                            doPlaceInProvince playerId (placing+1) limit
 
+bonusMove2 :: PlayerId -> Interact ()
+bonusMove2 playerId =
+  askInputs . normalMovePieces playerId 2 True (const True) (==) =<< getState
 

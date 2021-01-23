@@ -114,16 +114,6 @@ body {
 }
 
 
-.alert {
-  position: absolute;
-  background-color: rgba(255,255,255,0.8);
-  left: 10%;
-  top: 30%;
-  padding: 3em;
-  border-radius: 0.5em;
-  border: 0.1em solid black;
-  cursor: pointer;
-}
 
 .score {
   background-color: white;

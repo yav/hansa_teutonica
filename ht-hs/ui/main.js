@@ -97,14 +97,6 @@ function newGUI(ws,container) {
     ws.send(JSON.stringify(msg))
   }
 
-  ui.alert = function(msg) {
-    const it = document.createElement('div')
-    it.classList.add('alert')
-    it.textContent = msg
-    it.addEventListener('click',function() { it.remove() })
-    container.appendChild(it)
-  }
-
   ui.reload = function () { sendJSON(ws,{ tag: 'reload' }) }
 
   return ui

@@ -83,16 +83,17 @@ giveVPs edgeId =
               evLog [EvPlayer playerId, " gained ", EvInt 1, " VP"]
          Nothing -> pure ()
 
-activateBonus :: EdgeId -> PlayerId -> Interact ()
-activateBonus edgeId playerId =
+activateBonus :: Bool -> EdgeId -> PlayerId -> Interact ()
+activateBonus early edgeId playerId =
   do ed <- view (getField (gameBoard .> boardEdge edgeId))
      case edgeBonusSpot ed of
        NoBonus -> pure ()
        Bonus token ->
+          when early
           do update (EdgeRemoveBonus edgeId)
              update (GainBonusToken playerId token)
              update DrawBonusToken
-       FixedBonus bf -> doFixedBonus playerId edgeId bf
+       FixedBonus bf -> doFixedBonus early playerId edgeId bf
 
 returnWorkers :: EdgeId -> Interact ()
 returnWorkers edgeId =
@@ -107,8 +108,9 @@ completeAction edgeId playerId act =
   do evLog [ "Completed ", EvEdge edgeId Nothing ]
      giveVPs edgeId
      act
-     activateBonus edgeId playerId
+     activateBonus True edgeId playerId
      returnWorkers edgeId
+     activateBonus False edgeId playerId
 
 --------------------------------------------------------------------------------
 

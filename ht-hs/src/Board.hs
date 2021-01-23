@@ -138,12 +138,12 @@ replaceSpots board provinceOk workerT workerOk =
   , accepts spotReq workerT && workerOk worker
   ]
 
-moveOpponentSpots :: Board -> PlayerId -> [Choice]
-moveOpponentSpots board playerId =
+moveFromSpots :: Board -> (PlayerId -> Bool) -> [Choice]
+moveFromSpots board moveOk =
   [ ChEdgeFull edgeId spot Nothing worker
   | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
   , (spot,_,worker) <- edgeWorkers edgeState
-  , owner worker /= playerId
+  , moveOk (owner worker)
   ]
 
 replaceTargets ::
@@ -170,18 +170,6 @@ replaceTargets board provinceOk edgeId workerT =
     | otherwise = EdgeDisabled
 
 
-pickupSpots ::
-  Board ->
-  (Maybe ProvinceId -> Bool) ->
-  (Worker -> Bool) ->
-  [Choice]
-pickupSpots board provinceOk workerOk =
-  [ ChEdgeFull edgeId spot Nothing worker
-  | (edgeId, edgeState) <- Map.toList (getField boardEdges board)
-  , provinceOk (edgeProvince edgeId board)
-  , (spot,_,worker) <- edgeWorkers edgeState
-  , workerOk worker
-  ]
 
 countFull :: Board -> Int
 countFull = Map.size . Map.filter nodeIsFull . getField boardNodes

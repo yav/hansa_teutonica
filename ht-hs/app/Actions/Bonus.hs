@@ -56,7 +56,7 @@ bonusAction b state =
          ]
 
        BonusMove ->
-         do let spots = moveOpponentSpots board playerId
+         do let spots = moveFromSpots board (/= playerId)
             guard (not (null spots))
             pure $ opt $ doMove 1 3
          where
@@ -64,7 +64,7 @@ bonusAction b state =
            | n > l = pure ()
            | otherwise =
              do board <- view (getField gameBoard)
-                let spots = moveOpponentSpots board playerId
+                let spots = moveFromSpots board (/= playerId)
                 unless (null spots) $
                   askInputs [ ( playerId :-> q
                               , "Pick up " <> showText n <> "/" <> showText l

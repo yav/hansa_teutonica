@@ -75,7 +75,6 @@ tryPlace state =
            evLog [ "Replaced ", EvWorker worker, " with ",
                    EvWorker ourWorker, " on ", EvEdge edgeId (Just spot) ]
            otherPlayerMoveAndPlace edgeId worker
-           update (Prepare pid "Continue turn")
 
       _ -> pure ()
 
@@ -119,7 +118,6 @@ tryPlace state =
 
   otherPlayerMoveAndPlace edgeId worker =
     do tgts <- placeOpts edgeId (shape worker)
-       update (Prepare (owner worker) "Your worker was replaced")
        ~(ChEdgeEmpty tgtEdgeId spot _) <-
             choose (owner worker)
               [ (ch, "Move replaced worker") | ch <- tgts ]

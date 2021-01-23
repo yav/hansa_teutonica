@@ -14,6 +14,7 @@ import Player
 import Question
 import Game
 import Turn
+import Board
 import Event
 
 type PlayerChoice  = (WithPlayer Choice, Text, Interact ())
@@ -93,6 +94,71 @@ changePref playerState yes =
      let otherT = otherType (getWorkerPreference playerState)
          help   = "Change preference to " <> jsKey otherT
      pure (ChSetPreference otherT, help)
+
+
+normalMovePieces ::
+  PlayerId -> Int -> Bool ->
+  (PlayerId -> Bool) ->
+  (Maybe ProvinceId -> Maybe ProvinceId -> Bool) ->
+  Game ->
+  [(WithPlayer Choice,Text,Interact())]
+normalMovePieces playerId limit stopEarly canPickUp canPutDown =
+  \s -> allPickupOpts (getField gameBoard s) 1
+  where
+  pickSpots board n =
+    [ ( playerId :-> ch
+      , "Move worker " <> showText n <> "/" <> showText limit
+      , doPickUp (n::Int) edgeId spot w
+      ) | ch@(ChEdgeFull edgeId spot _ w) <- moveFromSpots board canPickUp
+    ]
+
+  allPickupOpts board n =
+    case pickSpots board n of
+      [] -> []
+      opts
+        | stopEarly || n > 1 ->
+              (playerId :-> ChDone "Done", "No more moves", putDown)
+            : opts
+        | otherwise -> opts
+
+
+  pickUp n
+    | n > limit = putDown
+    | otherwise =
+      do board <- view (getField gameBoard)
+         case allPickupOpts board n of
+           []   -> putDown
+           opts -> askInputs opts
+
+  doPickUp n edgeId spot w =
+    do update (RemoveWorkerFromEdge edgeId spot)
+       prov <- view (edgeProvince edgeId . getField gameBoard)
+       update (AddWorkerToHand prov w)
+       evLog [ "Picked up ", EvWorker w, " from ", EvEdge edgeId (Just spot) ]
+       pickUp (n+1)
+
+
+
+  putDown =
+    do board <- view (getField gameBoard)
+       mb    <- view (nextPickedUp . getField gameTurn)
+       case mb of
+         Nothing -> pure ()
+         Just (fromProv,w) ->
+           askInputs
+             [ (playerId :-> ch, "New worker location", doPutDown w edgeId spot)
+             | ch@(ChEdgeEmpty edgeId spot _) <-
+                         freeSpots board (canPutDown fromProv) (shape w)
+             ]
+
+  doPutDown w edgeId spot =
+    do update RemoveWokerFromHand
+       update (PlaceWorkerOnEdge edgeId spot w)
+       evLog [ "Moved ", EvWorker w, " to ", EvEdge edgeId (Just spot) ]
+       putDown
+
+
+
 
 
 

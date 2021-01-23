@@ -23,7 +23,6 @@ import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Maybe(isJust)
-import Data.Text(Text)
 import GHC.Generics
 
 import qualified Data.Aeson as JS
@@ -74,7 +73,6 @@ data GameUpdate =
   | AchieveBonusRoute PlayerId
 
   | Log Event
-  | Prepare PlayerId Text
   | SetFull Int
   | EndGame
 
@@ -142,8 +140,6 @@ doUpdate upd =
 
     UseBonusToken playerId bonus ->
       Right . (gamePlayer playerId `updField` useBonus bonus)
-
-    Prepare _ _ -> Right . id
 
 
     -- nodes
