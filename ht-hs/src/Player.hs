@@ -57,18 +57,11 @@ data Player = Player
 
 zeroState :: Player
 zeroState = Player
-  { stats         = Map.fromList [ (stat,1) | stat <- enumAll ] -- XXX
+  { stats         = Map.fromList [ (stat,0) | stat <- enumAll ] -- XXX
   , available     = Map.fromList [ (w,0)    | w    <- enumAll ]
   , unavailable   = Map.fromList [ (w,0)    | w    <- enumAll ]
   , preference    = Cube
-
-    -- XXX
-  , bonuses       = replicate 10 BonusAct4 ++
-                    [ BonusSwap,BonusSwap
-                    , BonusUpgrade, BonusUpgrade, BonusMove, BonusMove
-                    , BonusExtra, BonusExtra
-                    ]
-
+  , bonuses       = []
   , spentBonuses  = []
   , points        = 0
   }
