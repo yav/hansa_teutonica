@@ -68,7 +68,6 @@ serverState srv = readIORef (serverRef srv)
 
 --------------------------------------------------------------------------------
 
-
 newClient :: Server -> Connection -> IO ()
 newClient srv conn =
   do serverLog srv "New connection requested, waiting for ID"
@@ -114,9 +113,12 @@ disconnect srv conn mbWho reason =
 
 inMsg :: Server -> WithPlayer PlayerRequest -> IO ()
 inMsg srv msg =
-  do msgs <- serverUpate srv \srvState ->
-             let (newGameState,msgs) = handleMessage msg (gameState srvState)
-             in (srvState { gameState = newGameState }, msgs)
+  do (msgs,mbSave) <- serverUpate srv \srvState ->
+             let (newGameState,msgs,mb) = handleMessage msg (gameState srvState)
+             in (srvState { gameState = newGameState }, (msgs,mb))
+     case mbSave of
+       Just (n,s) -> writeFile ("save_" ++ show n) s
+       Nothing -> pure ()
      mapM_ (outMsg srv) msgs
 
 outMsg :: Server -> WithPlayer OutMsg -> IO ()

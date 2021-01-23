@@ -58,7 +58,8 @@ executable ht-hs
 
   default-language:    Haskell2010
   default-extensions:
-    BlockArguments, OverloadedStrings, MultiWayIf, TemplateHaskell
+    BlockArguments, OverloadedStrings, MultiWayIf, TemplateHaskell,
+    RecordWildCards
 
   ghc-options:         -Wall
 

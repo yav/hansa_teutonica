@@ -50,6 +50,7 @@ nextTurn =
      update (Prepare nextPlayerId "Your turn")
      update (Log StartTurn)
      evLog [ EvPlayer nextPlayerId, "'s turn" ]
+     save
      update (NewTurn (newTurn nextPlayerId actLvl))
 
 tryEndTurn :: Bool -> PlayerOptions

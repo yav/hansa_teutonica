@@ -14,6 +14,7 @@ module Common.Interact
   , view
   , update
   , getState
+  , save
   ) where
 
 import Data.Text(Text)
@@ -29,8 +30,6 @@ import Data.Aeson (ToJSON(..), FromJSON(..), (.=), (.:?))
 import qualified Data.Aeson as JS
 
 import Common.Basics
-import Common.SaveLoad(save)
-import Debug.Trace
 import AppTypes(State,Finished,Input,Update,doUpdate)
 
 
@@ -45,6 +44,7 @@ startGame ginfo moves = foldl' step state0 moves
                          , iName    = 0
                          , iGame    = Right (gState ginfo)
                          , iAsk     = Map.empty
+                         , iShouldSave = False
                          }
   step state i = interaction_ (Right i) state
 
@@ -52,6 +52,7 @@ data GameInfo = GameInfo
   { gPlayers :: Set PlayerId
   , gState   :: State
   , gInit    :: Interact ()
+  , gSave    :: [WithPlayer Input] -> String
   }
 
 
@@ -75,28 +76,27 @@ data PlayerRequest =
 
 handleMessage ::
   WithPlayer PlayerRequest ->
-  InteractState -> (InteractState, [WithPlayer OutMsg])
+  InteractState -> (InteractState, [WithPlayer OutMsg], Maybe (Int,String))
 handleMessage (p :-> req) =
   case req of
-    Reload -> \s -> (s, [reload s p])
+    Reload -> \s -> (s, [reload s p], Nothing)
 
     Undo -> \s ->
       case iLog s of
         (q :-> _) : more | p == q ->
            let s1 = startGame (iInit s) (reverse more)
-           in (s1, map (reload s1) (iPlayers s1))
-        _ -> (s,[])
+           in (s1, map (reload s1) (iPlayers s1), Nothing)
+        _ -> (s,[],Nothing)
 
     PlayerResponse ch ->
       \s -> if chStateName ch == iName s
-              then let r = askQuestions (interaction (Right (p :-> chChoice ch)) s)
-                   in trace (show (length (save (iLog (fst r))))) r
-              else (s,[])
+              then askQuestions (interaction (Right (p :-> chChoice ch)) s)
+              else (s,[],Nothing)
 
 
   where
   askQuestions (s,os) =
-    ( s
+    ( s { iShouldSave = False }
     , reverse os ++
       [ q :-> AskQuestions qs
       | (q,qs) <- Map.toList
@@ -107,7 +107,11 @@ handleMessage (p :-> req) =
                                    }])
                       | (q :-> ch,(help,_))  <- Map.toList (iAsk s) ]
       ]
+    , if iShouldSave s
+         then Just (length (iLog s), gSave (iInit s) (reverse (iLog s)))
+         else Nothing
     )
+
 
 
 reload :: InteractState -> PlayerId -> WithPlayer OutMsg
@@ -115,7 +119,6 @@ reload s p =
   let forMe (q :-> _) _ = p == q
       ps = s { iAsk = Map.filterWithKey forMe (iAsk s) }
   in p :-> CurGameState ps
-
 
 
 data InteractState =
@@ -133,6 +136,8 @@ data InteractState =
 
     , iAsk     :: Map (WithPlayer Input) (Text, R)
       -- ^ Choices avialable to the players.
+
+    , iShouldSave :: Bool
     }
 
 iPlayers :: InteractState -> [PlayerId]
@@ -219,7 +224,8 @@ update o = Interact $
              Left _  -> (s,os)
              Right a -> k () s { iGame = doUpdate o a } (o : os)
 
-
+save :: Interact ()
+save = Interact $ \k s os -> k () s { iShouldSave = True } os
 
 
 --------------------------------------------------------------------------------

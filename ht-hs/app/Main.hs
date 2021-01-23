@@ -6,12 +6,12 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 import System.Environment(getArgs)
-import System.Random.TF(newTFGen)
+import System.Random.TF(mkSeedUnix,seedTFGen)
+import Data.Word(Word64)
 
 import Common.CallJS
 import Common.Server
 
-import Game(initialGame)
 import Actions(nextAction)
 import Basics
 import Board.Index
@@ -25,24 +25,41 @@ main :: IO ()
 main =
   do args <- getArgs
      case args of
-       b : ps ->
-         case Map.lookup (Text.pack b) boards of
-           Just board ->
-             do rng <- newTFGen
-                let mkP = PlayerId . Text.pack
-                    players = Set.fromList (map mkP ps)
-                    str = $(jsHandlers [ ''EventElement,
-                                         ''OutMsg,
-                                         ''GameUpdate, ''Choice, ''Event])
-                putStrLn str
-                newServer (BS8.pack str)
-                  $ startGame GameInfo
-                                { gPlayers = players
-                                , gState = initialGame rng board players
-                                , gInit = nextAction
-                                } []
-           Nothing -> fail "unknown board"
-       _ -> fail "Usage: board_name player1 player2 ..."
+       ["load",file] ->
+          do txt <- readFile file
+             case reads txt of
+               [(s,"")] -> begin s
+               _ -> fail "Failed to load save"
+       _ -> do seed <- mkSeedUnix
+               let moves = []
+               begin Save { .. }
 
+data Save = Save
+  { seed  :: (Word64, Word64, Word64, Word64)
+  , args  :: [String]
+  , moves :: [WithPlayer Choice]
+  } deriving (Read,Show)
 
-
+begin :: Save -> IO ()
+begin Save { .. } = do
+  putStrLn "MOVES:"
+  mapM_ print moves
+  case args of
+    b : ps ->
+      case Map.lookup (Text.pack b) boards of
+        Just board ->
+          do let rng = seedTFGen seed
+                 mkP = PlayerId . Text.pack
+                 players = Set.fromList (map mkP ps)
+                 str = $(jsHandlers [ ''EventElement,
+                                      ''OutMsg,
+                                      ''GameUpdate, ''Choice, ''Event])
+             newServer (BS8.pack str)
+               $ startGame GameInfo
+                             { gPlayers = players
+                             , gState = initialGame rng board players
+                             , gInit = nextAction
+                             , gSave = \moves -> show Save { .. }
+                             } moves
+        Nothing -> fail "unknown board"
+    _ -> fail "usage: board_name player1_name player2_name ..."
