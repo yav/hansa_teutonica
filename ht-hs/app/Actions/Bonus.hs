@@ -49,6 +49,7 @@ bonusAction b state =
            , "Move back using bonus token"
            , do update (Log StartAction)
                 update (UseBonusToken playerId b)
+                update (SwapWorkers nodeId spot)
                 evLog ["Used ", EvBonus b, " on ", EvNode nodeId (Just spot)]
                 update (Log EndAction)
            )
