@@ -20,7 +20,6 @@ body {
   padding: 0;
   float: left;
   position: relative;
-  z-index: 0;
   flex-shrink: 0;
 }
 
@@ -87,6 +86,10 @@ body {
   box-shadow: 0 0 2px 2px white;
 }
 
+.question {
+  z-index: 2;
+}
+
 .question.large {
   box-shadow: 0 0 5px 5px white;
 }
@@ -110,7 +113,6 @@ body {
   background-color: #f90;
   border: 1px solid black;
   border-radius: 100%;
-  z-index: 10;
 }
 
 
@@ -175,23 +177,32 @@ body {
 
 /* -------------------------------------------------------------------------- */
 .bonus {
-  z-index: 5;
   position: relative;
   display: inline-block;
-  border-radius: 100%;
+}
+
+.bonus img {
   box-shadow: -1px 1px 1px 1px #333;
+  border-radius: 100%;
+}
+
+.bonus .help {
+  position: absolute;
+  display: none;
+  left: 0px;
+  top: 0px;
+  background-color: white;
+  border: 1px solid black;
+  text-align: center;
+  padding: 0.5em;
+  font-size: smaller;
+  width: 10em;
 }
 
 .question.bonus {
   opacity: 0.85;
 }
 
-.bonus:hover {
-  transform: scale(3) !important;
-  z-index: 7;
-/*  border: 1px solid black; */
-  background-color: black;
-}
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -205,7 +216,6 @@ body {
 }
 
 .worker {
-  z-index: 5;
   position: relative;
   border: solid black;
   text-align: center;
@@ -273,7 +283,6 @@ body {
 .player-bar {
   background-color: rgba(50,25,0,0.95);
   width: 80%;
-  z-index: 1;
   position: absolute;
   border-radius: 10px;
   border: 2px solid black;
@@ -292,7 +301,7 @@ body {
 
 .bonus-multiplier {
   position:absolute;
-  z-index: 6;
+  z-index: 3;
   color: #999;
   background-color: rgba(0,0,0,0.5);
   left: 0px;
@@ -303,7 +312,6 @@ body {
 .bonus-spent {
   display: inline-block;
   position: absolute;
-  z-index: 1;
   color: #fff;
   background-image: url('img/token/back.png');
   background-repeat: no-repeat;
@@ -327,13 +335,11 @@ body {
   position: relative;
   display: inline-box;
   text-align: center;
-  z-index: 5;
 }
 
 .player-preference {
   position: absolute;
   display: inline-block;
-  z-index: 7;
 }
 .player-preference img {
   transform: rotate(180deg);
@@ -346,7 +352,7 @@ body {
   padding-left: 0.2em;
   padding-right: 0.2em;
   border: 1px solid black;
-  z-index: 11;
+  z-index: 1
 }
 
 .tooltip {
@@ -359,14 +365,14 @@ body {
   white-space: nowrap;
   padding-right: 0.2em;
   padding-left: 0.2em;
-  z-index: 15;
+  z-index: 2;
   height: 2ex;
 }
 
 /* -------- Turn */
 .turn {
   flex-shrink: 0;
-  z-index: 12;
+  z-index: 3;
   padding-left: 1em;
   padding-right: 1em;
   border-radius: 0.3em;
