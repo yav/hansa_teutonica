@@ -69,7 +69,6 @@ zeroState = Player
 initialPlayer :: Int -> Player
 initialPlayer turnOrder =
      hireWorker Cube (turnOrder + 1)
-  $  changeWorker Active Disc 3 -- XXX
   $  changeWorker Passive Cube 7
   $ foldr levelUp' zeroState enumAll
   where

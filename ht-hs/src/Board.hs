@@ -169,7 +169,12 @@ replaceTargets board provinceOk edgeId workerT =
            _  -> EdgeUsable spots
     | otherwise = EdgeDisabled
 
-
+greenCities :: Board -> WorkerType -> [Choice]
+greenCities board wt =
+  [ ChNodeEmpty nodeId wt
+  | (nodeId,nodeInfo) <- Map.toList (getField boardNodes board)
+  , nodeIsGreen nodeInfo
+  ]
 
 countFull :: Board -> Int
 countFull = Map.size . Map.filter nodeIsFull . getField boardNodes

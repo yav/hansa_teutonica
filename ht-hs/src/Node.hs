@@ -22,6 +22,7 @@ module Node
   , nodeAcceptsAnnex
   , nodeHasPresence
   , nodeAllWorkers
+  , nodeIsGreen
   ) where
 
 import Data.Text(Text)

@@ -24,7 +24,7 @@ doFixedBonus early playerId edgeId bonus =
     BonusPlace2         -> when early $ doPlaceInProvince playerId 1 2
     BonusMove2          -> when (not early) $ bonusMove2 playerId
     BonusGainPrivilege  -> when early $ bonusGainPrivilage playerId
-    BonusBuildInGreen   -> pure ()
+    BonusBuildInGreen   -> when early $ bonusBuildInGreen playerId
     BonusReuse2         -> when early $ bonusReuse2 playerId edgeId
 
 
@@ -67,34 +67,55 @@ bonusGainPrivilage playerId =
        update (Upgrade playerId Privilege)
 
 bonusReuse2 :: PlayerId -> EdgeId -> Interact ()
-bonusReuse2 playerId edgeId = pure ()
-{-
+bonusReuse2 playerId edgeId = pickingUp 1
   where
-  limit = 2
+  limit = 2 :: Int
   pickingUp n
     | n > limit = pure ()
     | otherwise =
       do ws <- view (edgeWorkers . getField (gameBoard .> boardEdge edgeId))
          prov <- view (edgeProvince edgeId . getField gameBoard)
-         let giveUp = ( playerId :-> ChDone
+         let giveUp = ( playerId :-> ChDone "Done"
                       , "Don't relocating additional workers"
                       , pure ()
                       )
              mkOpt (spot,_,w) =
-                ( ChEdgeFull edgeId spot Nothing w
+                ( playerId :-> ChEdgeFull edgeId spot Nothing w
                 , "Relocate worker"
                 , do update (RemoveWorkerFromEdge edgeId spot)
-                     update (AddWorkerToHand w)
-                     board <- view (getField board)
+                     update (AddWorkerToHand prov w)
+                     board <- view (getField gameBoard)
                      loc <- choose playerId
                               [ (ch,"New worker location")
                               | ch <- freeSpots board (== prov) (shape w)
                               ]
                      let ChEdgeEmpty tgtEdge tgtSpot _ = loc
                      update RemoveWorkerFromHand
-                     update (PlaceWorkerOnEdge tgtEdge tgtSpot)
+                     update (PlaceWorkerOnEdge tgtEdge tgtSpot w)
                      pickingUp (n+1)
                 )
          askInputs (giveUp : map mkOpt ws)
 
--}
+bonusBuildInGreen :: PlayerId -> Interact ()
+bonusBuildInGreen playerId =
+  do player <- view (getField (gamePlayer playerId))
+     board  <- view (getField gameBoard)
+     case placeSpots Active player "Place bonus worker" (greenCities board) of
+       ([],_) -> pure ()
+       (opts,ambig) ->
+          do ch <- choose playerId $ (ChDone "Done", "Don't use bonus")
+                                   : changePref player ambig ++ opts
+             case ch of
+               ChDone {} -> pure ()
+               ChSetPreference wt ->
+                  do let w = Worker { owner = playerId, shape = wt }
+                     update (SetWorkerPreference w)
+                     bonusBuildInGreen playerId
+               ~(ChNodeEmpty nodeId wt) ->
+                  do let w = Worker { owner = playerId, shape = wt }
+                     update (ChangeAvailble w (-1))
+                     update (PlaceWorkerInOffice nodeId w)
+                     evLog [ EvWorker w, " established an office in ",
+                                                        EvNode nodeId Nothing ]
+
+

@@ -81,8 +81,9 @@ placeSpots home playerState help getSpots =
        guard (getWorker home t playerState > 0)
        x <- getSpots t
        key <- case x of
-                ChEdgeEmpty e s _  -> [(e,s)]
-                ChEdgeFull e s _ _ -> [(e,s)]
+                ChEdgeEmpty e s _  -> [Right (e,s)]
+                ChEdgeFull e s _ _ -> [Right (e,s)]
+                ChNodeEmpty i _    -> [Left i]
                 _ -> []
        pure (key, [(t,(x,help))])
 
