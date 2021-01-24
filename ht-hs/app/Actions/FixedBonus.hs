@@ -1,6 +1,6 @@
 module Actions.FixedBonus where
 
-import Control.Monad(when)
+import Control.Monad(when,unless)
 import Data.Maybe(isJust)
 
 import Common.Basics
@@ -14,15 +14,18 @@ import Game
 import Board
 import Event
 import Bonus
+import Stats
+import Player
+import Edge
 
 doFixedBonus :: Bool -> PlayerId -> EdgeId -> FixedBonus -> Interact ()
 doFixedBonus early playerId edgeId bonus =
   case bonus of
     BonusPlace2         -> when early $ doPlaceInProvince playerId 1 2
     BonusMove2          -> when (not early) $ bonusMove2 playerId
-    BonusGainPrivilege  -> pure ()
+    BonusGainPrivilege  -> when early $ bonusGainPrivilage playerId
     BonusBuildInGreen   -> pure ()
-    BonusReuse2         -> pure ()
+    BonusReuse2         -> when early $ bonusReuse2 playerId edgeId
 
 
 doPlaceInProvince :: PlayerId -> Int -> Int -> Interact ()
@@ -56,3 +59,42 @@ bonusMove2 :: PlayerId -> Interact ()
 bonusMove2 playerId =
   askInputs . normalMovePieces playerId 2 True (const True) (==) =<< getState
 
+
+bonusGainPrivilage :: PlayerId -> Interact ()
+bonusGainPrivilage playerId =
+  do priv <- view (getLevel Privilege . getField (gamePlayer playerId))
+     unless (priv >= maxStat Privilege) $
+       update (Upgrade playerId Privilege)
+
+bonusReuse2 :: PlayerId -> EdgeId -> Interact ()
+bonusReuse2 playerId edgeId = pure ()
+{-
+  where
+  limit = 2
+  pickingUp n
+    | n > limit = pure ()
+    | otherwise =
+      do ws <- view (edgeWorkers . getField (gameBoard .> boardEdge edgeId))
+         prov <- view (edgeProvince edgeId . getField gameBoard)
+         let giveUp = ( playerId :-> ChDone
+                      , "Don't relocating additional workers"
+                      , pure ()
+                      )
+             mkOpt (spot,_,w) =
+                ( ChEdgeFull edgeId spot Nothing w
+                , "Relocate worker"
+                , do update (RemoveWorkerFromEdge edgeId spot)
+                     update (AddWorkerToHand w)
+                     board <- view (getField board)
+                     loc <- choose playerId
+                              [ (ch,"New worker location")
+                              | ch <- freeSpots board (== prov) (shape w)
+                              ]
+                     let ChEdgeEmpty tgtEdge tgtSpot _ = loc
+                     update RemoveWorkerFromHand
+                     update (PlaceWorkerOnEdge tgtEdge tgtSpot)
+                     pickingUp (n+1)
+                )
+         askInputs (giveUp : map mkOpt ws)
+
+-}

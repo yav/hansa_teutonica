@@ -85,7 +85,7 @@ bonusAction b state =
                           ) | q <- spots ]
 
          doPutDown n l worker ~(ChEdgeEmpty edgeId spot _) =
-           do update RemoveWokerFromHand
+           do update RemoveWorkerFromHand
               update (PlaceWorkerOnEdge edgeId spot worker)
               evLog ["Moved ", EvWorker worker, " to ",
                                               EvEdge edgeId (Just spot)]

@@ -121,7 +121,7 @@ tryPlace state =
        ~(ChEdgeEmpty tgtEdgeId spot _) <-
             choose (owner worker)
               [ (ch, "Move replaced worker") | ch <- tgts ]
-       update RemoveWokerFromHand
+       update RemoveWorkerFromHand
        update (PlaceWorkerOnEdge tgtEdgeId spot worker)
        evLog [ "Moved ", EvWorker worker, " to ", EvEdge tgtEdgeId (Just spot) ]
        placeExtra Passive (owner worker) edgeId

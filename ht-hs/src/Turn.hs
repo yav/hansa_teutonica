@@ -15,7 +15,7 @@ module Turn
 
     -- * The "hand"
   , addWorkerToHand
-  , removeWokerFromHand
+  , removeWorkerFromHand
   , nextPickedUp
   , turnPlacing
   ) where
@@ -69,8 +69,8 @@ useGateway g = \t -> t { turnUsedGateways = Set.insert g (turnUsedGateways t) }
 addWorkerToHand :: Maybe ProvinceId -> Worker -> Turn -> Turn
 addWorkerToHand prov w = \t -> t { turnPickedUp = (prov,w) : turnPickedUp t }
 
-removeWokerFromHand :: Turn -> Turn
-removeWokerFromHand = \t -> t { turnPickedUp = init (turnPickedUp t) }
+removeWorkerFromHand :: Turn -> Turn
+removeWorkerFromHand = \t -> t { turnPickedUp = init (turnPickedUp t) }
 
 nextPickedUp :: Turn -> Maybe (Maybe ProvinceId,Worker)
 nextPickedUp = listToMaybe  . reverse . turnPickedUp

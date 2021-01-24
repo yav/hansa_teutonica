@@ -66,7 +66,7 @@ data GameUpdate =
   | ChangeDoneActions Int
   | ChangeActionLimit Int
   | AddWorkerToHand (Maybe ProvinceId) Worker
-  | RemoveWokerFromHand
+  | RemoveWorkerFromHand
   | UseGateway ProvinceId
   | DrawBonusToken
   | PlacingBonus (Maybe BonusToken)
@@ -194,8 +194,8 @@ doUpdate upd =
     AddWorkerToHand prov w ->
       Right . (gameTurn `updField` addWorkerToHand prov w)
 
-    RemoveWokerFromHand ->
-      Right . (gameTurn `updField` removeWokerFromHand)
+    RemoveWorkerFromHand ->
+      Right . (gameTurn `updField` removeWorkerFromHand)
 
     DrawBonusToken ->
       Right . (gameTokenRemaining `updField` subtract 1)

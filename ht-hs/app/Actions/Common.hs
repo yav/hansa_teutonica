@@ -152,7 +152,7 @@ normalMovePieces playerId limit stopEarly canPickUp canPutDown =
              ]
 
   doPutDown w edgeId spot =
-    do update RemoveWokerFromHand
+    do update RemoveWorkerFromHand
        update (PlaceWorkerOnEdge edgeId spot w)
        evLog [ "Moved ", EvWorker w, " to ", EvEdge edgeId (Just spot) ]
        putDown
