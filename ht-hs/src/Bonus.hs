@@ -1,6 +1,5 @@
 module Bonus where
 
-import Data.Text(Text)
 import qualified Data.Aeson as JS
 import GHC.Generics
 
@@ -39,7 +38,7 @@ data FixedBonus =
   | BonusGainPrivilege
   | BonusBuildInGreen
   | BonusReuse2
-  deriving (Eq,Ord,Show,Read)
+  deriving (Eq,Ord,Show,Read,Generic)
 
 
 bonusPoints :: Int -> Int
@@ -53,19 +52,10 @@ bonusPoints n
   | otherwise = 21
 
 --------------------------------------------------------------------------------
-bonusAsKey :: BonusToken -> Text
-bonusAsKey token =
-  case token of
-    BonusUpgrade -> "BonusUpgrade"
-    BonusSwap    -> "BonusSwap"
-    BonusMove    -> "BonusMove"
-    BonusExtra   -> "BonusExtra"
-    BonusAct3    -> "BonusAct3"
-    BonusAct4    -> "BonusAct4"
-
 instance JS.ToJSON    BonusToken
 instance JS.ToJSONKey BonusToken where toJSONKey = jsDeriveKey
 instance JS.FromJSON  BonusToken
+instance JS.ToJSON    FixedBonus
 
 
 

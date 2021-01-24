@@ -179,6 +179,7 @@ body {
   position: relative;
   display: inline-block;
   border-radius: 100%;
+  box-shadow: -1px 1px 1px 1px #333;
 }
 
 .question.bonus {
@@ -188,7 +189,7 @@ body {
 .bonus:hover {
   transform: scale(3) !important;
   z-index: 7;
-  border: 1px solid black;
+/*  border: 1px solid black; */
   background-color: black;
 }
 /* -------------------------------------------------------------------------- */

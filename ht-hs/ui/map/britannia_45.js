@@ -1,7 +1,7 @@
 var britannia_45 = {
   "width": 4941,
   "height": 6910,
-  "worker": 80,
+  "worker": 70,
   "url": "img/board/britannia-45.jpg",
   "nodes": {
     "0": {
@@ -416,8 +416,8 @@ var britannia_45 = {
       ]
     },
     "3": {
-      "x": 573,
-      "y": 874,
+      "x": 571,
+      "y": 872,
       "rotate": 210,
       "spots": [
         {
@@ -435,8 +435,8 @@ var britannia_45 = {
       ]
     },
     "4": {
-      "x": 475,
-      "y": 904,
+      "x": 472,
+      "y": 902,
       "rotate": 0,
       "spots": [
         {

@@ -136,6 +136,7 @@ instance JS.ToJSON Edge where
      optionalBonus others =
        case edgeBonus e of
          Bonus b -> ("bonus" .= b) : others
+         FixedBonus b -> ("bonus" .= b) : others
          _       -> others
 
      keys = [ 0 :: Int .. ]

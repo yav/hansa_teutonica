@@ -12,7 +12,7 @@ function boardCoord(name,size) {
          , url:        map.url
 
          , workerSize: sz
-         , bonusSize:  3 * sz
+         , bonusSize:  3.9 * sz
          , houseSize:  1.5 * sz
          , upgradeSize: 4.5 * sz
          , fontSize: 2 * sz
@@ -61,6 +61,21 @@ function boardCoord(name,size) {
 }
 
 
+// for debug
+function fillMap() {
+  const map = layout[gui.board.mapName]
+  const w = { owner: playerId, shape: 'Cube' }
+  for (const i in map.nodes) {
+    for (const j in map.nodes[i]) {
+      gui.board.placeWorkerInOffice(i,w)
+    }
+  }
+
+  for (const i in map.edges) {
+  }
+}
+
+
 function drawBoard(opts) {
   const ui    = {}
   const board = boardCoord(opts.map, opts.size)
@@ -68,6 +83,7 @@ function drawBoard(opts) {
   ui.bonusSize  = board.bonusSize
   ui.fontSize   = board.fontSize
   ui.tokenCountSpot = board.tokenCountSpot
+  ui.mapName = opts.map
 
   const dom = function() {
     const dom = document.createElement('div')
@@ -191,6 +207,7 @@ function drawBoard(opts) {
 
     // Initialize
     const nodeNames = {}
+
     for (const i in opts.nodes) {
       const node = opts.nodes[i]
       nodeNames[i] = node.name
@@ -249,6 +266,7 @@ function drawBoard(opts) {
     const placedBonuses = {}
 
     const placeBonus = function(edge,bonus) {
+      console.log('bonus on edge ' + edge + ' ' + bonus)
       const loc = board.bonusSpot(edge)
       const el  = drawBonusTokenAt(loc, board.bonusSize, bonus)
       dom.appendChild(el)
