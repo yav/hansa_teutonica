@@ -15,17 +15,7 @@ function drawLog() {
       for (let i = 0; i < cl.length; ++i)
         el.classList.add(cl[i])
     box.appendChild(el)
-  }
-
-  const sayEdge = function(edgeId,spot) {
-    const nodes = gui.board.edgeNodes[edgeId]
-    const from  = gui.board.nodeNames[nodes[0]]
-    const to    = gui.board.nodeNames[nodes[1]]
-    let msg = from + '-' + to
-    if (spot !== undefined && spot !== null) {
-      msg = msg + ', spot ' + spot
-    }
-    lab(msg,['log-unit'])
+    return el
   }
 
   const sayNode = function(nodeId,spot) {
@@ -33,7 +23,29 @@ function drawLog() {
     if (spot !== undefined && spot !== null) {
       msg = msg + ', office ' + (spot+1)
     }
+    const el = lab(msg,['log-unit'])
+    el.addEventListener('mouseenter',function(){gui.board.hilightNode(nodeId)})
+    el.addEventListener('mouseleave',
+                          function(){gui.board.unhilightNode(nodeId)})
+  }
+
+  const sayEdge = function(edgeId,spot) {
+    const nodes = gui.board.edgeNodes[edgeId]
+    sayNode(nodes[0])
+    lab('-')
+    sayNode(nodes[1])
+    if (spot !== undefined && spot !== null) {
+      lab(', spot ' + spot)
+    }
+/*
+    const from  = gui.board.nodeNames[nodes[0]]
+    const to    = gui.board.nodeNames[nodes[1]]
+    let msg = from + '-' + to
+    if (spot !== undefined && spot !== null) {
+      msg = msg + ', spot ' + spot
+    }
     lab(msg,['log-unit'])
+*/
   }
 
   const sayWorker = function(worker) {

@@ -25,6 +25,22 @@ function boardCoord(name,size) {
              return { x: cosc * it.x, y: cosc * it.y }
            }
 
+         , nodeRadius: function(nodeId) {
+             const node = map.nodes[nodeId]
+             let xMin,yMin,xMax
+             for (const spot in node) {
+                const o = node[spot]
+                const x = cosc * o.x
+                const y = cosc * o.y
+                if (xMin === undefined || x < xMin) xMin = x
+                if (xMax === undefined || x > xMax) xMax = x
+                if (yMin === undefined || y < yMin) yMin = y
+             }
+             return { x: xMin - 1.5*sz, y: yMin - sz
+                    , width: 4*sz + xMax - xMin
+                    , height: 4.5*sz }
+           }
+
          , edgeSpot: function(edge,ix) {
              const it = map.edges[edge].spots[ix]
              return { x: cosc * it.x, y: cosc * it.y }
@@ -117,6 +133,7 @@ function drawBoard(opts) {
     // exported:
     ui.setFull = setFull
   }
+
 
   { // offices
     const lastAnnex = {} // locaiton of last annex, indexed by node
@@ -223,6 +240,34 @@ function drawBoard(opts) {
     ui.askFullOffice       = askFullOffice
     ui.askEmptyOffice      = askEmptyOffice
     ui.swapWorkers         = swapWorkers
+
+  }
+
+  { // nodes
+    const nodeBox = {}
+    ui.hilightNode = function(node) {
+      let val = nodeBox[node]
+      if (val === undefined) {
+        const y = document.createElement('div')
+        dom.appendChild(y)
+        y.classList.add('node-highlight')
+        const loc = board.nodeRadius(node)
+        y.style.position = 'absolute'
+        y.style.left   = loc.x
+        y.style.top    = loc.y
+        y.style.width  = loc.width
+        y.style.height = loc.height
+        nodeBox[node] = y
+        val = y
+      }
+      val.style.display = 'inline-block'
+    }
+
+    ui.unhilightNode = function(node) {
+      const it = nodeBox[node]
+      if (it === undefined) return
+      it.style.display = 'none'
+    }
   }
 
 
