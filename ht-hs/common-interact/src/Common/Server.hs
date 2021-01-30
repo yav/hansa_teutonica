@@ -3,6 +3,7 @@ module Common.Server
   , GameInfo(..)
   ) where
 
+import Data.Maybe(fromMaybe)
 import Data.ByteString(ByteString)
 import qualified Data.ByteString.Char8 as BS8
 import Data.Text(Text)
@@ -24,7 +25,7 @@ import qualified Network.WebSockets.Snap as WS
 import Common.Basics
 import Common.Interact
 
-
+import System.Console.GetOpt
 --------------------------------------------------------------------------------
 
 data Server = Server
@@ -37,14 +38,22 @@ data ServerState = ServerState
   , gameState :: InteractState
   }
 
-newServer :: ByteString -> InteractState -> IO ()
-newServer dyn s =
-  do ref <- newIORef ServerState { connected = Map.empty
+newServer ::
+  Monoid a => [OptDescr a] -> (a -> IO (ByteString,InteractState )) -> IO ()
+newServer options k =
+  do let toCFG o = Just (Snap.setOther o Snap.emptyConfig)
+         opts    = map (Snap.fmapOpt toCFG) options ++
+                                          Snap.optDescrs Snap.defaultConfig
+     cfg <- Snap.extendedCommandLineConfig opts (<>) Snap.defaultConfig
+     (dyn,s) <- k (fromMaybe mempty (Snap.getOther cfg))
+
+     ref <- newIORef ServerState { connected = Map.empty
                                  , gameState = s
                                  }
      logger <- newLogger "-"
      let srv = Server { serverRef = ref, serverLogger = logger }
-     Snap.quickHttpServe $
+
+     Snap.httpServe cfg $
        Snap.route
          [ ("/ws", WS.runWebSocketsSnap \pending ->
                    do conn <- WS.acceptRequest pending
