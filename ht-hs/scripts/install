@@ -1,0 +1,11 @@
+#!/bin/bash
+
+VER=1.0
+DIR=ht-hs-$VER
+
+mkdir -p $DIR
+cabal build
+cp `cabal exec which ht-hs` $DIR/ht-hs
+strip $DIR/ht-hs
+upx $DIR/ht-hs
+cp -r ui $DIR/
