@@ -23,7 +23,7 @@ function eastMap(map)
     addStop(map,curEdge, stopShip, x, y)
   end
 
-  map.modifiedRemove = false
+  map.modifiedRemove = true
 
   -- board
   map.url   = board_east_url

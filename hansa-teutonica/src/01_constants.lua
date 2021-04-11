@@ -1,5 +1,5 @@
 local version = 3       -- bump this to invalidate saves
-local version_min = 2   -- bump this for fixes that don't affect saves
+local version_min = 3   -- bump this for fixes that don't affect saves
 
 -- Board info
 local boardPieceZ = 1.5
@@ -53,7 +53,7 @@ local cityActionName =
 
 
 -- Bonus token
-local bonusNum = { 3, 2, 2, 5, 2, 2 } -- how many of each type are there
+local bonusNum = { 2, 3, 2, 4, 2, 2 } -- how many of each type are there
 
 local bonusUpgrade = 1
 local bonusSwap = 2
