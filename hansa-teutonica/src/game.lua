@@ -286,6 +286,8 @@ function newPlayer(color,turnOrder)  -- Player
   p.foreignBuilds = 0
   p.foreignBuildsIn = {}
 
+  p.connectedBoundRoute = false
+
   p.score = 0
   return p
 end

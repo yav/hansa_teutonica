@@ -145,12 +145,15 @@ end
 
 function checkWinRace(g,p)
   local place = g.raceAward
+  local s = g.playerState[p]
   if place > #raceAward then return end
+  if s.connectedBoundRoute then return end
   if not officeConnection(g,p,g.map.raceFrom,g.map.raceTo) then return end
 
   local suff = { "st","nd","rd" }
   say(playerColorBB(p) .. " is " .. place .. suff[place] ..
         " to connect " .. g.map.raceFrom .. " and " .. g.map.raceTo)
+  s.connectedBoundRoute = true
   doScorePoints(g,p,raceAward[place])
   g.raceAward = place + 1
 end
